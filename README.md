@@ -253,22 +253,19 @@ void print_error(const std::string &file_name, const SyntaxError &error) {
 }
 
 // Basic token printer
-void print_token(const std::shared_ptr<Token> &token) {
+void print_token(const Token &token) {
     std::cout << token.name << "(";
 
     // Print terminal tokens
-    if(token.terminal) {
-        const auto terminal = std::static_pointer_cast<Terminal>(token);
-        std::cout << terminal.value;
-    }
+    if(token.terminal)
+        std::cout << terminal.value();
 
     // Recursively print non-terminal tokens' sub-tokens
     else {
-        const auto non_terminal = std::static_pointer_cast<NonTerminal>(token);
-
-        const unsigned int token_count = non_terminal.values.size();
+        std::vector<Token> &tokens = token.values();
+        const unsigned int token_count = tokens.size();
         for(unsigned int index = 0;  index < token_count; index += 1) {
-            print_token(non_terminal.values[index]);
+            print_token(tokens[index]);
             if(index + 1 < token_count)
                 std::cout << ", ";
         }
