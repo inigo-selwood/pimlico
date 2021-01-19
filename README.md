@@ -314,7 +314,7 @@ int main(int argument_count, char *argument_values[]) {
     std::string grammar_string((std::istreambuf_iterator<char>(source_stream)),
                  std::istreambuf_iterator<char>());
 
-    const SyntaxTree tree = specificaiton.parse(source_string);
+    const SyntaxTree tree(specification, source_string);
     if(tree.valid == false) {
         std::cerr << "error parsing source\n";
         for(const auto &syntax_error : tree.syntax_errors)
