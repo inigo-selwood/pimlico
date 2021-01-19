@@ -2,11 +2,13 @@
 
 A simple parser for parsing expression grammars (PEGs).
 
-Pimlico aims to meet the following requirements:
+Pimlico is written with the following goals in mind:
 + Simple and human readable syntax
 + Thorough and flexible error handling that allows the programmer to control formatting and reporting
 + A sensible balance between memory and computational overhead
 + Support for parsing whitespace structured text
+
+The intent is to speed up the development of parsers and interpreters by reducing the amount of time the programmer has to spend on creating lexical and syntactical analysers, as well as catching and reporting errors as early as possible.
 
 ## Sections
 
@@ -23,9 +25,9 @@ Pimlico aims to meet the following requirements:
 
 ## Grammar
 
-Pimlico uses grammar files written in a language that combines the features of EBNF with aspects of regular expression syntax.
+Pimlico uses grammar files written in a language that combines the features of EBNF with aspects of regular expression syntax. By convention, grammar files should have the extension `.peg`.
 
-Grammar files consist of a list of production rules: a name, and a sequence of terms.
+Grammar files consist of a list of production rules, each with a name, and a sequence of terms. The parser then tries to map rules to strings in the text being parsed, creating an abstract syntax tree (AST).
 
 ---
 
@@ -230,7 +232,7 @@ Class           | Purpose
 
 ### Token Printer Example
 
-```
+``` c++
 #include <fstream>
 #include <iostream>
 #include <streambuf>
