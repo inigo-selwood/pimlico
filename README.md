@@ -1,5 +1,7 @@
 # Pimlico
 
+**NOTE:** This repository is currently a work in progress
+
 A simple parser for parsing expression grammars (PEGs).
 
 Pimlico is written with the following goals in mind:
