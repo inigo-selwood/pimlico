@@ -294,10 +294,12 @@ int main(int argument_count, char *argument_values[]) {
     std::string grammar_string((std::istreambuf_iterator<char>(grammar_stream)),
                  std::istreambuf_iterator<char>());
 
-    const Specification specification(grammar_string);
-    if(specification.valid == false) {
+    std::vector<SyntaxError> syntax_errors;
+    const Specification specification =
+            Specification::parse(grammar_string, syntax_errors);
+    if(specification == nullptr) {
         std::cerr << "error parsing grammar specification\n";
-        for(const auto &syntax_error : specification.syntax_errors)
+        for(const SyntaxError &syntax_error : syntax_errors)
             print_error(grammar_filename, syntax_error);
         return -3;
     }
@@ -314,10 +316,11 @@ int main(int argument_count, char *argument_values[]) {
     std::string grammar_string((std::istreambuf_iterator<char>(source_stream)),
                  std::istreambuf_iterator<char>());
 
-    const SyntaxTree tree(specification, source_string);
+    const SyntaxTree tree =
+            SyntaxTree::parse(specification, source_string, syntax_errors);
     if(tree.valid == false) {
         std::cerr << "error parsing source\n";
-        for(const auto &syntax_error : tree.syntax_errors)
+        for(const auto &syntax_error : syntax_errors)
             print_error(source_filename, syntax_error);
         return -4;
     }
