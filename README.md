@@ -286,7 +286,7 @@ int main(int argument_count, char *argument_values[]) {
     std::string grammar_filename = argument_values[1];
     std::ifstream grammar_stream(grammar_filename);
     if(grammar_stream.is_open() == false) {
-        std::cerr << "couldn't open grammar file";
+        std::cerr << "couldn't open grammar file\n";
         return -2;
     }
 
@@ -308,8 +308,8 @@ int main(int argument_count, char *argument_values[]) {
     std::string source_filename = argument_values[2];
     std::ifstream source_stream(source_filename);
     if(source_stream.is_open() == false) {
-        std::cerr << "couldn't open source file";
-        return -2;
+        std::cerr << "couldn't open source file\n";
+        return -4;
     }
 
     // Create a syntax tree
@@ -322,7 +322,7 @@ int main(int argument_count, char *argument_values[]) {
         std::cerr << "error parsing source\n";
         for(const auto &syntax_error : syntax_errors)
             print_error(source_filename, syntax_error);
-        return -4;
+        return -5;
     }
 
     // Recursively print the tree's tokens
