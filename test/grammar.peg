@@ -1,0 +1,11 @@
+
+operator...
+    arithmetic...
+        binary: '+' | '-' | '*' | '/' | '%'
+        bitwise: '&' | '|' | '^'
+        unary: '~'
+    assignment: (!'~' arithmetic_operator)? '='
+    comparison: '<' | '>' | (('=' '!' '<' '>') '=')
+    logical:
+        binary: '&&' | '||'
+        unary: '!'
