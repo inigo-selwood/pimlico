@@ -18,8 +18,8 @@ public:
         this->message = message;
 
         text = buffer.line_text();
-        column_number = buffer.column_number;
-        line_number = buffer.line_number;
+        column_number = buffer.position.column_number;
+        line_number = buffer.position.line_number;
     }
 
 };
