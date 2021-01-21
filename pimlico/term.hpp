@@ -234,8 +234,6 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
                 choice->type = Type::CHOICE;
                 choice->unique_terms = options;
 
-                // choice->value = options;
-
                 std::vector<std::weak_ptr<Term>> weak_options;
                 for(const auto &option : options)
                     weak_options.push_back(option);
@@ -258,20 +256,20 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         // Parse constants
         if(character == '\'') {
             term->type = Type::CONSTANT;
-
             const std::string value = parse_constant(buffer, errors);
             if(value.empty())
                 return nullptr;
+
             term->value = value;
         }
 
         // Parse ranges
         else if(character == '[') {
             term->type = Type::RANGE;
-
             const std::array<char, 2> value = parse_range(buffer, errors);
             if(value == std::array<char, 2>({0, 0}))
                 return nullptr;
+
             term->value = value;
         }
 
@@ -316,7 +314,6 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     return term;
 }
 
-// Helper for parsing values in term instance ranges
 int Term::parse_integer(TextBuffer &buffer) {
     std::string text;
     while(true) {
@@ -362,7 +359,6 @@ char Term::parse_escape_code(TextBuffer &buffer) {
     }
 }
 
-// Helper for parsing instance ranges
 inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
@@ -443,6 +439,59 @@ inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
         return {1, 1};
 }
 
+inline std::string Term::parse_constant(TextBuffer &buffer,
+        std::vector<SyntaxError> &errors) {
+
+    if(buffer.read('\'') == false)
+        throw;
+
+    // std::cout << "position at constant parse start: " << buffer.position << "\n";
+
+    std::string value;
+    while(true) {
+        if(buffer.end_reached()) {
+            SyntaxError error("unexpected end-of-file", buffer);
+            errors.push_back(error);
+            return "";
+        }
+        else if(buffer.peek('\n')) {
+            SyntaxError error("unexpected end-of-line | '" + value + "'", buffer);
+            errors.push_back(error);
+            return "";
+        }
+        else if(buffer.peek('\''))
+            break;
+
+        // Handle escape codes
+        else if(buffer.read('\\')) {
+            const char escape_code = parse_escape_code(buffer);
+            if(escape_code == 0) {
+                SyntaxError error("invalid escape code", buffer);
+                errors.push_back(error);
+                return "";
+            }
+
+            value += escape_code;
+        }
+        else
+            value += buffer.read();
+    }
+
+    if(buffer.read('\'') == false) {
+        SyntaxError error("expected '\\\''", buffer);
+        errors.push_back(error);
+        return "";
+    }
+
+    if(value.empty()) {
+        SyntaxError error("empty constant", buffer);
+        errors.push_back(error);
+        return "";
+    }
+
+    return value;
+}
+
 inline std::array<char, 2> Term::parse_range(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
@@ -506,51 +555,6 @@ inline std::array<char, 2> Term::parse_range(TextBuffer &buffer,
     }
 
     return {start_value, end_value};
-}
-
-inline std::string Term::parse_constant(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors) {
-
-    if(buffer.read('\'') == false)
-        throw;
-
-    std::string value;
-    while(true) {
-        if(buffer.end_reached()) {
-            SyntaxError error("unexpected end-of-file", buffer);
-            errors.push_back(error);
-            return "";
-        }
-        else if(buffer.read('\n')) {
-            SyntaxError error("unexpected end-of-line", buffer);
-            errors.push_back(error);
-            return "";
-        }
-        else if(buffer.peek('\''))
-            break;
-
-        // Handle escape codes
-        else if(buffer.read('\\')) {
-            const char escape_code = parse_escape_code(buffer);
-            if(escape_code == 0) {
-                SyntaxError error("invalid escape code", buffer);
-                errors.push_back(error);
-                return "";
-            }
-
-            value += escape_code;
-        }
-        else
-            value += buffer.read();
-    }
-
-    if(value.empty()) {
-        SyntaxError error("empty constant", buffer);
-        errors.push_back(error);
-        return "";
-    }
-
-    return value;
 }
 
 };
