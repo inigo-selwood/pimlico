@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <variant>
 #include <vector>
@@ -32,6 +34,9 @@ public:
 
         NONE,
     };
+
+    friend std::ostream &operator<<(std::ostream &stream,
+                const std::weak_ptr<Term> &term);
 
     std::variant<std::string,
             std::array<char, 2>,
@@ -67,6 +72,56 @@ private:
     }
 
 };
+
+std::ostream &operator<<(std::ostream &stream,
+            const std::weak_ptr<Term> &term) {
+    static std::map<Term::Type, std::string> type_names = {
+        {Term::Type::CONSTANT,  "constant"},
+        {Term::Type::RANGE,     "range"},
+        {Term::Type::REFERENCE, "reference"},
+
+        {Term::Type::CHOICE,    "choice"},
+        {Term::Type::SEQUENCE,  "sequence"}
+    };
+
+    std::shared_ptr<Term> pointer = term.lock();
+    if(pointer == nullptr)
+        return stream;
+
+    stream << "(" << type_names[pointer->type] << " | ";
+
+    // Print constants/reference names
+    if(pointer->type == Term::Type::CONSTANT
+            || pointer->type == Term::Type::REFERENCE)
+        stream << std::get<std::string>(pointer->value);
+
+    // Print ranges
+    else if(pointer->type == Term::Type::RANGE) {
+        const auto range = std::get<std::array<char, 2>>(pointer->value);
+        if(range[0] > 0)
+            stream << range[0] << " ";
+
+        stream << ":";
+
+        if(range[1] > 0)
+            stream << " " << range[1];
+    }
+
+    // Print choices/sequences
+    else if(pointer->type == Term::Type::CHOICE
+            || pointer->type == Term::Type::SEQUENCE) {
+        const auto values =
+                std::get<std::vector<std::weak_ptr<Term>>>(pointer->value);
+        for(unsigned int index = 0; index < values.size(); index += 1) {
+            stream << values[index];
+            if(index + 1 < values.size())
+                stream << ", ";
+        }
+    }
+
+    stream << ")";
+    return stream;
+}
 
 // Helper for parsing values in term instance ranges
 int Term::parse_integer(TextBuffer &buffer) {
@@ -284,6 +339,8 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
                         std::shared_ptr<Term>(new Term());
                 choice->type = Type::CHOICE;
                 choice->unique_terms = options;
+
+                // choice->value = options;
 
                 std::vector<std::weak_ptr<Term>> weak_options;
                 for(const auto &option : options)
