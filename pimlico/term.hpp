@@ -35,7 +35,6 @@ public:
 
     std::variant<std::string,
             std::array<char, 2>,
-            std::shared_ptr<Rule>,
             std::vector<std::shared_ptr<Term>>> value;
 
     std::array<int, 2> instance_bounds;
@@ -204,8 +203,10 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
     else {
 
+        const char character = buffer.peek();
+
         // Parse constants
-        if(buffer.peek('\'')) {
+        if(character == '\'') {
             term->type = Type::CONSTANT;
 
             const std::string value = parse_constant(buffer, errors);
@@ -215,12 +216,30 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         }
 
         // Parse ranges
-        else if(buffer.peek('[')) {
+        else if(character == '[') {
             term->type = Type::RANGE;
 
             const std::array<char, 2> value = parse_range(buffer, errors);
             if(value == std::array<char, 2>({0, 0}))
                 return nullptr;
+            term->value = value;
+        }
+
+        // Handle references
+        else if((character >= 'a' && character <= 'z') || character == '_') {
+            term->type = Type::REFERENCE;
+
+            std::string value;
+            while(true) {
+                if(buffer.end_reached())
+                    break;
+
+                const auto letter = buffer.peek();
+                if((character >= 'a' && character <= 'z') || character == '_')
+                    value += buffer.read();
+                else
+                    break;
+            }
             term->value = value;
         }
 
