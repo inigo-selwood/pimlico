@@ -35,7 +35,7 @@ public:
 
     std::variant<std::string,
             std::array<char, 2>,
-            std::vector<std::shared_ptr<Term>>> value;
+            std::vector<std::weak_ptr<Term>>> value;
 
     std::array<int, 2> instance_bounds;
 
@@ -48,6 +48,8 @@ public:
             const bool root);
 
 private:
+
+    std::vector<std::shared_ptr<Term>> unique_terms;
 
     static int parse_integer(TextBuffer &buffer);
 
@@ -188,17 +190,102 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     if(buffer.read('('))
         enclosed = true;
 
-    const auto term = std::shared_ptr<Term>(new Term());
+    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
 
     // If a term is the root of a rule, or is enclosed in parentheses, it should
     // assume it's a sequence
     if(root || enclosed) {
+
+        std::vector<std::shared_ptr<Term>> values;
         while(true) {
+            buffer.skip_space();
             if(buffer.end_reached())
                 break;
 
+            // Continue parsing on the next line if it's double-indented
+            if(buffer.peek('\n')) {
+                if(buffer.line_indentation(buffer.line + 1) ==
+                        buffer.line_indentation(buffer.line) + 2) {
+                    buffer.increment();
+                    continue;
+                }
+                else
+                    break;
+            }
 
+            // Parse the next term in the sequence
+            std::shared_ptr<Term> term = Term::parse(buffer, errors);
+            if(term == nullptr)
+                return nullptr;
+
+            // If a choice symbol is encountered, stop to parse it here
+            buffer.skip_space();
+            if(buffer.peek('|')) {
+
+                // Create a vector to hold the choice's values, with the
+                // just-parsed term as its first option
+                std::vector<std::shared_ptr<Term>> options;
+                options.push_back(term);
+
+                // Keep parsing options until no more choice symbols are found
+                while(true) {
+                    buffer.skip_space();
+                    if(buffer.end_reached()) {
+                        const SyntaxError error("unexpected end-of-file",
+                                buffer);
+                        errors.push_back(error);
+                        return nullptr;
+                    }
+
+                    // Continue parsing on the next line if it's double-indented
+                    else if(buffer.peek('\n')) {
+                        if(buffer.line_indentation(buffer.line + 1) ==
+                                buffer.line_indentation(buffer.line) + 2) {
+                            buffer.increment();
+                            continue;
+                        }
+                        else {
+                            const SyntaxError error("unexpected end-of-line",
+                                    buffer);
+                            errors.push_back(error);
+                            return nullptr;
+                        }
+                    }
+
+                    if(buffer.read('|') == false)
+                        break;
+
+                    buffer.skip_space();
+                    std::shared_ptr<Term> option = Term::parse(buffer, errors);
+                    if(option == nullptr) {
+                        const std::string error_message =
+                                "expected term after choice operator '|'";
+                        SyntaxError error(error_message, buffer);
+                        errors.push_back(error);
+                        return nullptr;
+                    }
+                    options.push_back(option);
+                }
+
+                // Create a choice term with the options parsed
+                std::shared_ptr<Term> choice =
+                        std::shared_ptr<Term>(new Term());
+                choice->type = Type::CHOICE;
+                choice->unique_terms = options;
+
+                std::vector<std::weak_ptr<Term>> weak_options;
+                for(const auto &option : options)
+                    weak_options.push_back(option);
+                choice->value = weak_options;
+
+                values.push_back(choice);
+            }
+
+            values.push_back(term);
         }
+
+        if(values.size() == 1)
+            term = values.back();
     }
 
     else {
