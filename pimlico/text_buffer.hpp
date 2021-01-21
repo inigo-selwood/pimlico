@@ -19,12 +19,12 @@ public:
         unsigned long line_number;
         unsigned long column_number;
 
-        // friend std::ostream &operator<<(std::ostream &stream,
-        //         const Position &position) {
-        //
-        //     return stream << "(line " << position.line_number <<
-        //             ", column " << position.column_number << ")";
-        // }
+        friend std::ostream &operator<<(std::ostream &stream,
+                const Position &position) {
+
+            return stream << "(line " << position.line_number <<
+                    ", column " << position.column_number << ")";
+        }
 
     };
 
@@ -67,6 +67,8 @@ private:
 TextBuffer::TextBuffer(const std::string &text) {
     this->text = text;
     position.index = 0;
+    position.line_number = 1;
+    position.column_number = 1;
 }
 
 bool TextBuffer::end_reached() const {
