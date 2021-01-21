@@ -38,22 +38,32 @@ public:
             std::shared_ptr<Rule>,
             std::vector<std::shared_ptr<Term>>> value;
 
-    std::array<int, 2> instance_range;
+    std::array<int, 2> instance_bounds;
 
     Type type;
 
     Predicate predicate;
 
     static std::shared_ptr<Term> parse(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors);
+            std::vector<SyntaxError> &errors,
+            const bool root);
 
 private:
 
     static int parse_integer(TextBuffer &buffer);
 
-    static Predicate parse_predicate(TextBuffer &buffer);
-    static std::array<int, 2> parse_instance_range(TextBuffer &buffer,
+    static inline std::array<int, 2> parse_instance_bounds(TextBuffer &buffer,
             std::vector<SyntaxError> &errors);
+
+    static inline std::array<char, 2> parse_range(TextBuffer &buffer,
+            std::vector<SyntaxError> &errors) {
+        return std::array<char, 2>({0, 0});
+    }
+
+    static inline std::string parse_constant(TextBuffer &buffer,
+            std::vector<SyntaxError> &errors) {
+         return "";
+    }
 
 };
 
@@ -83,7 +93,7 @@ int Term::parse_integer(TextBuffer &buffer) {
 }
 
 // Helper for parsing instance ranges
-std::array<int, 2> Term::parse_instance_range(TextBuffer &buffer,
+inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
     // Parse instance hints
@@ -164,23 +174,75 @@ std::array<int, 2> Term::parse_instance_range(TextBuffer &buffer,
 }
 
 std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors) {
+        std::vector<SyntaxError> &errors,
+        const bool root = false) {
 
+    // Parse predicate
     Predicate predicate = Predicate::NONE;
     if(buffer.read('&'))
         predicate = Predicate::AND;
     else if(buffer.read('!'))
         predicate = Predicate::NOT;
 
-    std::shared_ptr<Term> term = nullptr;
+    // Check if enclosed in parentheses
+    bool enclosed = false;
+    if(buffer.read('('))
+        enclosed = true;
+
+    const auto term = std::shared_ptr<Term>(new Term());
+
+    // If a term is the root of a rule, or is enclosed in parentheses, it should
+    // assume it's a sequence
+    if(root || enclosed) {
+        while(true) {
+            if(buffer.end_reached())
+                break;
 
 
-    const std::array<int, 2> instance_range = parse_instance_range(buffer, errors);
-    if(instance_range == std::array<int, 2>({0, 0}))
+        }
+    }
+
+    else {
+
+        // Parse constants
+        if(buffer.peek('\'')) {
+            term->type = Type::CONSTANT;
+
+            const std::string value = parse_constant(buffer, errors);
+            if(value.empty())
+                return nullptr;
+            term->value = value;
+        }
+
+        // Parse ranges
+        else if(buffer.peek('[')) {
+            term->type = Type::RANGE;
+
+            const std::array<char, 2> value = parse_range(buffer, errors);
+            if(value == std::array<char, 2>({0, 0}))
+                return nullptr;
+            term->value = value;
+        }
+
+        else {
+            const SyntaxError error("expected a term", buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
+    }
+
+    // Check for a matching closing parenthesis if one is expected
+    if(enclosed && buffer.read(')') == false) {
+        const SyntaxError error("expected ')'", buffer);
+        errors.push_back(error);
         return nullptr;
+    }
 
-    term->predicate = predicate;
-    // term->instance_range = instance_range;
+    // Parse instance range
+    const std::array<int, 2> instance_bounds =
+            parse_instance_bounds(buffer, errors);
+    if(instance_bounds == std::array<int, 2>({0, 0}))
+        return nullptr;
 
     return term;
 }
