@@ -35,8 +35,10 @@ public:
         NONE,
     };
 
+    /*
     friend std::ostream &operator<<(std::ostream &stream,
                 const std::weak_ptr<Term> &term);
+    */
 
     std::variant<std::string,
             std::array<char, 2>,
@@ -57,22 +59,19 @@ private:
     std::vector<std::shared_ptr<Term>> unique_terms;
 
     static int parse_integer(TextBuffer &buffer);
+    static char parse_escape_code(TextBuffer &buffer);
 
     static inline std::array<int, 2> parse_instance_bounds(TextBuffer &buffer,
             std::vector<SyntaxError> &errors);
 
     static inline std::array<char, 2> parse_range(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors) {
-        return std::array<char, 2>({0, 0});
-    }
-
+            std::vector<SyntaxError> &errors);
     static inline std::string parse_constant(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors) {
-         return "";
-    }
+            std::vector<SyntaxError> &errors);
 
 };
 
+/*
 std::ostream &operator<<(std::ostream &stream,
             const std::weak_ptr<Term> &term) {
     static std::map<Term::Type, std::string> type_names = {
@@ -122,112 +121,7 @@ std::ostream &operator<<(std::ostream &stream,
     stream << ")";
     return stream;
 }
-
-// Helper for parsing values in term instance ranges
-int Term::parse_integer(TextBuffer &buffer) {
-    std::string text;
-    while(true) {
-        if(buffer.end_reached())
-            break;
-
-        const char character = buffer.peek();
-        if(character >= '0' && character <= '9')
-            text += buffer.read();
-        else
-            break;
-    }
-
-    if(text.empty())
-        throw;
-
-    try {
-        return std::stoi(text);
-    }
-    catch(...) {
-        return -1;
-    }
-}
-
-// Helper for parsing instance ranges
-inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors) {
-
-    // Parse instance hints
-    if(buffer.read('?'))
-        return {0, 1};
-    else if(buffer.read('*'))
-        return {0, -1};
-    else if(buffer.read('+'))
-        return {1, -1};
-
-    // Parse instance ranges
-    else if(buffer.read('{')) {
-        buffer.skip_space();
-
-        // Parse start value
-        const char start_character = buffer.peek();
-        int start_value = -1;
-        if(start_character >= '0' || start_character <= '9') {
-            start_value = parse_integer(buffer);
-            if(start_value == -1) {
-                const SyntaxError error("invalid value in instance range",
-                        buffer);
-                errors.push_back(error);
-                return {0, 0};
-            }
-        }
-
-        // Check semi-colon present
-        buffer.skip_space();
-        if(buffer.read(':') == false) {
-            const SyntaxError error("':' expected in instance range", buffer);
-            errors.push_back(error);
-            return {0, 0};
-        }
-
-        // Parse end value
-        buffer.skip_space();
-        const char end_character = buffer.peek();
-        int end_value = -1;
-        if(end_character >= '0' || end_character <= '9') {
-            end_value = parse_integer(buffer);
-            if(end_value == -1) {
-                const SyntaxError error("invalid end value in instance range",
-                        buffer);
-                errors.push_back(error);
-                return {0, 0};
-            }
-        }
-
-        // Check closing bracket present
-        buffer.skip_space();
-        if(buffer.read('}') == false) {
-            const SyntaxError error("'}' expected in instance range", buffer);
-            errors.push_back(error);
-            return {0, 0};
-        }
-
-        // Check at least one bound specified
-        if(start_value == -1 && end_value == -1) {
-            const SyntaxError error("no start/end values in instance range",
-                    buffer);
-            errors.push_back(error);
-            return {0, 0};
-        }
-
-        else if(start_value == 0 && end_value == 0) {
-            const SyntaxError error("redundant zero-instance term", buffer);
-            errors.push_back(error);
-            return {0, 0};
-        }
-
-        return {start_value, end_value};
-    }
-
-    // Default
-    else
-        return {1, 1};
-}
+*/
 
 std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         std::vector<SyntaxError> &errors,
@@ -420,6 +314,243 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         return nullptr;
 
     return term;
+}
+
+// Helper for parsing values in term instance ranges
+int Term::parse_integer(TextBuffer &buffer) {
+    std::string text;
+    while(true) {
+        if(buffer.end_reached())
+            break;
+
+        const char character = buffer.peek();
+        if(character >= '0' && character <= '9')
+            text += buffer.read();
+        else
+            break;
+    }
+
+    if(text.empty())
+        throw "spartan";
+
+    try {
+        return std::stoi(text);
+    }
+    catch(...) {
+        return -1;
+    }
+}
+
+char Term::parse_escape_code(TextBuffer &buffer) {
+    switch(buffer.read()) {
+        case '\'':
+            return '\'';
+        case '\"':
+            return '\"';
+        case '\\':
+            return '\\';
+        case 'b':
+            return '\b';
+        case 'n':
+            return '\n';
+        case 'r':
+            return '\r';
+        case 't':
+            return '\t';
+        default:
+            return 0;
+    }
+}
+
+// Helper for parsing instance ranges
+inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
+        std::vector<SyntaxError> &errors) {
+
+    // Parse instance hints
+    if(buffer.read('?'))
+        return {0, 1};
+    else if(buffer.read('*'))
+        return {0, -1};
+    else if(buffer.read('+'))
+        return {1, -1};
+
+    // Parse instance ranges
+    else if(buffer.read('{')) {
+        buffer.skip_space();
+
+        // Parse start value
+        const char start_character = buffer.peek();
+        int start_value = -1;
+        if(start_character >= '0' || start_character <= '9') {
+            start_value = parse_integer(buffer);
+            if(start_value == -1) {
+                const SyntaxError error("invalid value in instance range",
+                        buffer);
+                errors.push_back(error);
+                return {0, 0};
+            }
+        }
+
+        // Check semi-colon present
+        buffer.skip_space();
+        if(buffer.read(':') == false) {
+            const SyntaxError error("':' expected in instance range", buffer);
+            errors.push_back(error);
+            return {0, 0};
+        }
+
+        // Parse end value
+        buffer.skip_space();
+        const char end_character = buffer.peek();
+        int end_value = -1;
+        if(end_character >= '0' || end_character <= '9') {
+            end_value = parse_integer(buffer);
+            if(end_value == -1) {
+                const SyntaxError error("invalid end value in instance range",
+                        buffer);
+                errors.push_back(error);
+                return {0, 0};
+            }
+        }
+
+        // Check closing bracket present
+        buffer.skip_space();
+        if(buffer.read('}') == false) {
+            const SyntaxError error("'}' expected in instance range", buffer);
+            errors.push_back(error);
+            return {0, 0};
+        }
+
+        // Check at least one bound specified
+        if(start_value == -1 && end_value == -1) {
+            const SyntaxError error("no start/end values in instance range",
+                    buffer);
+            errors.push_back(error);
+            return {0, 0};
+        }
+
+        else if(start_value == 0 && end_value == 0) {
+            const SyntaxError error("redundant zero-instance term", buffer);
+            errors.push_back(error);
+            return {0, 0};
+        }
+
+        return {start_value, end_value};
+    }
+
+    // Default
+    else
+        return {1, 1};
+}
+
+inline std::array<char, 2> Term::parse_range(TextBuffer &buffer,
+        std::vector<SyntaxError> &errors) {
+
+    if(buffer.read('[') == false)
+        throw;
+
+    buffer.skip_space();
+    if(buffer.read('\'') == false) {
+        SyntaxError error("expected '\\\''", buffer);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    const char start_value = buffer.read();
+    if(start_value < ' ' || start_value > '~') {
+        SyntaxError error("start constant must be a valid ASCII character",
+                buffer);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    if(buffer.read('\'') == false) {
+        SyntaxError error("expected '\\\''", buffer);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    buffer.skip_space();
+    if(buffer.read('-') == false) {
+        SyntaxError error("expected '-'", buffer);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    buffer.skip_space();
+    if(buffer.read('\'') == false) {
+        SyntaxError error("expected '\\\''", buffer);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    const char end_value = buffer.read();
+    if(end_value < ' ' || end_value > '~') {
+        SyntaxError error("end constant must be a valid ASCII character",
+                buffer);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    if(buffer.read('\'') == false) {
+        SyntaxError error("expected '\\\''", buffer);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    buffer.skip_space();
+    if(buffer.read(']') == false) {
+        SyntaxError error("expected ']'", buffer);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    return {start_value, end_value};
+}
+
+inline std::string Term::parse_constant(TextBuffer &buffer,
+        std::vector<SyntaxError> &errors) {
+
+    if(buffer.read('\'') == false)
+        throw;
+
+    std::string value;
+    while(true) {
+        if(buffer.end_reached()) {
+            SyntaxError error("unexpected end-of-file", buffer);
+            errors.push_back(error);
+            return "";
+        }
+        else if(buffer.read('\n')) {
+            SyntaxError error("unexpected end-of-line", buffer);
+            errors.push_back(error);
+            return "";
+        }
+        else if(buffer.peek('\''))
+            break;
+
+        // Handle escape codes
+        else if(buffer.read('\\')) {
+            const char escape_code = parse_escape_code(buffer);
+            if(escape_code == 0) {
+                SyntaxError error("invalid escape code", buffer);
+                errors.push_back(error);
+                return "";
+            }
+
+            value += escape_code;
+        }
+        else
+            value += buffer.read();
+    }
+
+    if(value.empty()) {
+        SyntaxError error("empty constant", buffer);
+        errors.push_back(error);
+        return "";
+    }
+
+    return value;
 }
 
 };
