@@ -194,6 +194,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
     // If a term is the root of a rule, or is enclosed in parentheses, it should
     // assume it's a sequence
+    bool line_broken = false;
     if(root || enclosed) {
 
         std::vector<std::shared_ptr<Term>> values;
@@ -204,8 +205,12 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
             // Continue parsing on the next line if it's double-indented
             if(buffer.peek('\n')) {
-                if(buffer.line_indentation(buffer.line_number + 1) ==
-                        buffer.line_indentation(buffer.line_number) + 2) {
+                const unsigned int next_indentation =
+                        buffer.line_indentation(buffer.position.line_number);
+                const int indentation_delta =
+                        next_indentation - buffer.indentation();
+                if((line_broken == false && indentation_delta == 0) ||
+                        (line_broken && indentation_delta == 2)) {
                     buffer.increment();
                     continue;
                 }
@@ -239,12 +244,15 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
                     // Continue parsing on the next line if it's double-indented
                     else if(buffer.peek('\n')) {
-                        const unsigned long current_line_indentation =
-                                buffer.line_indentation(buffer.line_number);
-                        const unsigned long next_line_indentation =
-                                buffer.line_indentation(buffer.line_number + 1);
-                        if(next_line_indentation ==
-                                current_line_indentation + 2) {
+                        const unsigned int line_number =
+                                buffer.position.line_number;
+                        const unsigned int next_indentation =
+                                buffer.line_indentation(line_number);
+
+                        const int indentation_delta =
+                                next_indentation - buffer.indentation();
+                        if((line_broken == false && indentation_delta == 0) ||
+                                (line_broken && indentation_delta == 2)) {
                             buffer.increment();
                             continue;
                         }
