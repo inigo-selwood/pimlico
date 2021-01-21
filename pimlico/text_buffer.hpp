@@ -70,7 +70,24 @@ void TextBuffer::increment(const unsigned int steps = 1) {
     }
 }
 
-std::string TextBuffer::line_text() const { return ""; }
+std::string TextBuffer::line_text() const {
+    unsigned long start_index = index;
+    while(true) {
+        if(start_index == 0 || text[start_index - 1] == '\n')
+            break;
+        start_index -= 1;
+    }
+
+    unsigned long end_index = index;
+    while(true) {
+        if(end_index + 1 == text.length() || text[end_index] == '\n')
+            break;
+        end_index += 1;
+    }
+
+    const unsigned long length = end_index - start_index;
+    return text.substr(start_index, length);
+}
 
 unsigned int TextBuffer::line_indentation(const unsigned int &line_number) const { return 0; }
 
