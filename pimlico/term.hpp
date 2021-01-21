@@ -82,16 +82,6 @@ int Term::parse_integer(TextBuffer &buffer) {
     }
 }
 
-// Helper for parsing predicates
-Term::Predicate Term::parse_predicate(TextBuffer &buffer) {
-    if(buffer.read('&'))
-        return Predicate::AND;
-    else if(buffer.read('!'))
-        return Predicate::NOT;
-    else
-        return Predicate::NONE;
-}
-
 // Helper for parsing instance ranges
 std::array<int, 2> Term::parse_instance_range(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
@@ -176,7 +166,11 @@ std::array<int, 2> Term::parse_instance_range(TextBuffer &buffer,
 std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
-    const Predicate predicate = parse_predicate(buffer);
+    Predicate predicate = Predicate::NONE;
+    if(buffer.read('&'))
+        predicate = Predicate::AND;
+    else if(buffer.read('!'))
+        predicate = Predicate::NOT;
 
     std::shared_ptr<Term> term = nullptr;
 
@@ -185,7 +179,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     if(instance_range == std::array<int, 2>({0, 0}))
         return nullptr;
 
-    // term->predicate = predicate;
+    term->predicate = predicate;
     // term->instance_range = instance_range;
 
     return term;
