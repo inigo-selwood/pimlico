@@ -11,15 +11,15 @@ public:
     std::string message;
     std::string text;
 
-    unsigned int column;
-    unsigned long line;
+    unsigned int column_number;
+    unsigned long line_number;
 
     SyntaxError(const std::string &message, const TextBuffer &buffer) {
         this->message = message;
 
         text = buffer.line_text();
-        column = buffer.column;
-        line = buffer.line;
+        column_number = buffer.column_number;
+        line_number = buffer.line_number;
     }
 
 };

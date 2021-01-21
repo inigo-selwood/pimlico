@@ -61,8 +61,8 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
     // Check rule has value
     buffer.skip_space();
     if(buffer.read('\n')) {
-        if(buffer.line_indentation(buffer.line + 1) ==
-                buffer.line_indentation(buffer.line) + 2)
+        if(buffer.line_indentation(buffer.line_number + 1) ==
+                buffer.line_indentation(buffer.line_number) + 2)
             buffer.skip_whitespace();
         else {
             const SyntaxError error("rule must contain terms", buffer);

@@ -204,8 +204,8 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
             // Continue parsing on the next line if it's double-indented
             if(buffer.peek('\n')) {
-                if(buffer.line_indentation(buffer.line + 1) ==
-                        buffer.line_indentation(buffer.line) + 2) {
+                if(buffer.line_indentation(buffer.line_number + 1) ==
+                        buffer.line_indentation(buffer.line_number) + 2) {
                     buffer.increment();
                     continue;
                 }
@@ -218,7 +218,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
             if(term == nullptr)
                 return nullptr;
 
-            // If a choice symbol is encountered, stop to parse it here
+            // If a choice symbol is encountered, stop to parse the choice term
             buffer.skip_space();
             if(buffer.peek('|')) {
 
@@ -239,8 +239,12 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
                     // Continue parsing on the next line if it's double-indented
                     else if(buffer.peek('\n')) {
-                        if(buffer.line_indentation(buffer.line + 1) ==
-                                buffer.line_indentation(buffer.line) + 2) {
+                        const unsigned long current_line_indentation =
+                                buffer.line_indentation(buffer.line_number);
+                        const unsigned long next_line_indentation =
+                                buffer.line_indentation(buffer.line_number + 1);
+                        if(next_line_indentation ==
+                                current_line_indentation + 2) {
                             buffer.increment();
                             continue;
                         }
