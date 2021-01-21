@@ -23,15 +23,15 @@ public:
 
     bool inlined;
 
-    std::shared_ptr<Rule> parse(TextBuffer &buffer,
+    static std::unique_ptr<Rule> parse(TextBuffer &buffer,
             std::vector<SyntaxError> &errors);
 
 };
 
-std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
+std::unique_ptr<Rule> Rule::parse(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
-    const auto rule = std::shared_ptr<Rule>(new Rule());
+    auto rule = std::unique_ptr<Rule>(new Rule());
 
     // Parse name
     std::string name;
@@ -46,9 +46,12 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
             break;
     }
 
-    if(name.empty())
-        throw;
+    if(name.empty()) {
+        std::cout << buffer.position << "\n";
+        throw -1;
+    }
     rule->name.push_back(name);
+    rule->inlined = name[0] == '_';
 
     // Check semi-colon present between name and value
     buffer.skip_space();
@@ -61,8 +64,8 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
     // Check rule has value
     buffer.skip_space();
     if(buffer.read('\n')) {
-        if(buffer.line_indentation(buffer.line_number + 1) ==
-                buffer.line_indentation(buffer.line_number) + 2)
+        if(buffer.line_indentation(buffer.position.line_number + 1) ==
+                buffer.line_indentation(buffer.position.line_number) + 2)
             buffer.skip_whitespace();
         else {
             const SyntaxError error("rule must contain terms", buffer);
@@ -72,7 +75,7 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
     }
 
     // Parse rule value
-    rule->value = Term::parse(buffer, errors);
+    rule->value = Term::parse(buffer, errors, true);
     if(rule->value == nullptr)
         return nullptr;
 
