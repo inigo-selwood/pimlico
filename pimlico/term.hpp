@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "syntax_error.hpp"
+#include "parse_logic_error.hpp"
 #include "text_buffer.hpp"
 
 class Rule;
@@ -35,8 +36,7 @@ public:
         NONE,
     };
 
-    friend std::ostream &operator<<(std::ostream &stream,
-                const std::weak_ptr<Term> &term);
+    friend std::ostream &operator<<(std::ostream &stream, const Term &term);
 
     std::variant<std::string,
             std::array<char, 2>,
@@ -71,8 +71,7 @@ private:
 
 };
 
-std::ostream &operator<<(std::ostream &stream,
-            const std::weak_ptr<Term> &term) {
+std::ostream &operator<<(std::ostream &stream, const Term &term) {
     static std::map<Term::Type, std::string> type_names = {
         {Term::Type::CONSTANT,  "constant"},
         {Term::Type::RANGE,     "range"},
@@ -82,46 +81,86 @@ std::ostream &operator<<(std::ostream &stream,
         {Term::Type::SEQUENCE,  "sequence"}
     };
 
-    std::shared_ptr<Term> pointer = term.lock();
-    if(pointer == nullptr)
-        return stream;
-
-    stream << "(" << type_names[pointer->type] << " | ";
-
-    // Print constants/reference names
-    if(pointer->type == Term::Type::CONSTANT
-            || pointer->type == Term::Type::REFERENCE)
-        stream << std::get<std::string>(pointer->value);
-
-    // Print ranges
-    else if(pointer->type == Term::Type::RANGE) {
-        const auto range = std::get<std::array<char, 2>>(pointer->value);
-        if(range[0] > 0)
-            stream << range[0] << " ";
-
-        stream << ":";
-
-        if(range[1] > 0)
-            stream << " " << range[1];
+    switch(term.predicate) {
+        case Term::Predicate::AND:
+            stream << "&";
+            break;
+        case Term::Predicate::NOT:
+            stream << "!";
+            break;
     }
 
-    // Print choices/sequences
-    else if(pointer->type == Term::Type::CHOICE
-            || pointer->type == Term::Type::SEQUENCE) {
+    const auto type = term.type;
+
+    // Serialize constants
+    if(type == Term::Type::CONSTANT)
+        stream << "'" << std::get<std::string>(term.value) << "'";
+
+    // Serialize ranges
+    else if(type == Term::Type::RANGE) {
+        const std::array<char, 2> range =
+                std::get<std::array<char, 2>>(term.value);
+        stream << "[" << range[0] << " - " << range[1] << "]";
+    }
+
+    // Serialize references
+    else if(type == Term::Type::REFERENCE)
+        stream << std::get<std::string>(term.value);
+
+    // Serialize choices and sequences
+    else if(type == Term::Type::CHOICE || type == Term::Type::SEQUENCE) {
         const auto values =
-                std::get<std::vector<std::weak_ptr<Term>>>(pointer->value);
+                std::get<std::vector<std::weak_ptr<Term>>>(term.value);
+
         for(unsigned int index = 0; index < values.size(); index += 1) {
-            stream << values[index];
+            const auto pointer = values[index].lock();
+            const auto value_type = pointer->type;
+
+            bool enclosed = false;
+            if((type == Term::Type::SEQUENCE
+                        && value_type == Term::Type::CHOICE)
+                    || (type == Term::Type::CHOICE
+                        && value_type == Term::Type::SEQUENCE))
+                enclosed = true;
+
+            if(enclosed)
+                stream << "(";
+
+            stream << *pointer;
+
+            if(enclosed)
+                stream << ")";
+
             if(index + 1 < values.size())
                 stream << ", ";
         }
     }
 
-    stream << ")";
+    const std::array<int, 2> instance_bounds = term.instance_bounds;
+    const int lower_bound = instance_bounds[0];
+    const int upper_bound = instance_bounds[1];
 
-    if(pointer->instance_bounds[0] != 1 || pointer->instance_bounds[1] != 1) {
-        stream << "<" << pointer->instance_bounds[0] << ":" << pointer->instance_bounds[1] << ">";
-    }
+    // Don't print anything if the bounds are default
+    if(lower_bound == upper_bound && lower_bound == 1)
+        return stream;
+
+    // Serialize instance hints
+    else if(lower_bound == 0 && upper_bound == 1)
+        stream << "?";
+    else if(lower_bound == 0 && upper_bound == -1)
+        stream << "*";
+    else if(lower_bound == 1 && upper_bound == -1)
+        stream << "+";
+
+    // Serialize instance bounds
+    else if(lower_bound == upper_bound)
+        stream << "{" << lower_bound << "}";
+    else if(lower_bound == -1)
+        stream << "{:" << upper_bound << "}";
+    else if(upper_bound == -1)
+        stream << "{" << lower_bound << ":}";
+    else
+        stream << "{" << lower_bound << " : " << upper_bound << "}";
 
     return stream;
 }
@@ -336,8 +375,10 @@ int Term::parse_integer(TextBuffer &buffer) {
             break;
     }
 
-    if(text.empty())
-        throw "spartan";
+    if(text.empty()) {
+        throw ParseLogicError("parse_integer called but no integer found",
+                buffer);
+    }
 
     try {
         return std::stoi(text);
@@ -351,8 +392,10 @@ char Term::parse_escape_code(TextBuffer &buffer) {
 
     const TextBuffer::Position start_position = buffer.position;
 
-    if(buffer.read('\\') == false)
-        throw;
+    if(buffer.read('\\') == false) {
+        throw ParseLogicError("parse_escape_code called but no code found",
+                buffer);
+    }
 
     switch(buffer.read()) {
         case '\'':
@@ -388,9 +431,11 @@ inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
 
     // Parse instance ranges
     else if(buffer.read('{')) {
-        buffer.skip_space();
+
+        const TextBuffer::Position start_position = buffer.position;
 
         // Parse start value
+        buffer.skip_space();
         const char start_character = buffer.peek();
         int start_value = -1;
         if(start_character >= '0' && start_character <= '9') {
@@ -401,6 +446,16 @@ inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
                 errors.push_back(error);
                 return {0, 0};
             }
+        }
+
+        buffer.skip_space();
+        if(buffer.read('}')) {
+            if(start_value == -1) {
+                const SyntaxError error("empty instance range", buffer);
+                errors.push_back(error);
+                return {0, 0};
+            }
+            return {start_value, start_value};
         }
 
         // Check semi-colon present
@@ -460,8 +515,10 @@ inline std::string Term::parse_constant(TextBuffer &buffer,
 
     const TextBuffer::Position start_position = buffer.position;
 
-    if(buffer.read('\'') == false)
-        throw;
+    if(buffer.read('\'') == false) {
+        throw ParseLogicError("parse_constant called but no constant found",
+                buffer);
+    }
 
     std::string value;
     while(true) {
@@ -513,7 +570,7 @@ inline std::array<char, 2> Term::parse_range(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
     if(buffer.read('[') == false)
-        throw;
+        throw ParseLogicError("parse_range called but no range found", buffer);
 
     buffer.skip_space();
     if(buffer.read('\'') == false) {
