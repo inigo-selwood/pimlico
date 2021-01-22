@@ -64,9 +64,9 @@ private:
     static inline std::array<int, 2> parse_instance_bounds(TextBuffer &buffer,
             std::vector<SyntaxError> &errors);
 
-    static inline std::array<char, 2> parse_range(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors);
     static inline std::string parse_constant(TextBuffer &buffer,
+            std::vector<SyntaxError> &errors);
+    static inline std::array<char, 2> parse_range(TextBuffer &buffer,
             std::vector<SyntaxError> &errors);
 
 };
@@ -117,10 +117,8 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
             const auto value_type = pointer->type;
 
             bool enclosed = false;
-            if((type == Term::Type::SEQUENCE
-                        && value_type == Term::Type::CHOICE)
-                    || (type == Term::Type::CHOICE
-                        && value_type == Term::Type::SEQUENCE))
+            if((type == Term::Type::CHOICE
+                    && value_type == Term::Type::SEQUENCE))
                 enclosed = true;
 
             if(enclosed)
@@ -131,8 +129,12 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
             if(enclosed)
                 stream << ")";
 
-            if(index + 1 < values.size())
-                stream << ", ";
+            if(index + 1 < values.size()) {
+                if(type == Term::Type::CHOICE)
+                    stream << " | ";
+                else if(type == Term::Type::SEQUENCE)
+                    stream << " ";
+            }
         }
     }
 
@@ -277,6 +279,14 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
             if(buffer.peek(')'))
                 break;
+
+            buffer.skip_space();
+            if(buffer.end_reached())
+                break;
+            else if(buffer.peek('\n')) {
+                if(skip_line_extension(buffer, start_indentation) == false)
+                    break;
+            }
         }
 
         if(values.size() == 0) {
@@ -418,6 +428,19 @@ char Term::parse_escape_code(TextBuffer &buffer) {
     }
 }
 
+bool Term::skip_line_extension(TextBuffer &buffer,
+        const unsigned int &start_indentation) {
+    const unsigned int next_indentation =
+            buffer.line_indentation(buffer.position.line_number + 1);
+    const int indentation_delta = next_indentation - buffer.indentation();
+    if(indentation_delta >= start_indentation + 8) {
+        buffer.skip_whitespace();
+        return true;
+    }
+
+    return false;
+}
+
 inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
@@ -431,8 +454,6 @@ inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
 
     // Parse instance ranges
     else if(buffer.read('{')) {
-
-        const TextBuffer::Position start_position = buffer.position;
 
         // Parse start value
         buffer.skip_space();
@@ -459,8 +480,7 @@ inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
         }
 
         // Check semi-colon present
-        buffer.skip_space();
-        if(buffer.read(':') == false) {
+        else if(buffer.read(':') == false) {
             const SyntaxError error("':' expected in instance range", buffer);
             errors.push_back(error);
             return {0, 0};
@@ -470,7 +490,7 @@ inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
         buffer.skip_space();
         const char end_character = buffer.peek();
         int end_value = -1;
-        if(end_character >= '0' || end_character <= '9') {
+        if(end_character >= '0' && end_character <= '9') {
             end_value = parse_integer(buffer);
             if(end_value == -1) {
                 const SyntaxError error("invalid end value in instance range",
@@ -629,18 +649,6 @@ inline std::array<char, 2> Term::parse_range(TextBuffer &buffer,
     }
 
     return {start_value, end_value};
-}
-
-bool Term::skip_line_extension(TextBuffer &buffer, const unsigned int &start_indentation) {
-    const unsigned int next_indentation =
-            buffer.line_indentation(buffer.position.line_number + 1);
-    const int indentation_delta = next_indentation - buffer.indentation();
-    if(indentation_delta >= start_indentation + 8) {
-        buffer.skip_whitespace();
-        return true;
-    }
-
-    return false;
 }
 
 };
