@@ -6,30 +6,92 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-for file in ./tests/term/invalid/*.peg; do
-    test_name="$(basename $file .peg)"
+test_script=$1
+if [[ ! -z $test_script ]]; then
+    ./tests/term/test $test_script 2> errors.txt 1> output.txt
 
-    ./tests/term/test $file
+    return_value=$?
+    test_name="$(basename $test_script .peg)"
 
-    if [[ $? -ne 0 ]]; then
-        printf "  ${test_name} (passed)\n"
-    else
+    # Report parse failures
+    if [[ $return_value -eq 1 ]]; then
         printf "! ${test_name} (failed)\n"
+
+        while read line; do
+            printf "    ${line}\n"
+        done < errors.txt
+
+    # Report exceptions
+    elif [[ $return_value -eq 2 ]]; then
+        printf "! ${test_name} (threw exception)\n"
+
+        while read line; do
+            printf "    ${line}\n"
+        done < errors.txt
+
+    # Print output
+    else
+        printf "  ${test_name} (passed)\n"
+
+        while read line; do
+            printf "    ${line}\n"
+        done < output.txt
     fi
 
-done
+else
+    for test_script in ./tests/term/invalid/*.peg; do
+        ./tests/term/test $test_script 2> errors.txt 1> output.txt
 
-for file in ./tests/term/valid/*.peg; do
-    test_name="$(basename $file .peg)"
+        return_value=$?
+        test_name="$(basename $test_script .peg)"
 
-    ./tests/term/test $file
+        # Report parse failures
+        if [[ $return_value -eq 1 ]]; then
+            printf "  ${test_name} (passed)\n"
 
-    if [[ $? -ne 0 ]]; then
-        printf "! ${test_name} (failed)\n"
-    else
-        printf "  ${test_name} (passed)\n"
-    fi
+        # Report exceptions
+        elif [[ $return_value -eq 2 ]]; then
+            printf "! ${test_name} (threw exception)\n"
 
-done
+            while read line; do
+                printf "    ${line}\n"
+            done < ./errors.txt
 
-rm ./tests/term/test
+        # Print output
+        else
+            printf "  ${test_name} (failed)\n"
+        fi
+    done
+
+    printf "\n";
+
+    for test_script in ./tests/term/valid/*.peg; do
+        ./tests/term/test $test_script 2> ./errors.txt 1> ./output.txt
+
+        return_value=$?
+        test_name="$(basename $test_script .peg)"
+
+        # Report parse failures
+        if [[ $return_value -eq 1 ]]; then
+            printf "! ${test_name} (failed)\n"
+
+            while read line; do
+                printf "    ${line}\n"
+            done < ./errors.txt
+
+        # Report exceptions
+        elif [[ $return_value -eq 2 ]]; then
+            printf "! ${test_name} (threw exception)\n"
+
+            while read line; do
+                printf "    ${line}\n"
+            done < ./errors.txt
+
+        # Print output
+        else
+            printf "  ${test_name} (passed)\n"
+        fi
+    done
+fi
+
+rm -f ./errors.txt ./output.txt ./tests/term/test
