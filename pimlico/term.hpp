@@ -134,55 +134,53 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     else if(buffer.read('!'))
         predicate = Predicate::NOT;
 
-    // Check if enclosed in parentheses
-    bool enclosed = false;
-    if(buffer.read('('))
-        enclosed = true;
-
     std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
+
+    // Check if enclosed in parentheses (ignore if already root to prevent
+    // premature cessation of parsing)
+    bool enclosed = false;
+    if(root == false && buffer.read('('))
+        enclosed = true;
 
     // If a term is the root of a rule, or is enclosed in parentheses, it should
     // assume it's a sequence
     bool line_broken = false;
     if(root || enclosed) {
+        term->type = Type::SEQUENCE;
 
         std::vector<std::shared_ptr<Term>> values;
-        while(true) {
-            buffer.skip_space();
-            if(buffer.end_reached())
-                break;
 
-            // Continue parsing on the next line if it's double-indented
-            if(buffer.peek('\n')) {
-                const unsigned int next_indentation =
-                        buffer.line_indentation(buffer.position.line_number);
-                const int indentation_delta =
-                        next_indentation - buffer.indentation();
-                if((line_broken == false && indentation_delta == 0) ||
-                        (line_broken && indentation_delta == 2)) {
-                    buffer.increment();
-                    continue;
-                }
-                else
-                    break;
-            }
+        while(true) {
 
             // Parse the next term in the sequence
             std::shared_ptr<Term> term = Term::parse(buffer, errors);
             if(term == nullptr)
                 return nullptr;
+            values.push_back(term);
+
+            // Continue parsing on the next line if it's double-indented
+            buffer.skip_space();
+            if(buffer.end_reached())
+                break;
+            else if(buffer.peek('\n')) {
+                if(skip_line_extension(buffer, line_broken) == false)
+                    break;
+            }
 
             // If a choice symbol is encountered, stop to parse the choice term
-            buffer.skip_space();
             if(buffer.peek('|')) {
 
                 // Create a vector to hold the choice's values, with the
                 // just-parsed term as its first option
                 std::vector<std::shared_ptr<Term>> options;
                 options.push_back(term);
+                values.pop_back();
 
                 // Keep parsing options until no more choice symbols are found
                 while(true) {
+                    if(buffer.read('|') == false)
+                        break;
+
                     buffer.skip_space();
                     if(buffer.end_reached()) {
                         const SyntaxError error("unexpected end-of-file",
