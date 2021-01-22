@@ -58,7 +58,8 @@ private:
 
     static int parse_integer(TextBuffer &buffer);
     static char parse_escape_code(TextBuffer &buffer);
-    static bool skip_line_extension(TextBuffer &buffer, bool &line_broken);
+    static bool skip_line_extension(TextBuffer &buffer,
+            const unsigned int &start_indentation);
 
     static inline std::array<int, 2> parse_instance_bounds(TextBuffer &buffer,
             std::vector<SyntaxError> &errors);
@@ -146,7 +147,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
     // If a term is the root of a rule, or is enclosed in parentheses, it should
     // assume it's a sequence
-    bool line_broken = false;
+    const unsigned int start_indentation = buffer.indentation();
     if(root || enclosed) {
         term->type = Type::SEQUENCE;
 
@@ -165,7 +166,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
             if(buffer.end_reached())
                 break;
             else if(buffer.peek('\n')) {
-                if(skip_line_extension(buffer, line_broken) == false)
+                if(skip_line_extension(buffer, start_indentation) == false)
                     break;
             }
 
@@ -193,7 +194,8 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
                     // Continue parsing on the next line if it's double-indented
                     else if(buffer.peek('\n')) {
-                        if(skip_line_extension(buffer, line_broken) == false) {
+                        if(skip_line_extension(buffer, start_indentation) ==
+                                false) {
                             const SyntaxError error("unexpected end-of-line",
                                     buffer);
                             errors.push_back(error);
@@ -212,7 +214,8 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
                     if(buffer.end_reached())
                         break;
                     else if(buffer.peek('\n')) {
-                        if(skip_line_extension(buffer, line_broken) == false)
+                        if(skip_line_extension(buffer,
+                                start_indentation) == false)
                             break;
                     }
                 }
@@ -571,14 +574,12 @@ inline std::array<char, 2> Term::parse_range(TextBuffer &buffer,
     return {start_value, end_value};
 }
 
-bool Term::skip_line_extension(TextBuffer &buffer, bool &line_broken) {
+bool Term::skip_line_extension(TextBuffer &buffer, const unsigned int &start_indentation) {
     const unsigned int next_indentation =
             buffer.line_indentation(buffer.position.line_number + 1);
     const int indentation_delta = next_indentation - buffer.indentation();
-    if((line_broken == false && indentation_delta == 8) ||
-            (line_broken && indentation_delta >= 0)) {
+    if(indentation_delta >= start_indentation + 8) {
         buffer.skip_whitespace();
-        line_broken = true;
         return true;
     }
 
