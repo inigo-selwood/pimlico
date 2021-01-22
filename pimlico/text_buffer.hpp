@@ -28,7 +28,7 @@ public:
 
     };
 
-    std::function<int(TextBuffer &)> comment_skip_function;
+    std::function<bool(TextBuffer &)> comment_skip_function;
 
     Position position;
 
@@ -59,6 +59,8 @@ private:
 
     std::string text;
 
+    std::vector<unsigned int> line_indentations;
+
     inline char get_character() const;
     inline std::string get_string(const long &string_length);
 
@@ -69,6 +71,27 @@ TextBuffer::TextBuffer(const std::string &text) {
     position.index = 0;
     position.line_number = 1;
     position.column_number = 1;
+
+    for(unsigned int offset = 0; offset < text.size(); offset += 1) {
+        unsigned int line_indentation = 0;
+        while(true) {
+            if(offset == text.size())
+                break;
+            else if(text[offset] == '\t')
+                line_indentation += 4;
+            else if(text[offset] == ' ')
+                line_indentation += 1;
+            else
+                break;
+
+            offset += 1;
+        }
+
+        while(offset < text.size() && text[offset] != '\n')
+            offset += 1;
+
+        line_indentations.push_back(line_indentation);
+    }
 }
 
 bool TextBuffer::end_reached() const {
@@ -81,7 +104,8 @@ void TextBuffer::increment(const unsigned int steps = 1) {
             return;
 
         position.index += 1;
-        position.column_number += 1;
+        if(text[position.index - 1] != '\r')
+            position.column_number += 1;
 
         if(text[position.index - 1] == '\n') {
             position.line_number += 1;
@@ -100,7 +124,7 @@ std::string TextBuffer::line_text() const {
 
     unsigned long end_index = position.index;
     while(true) {
-        if(end_index + 1 == text.length() || text[end_index] == '\n')
+        if(end_index == text.length() || text[end_index] == '\n')
             break;
         end_index += 1;
     }
@@ -109,9 +133,15 @@ std::string TextBuffer::line_text() const {
     return text.substr(start_index, length);
 }
 
-unsigned int TextBuffer::line_indentation(const unsigned int &line_number) const { return 0; }
+unsigned int TextBuffer::line_indentation(const unsigned int &line_number) const {
+    if(line_number == 0 || line_number > line_indentations.size())
+        return 0;
+    return line_indentations[line_number - 1];
+}
 
-unsigned int TextBuffer::indentation() const { return 0; }
+unsigned int TextBuffer::indentation() const {
+    return line_indentations[position.line_number - 1];
+}
 
 char TextBuffer::peek() const {
     return get_character();
