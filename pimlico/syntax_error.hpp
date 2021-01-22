@@ -22,6 +22,18 @@ public:
         line_number = buffer.position.line_number;
     }
 
+    friend std::ostream &operator<<(std::ostream &stream, const SyntaxError &error) {
+        stream << "[" << error.line_number << ":" << error.column_number << "] "
+                << error.message << "\n"
+                << error.text << "\n";
+
+        for(unsigned int index = 1; index < error.column_number; index += 1)
+            stream << '.';
+        stream << '^';
+
+        return stream;
+    }
+
 };
 
 };
