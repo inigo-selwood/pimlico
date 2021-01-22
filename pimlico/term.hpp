@@ -35,10 +35,8 @@ public:
         NONE,
     };
 
-    /*
     friend std::ostream &operator<<(std::ostream &stream,
                 const std::weak_ptr<Term> &term);
-    */
 
     std::variant<std::string,
             std::array<char, 2>,
@@ -60,6 +58,7 @@ private:
 
     static int parse_integer(TextBuffer &buffer);
     static char parse_escape_code(TextBuffer &buffer);
+    static bool skip_line_extension(TextBuffer &buffer, bool &line_broken);
 
     static inline std::array<int, 2> parse_instance_bounds(TextBuffer &buffer,
             std::vector<SyntaxError> &errors);
@@ -71,7 +70,6 @@ private:
 
 };
 
-/*
 std::ostream &operator<<(std::ostream &stream,
             const std::weak_ptr<Term> &term) {
     static std::map<Term::Type, std::string> type_names = {
@@ -119,9 +117,13 @@ std::ostream &operator<<(std::ostream &stream,
     }
 
     stream << ")";
+
+    if(pointer->instance_bounds[0] != 1 || pointer->instance_bounds[1] != 1) {
+        stream << "<" << pointer->instance_bounds[0] << ":" << pointer->instance_bounds[1] << ">";
+    }
+
     return stream;
 }
-*/
 
 std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         std::vector<SyntaxError> &errors,
@@ -191,19 +193,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
                     // Continue parsing on the next line if it's double-indented
                     else if(buffer.peek('\n')) {
-                        const unsigned int line_number =
-                                buffer.position.line_number;
-                        const unsigned int next_indentation =
-                                buffer.line_indentation(line_number);
-
-                        const int indentation_delta =
-                                next_indentation - buffer.indentation();
-                        if((line_broken == false && indentation_delta == 0) ||
-                                (line_broken && indentation_delta == 2)) {
-                            buffer.increment();
-                            continue;
-                        }
-                        else {
+                        if(skip_line_extension(buffer, line_broken) == false) {
                             const SyntaxError error("unexpected end-of-line",
                                     buffer);
                             errors.push_back(error);
@@ -211,19 +201,20 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
                         }
                     }
 
-                    if(buffer.read('|') == false)
-                        break;
-
                     buffer.skip_space();
                     std::shared_ptr<Term> option = Term::parse(buffer, errors);
-                    if(option == nullptr) {
-                        const std::string error_message =
-                                "expected term after choice operator '|'";
-                        SyntaxError error(error_message, buffer);
-                        errors.push_back(error);
+                    if(option == nullptr)
                         return nullptr;
-                    }
                     options.push_back(option);
+
+                    // Continue parsing on the next line if it's double-indented
+                    buffer.skip_space();
+                    if(buffer.end_reached())
+                        break;
+                    else if(buffer.peek('\n')) {
+                        if(skip_line_extension(buffer, line_broken) == false)
+                            break;
+                    }
                 }
 
                 // Create a choice term with the options parsed
@@ -231,6 +222,8 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
                         std::shared_ptr<Term>(new Term());
                 choice->type = Type::CHOICE;
                 choice->unique_terms = options;
+                choice->predicate = Predicate::NONE;
+                choice->instance_bounds = {1, 1};
 
                 std::vector<std::weak_ptr<Term>> weak_options;
                 for(const auto &option : options)
@@ -240,15 +233,28 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
                 values.push_back(choice);
             }
 
-            values.push_back(term);
+            if(buffer.peek(')'))
+                break;
         }
 
-        if(values.size() == 1)
+        if(values.size() == 0) {
+            const SyntaxError error("empty statement", buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
+        else if(values.size() == 1)
             term = values.back();
+        else {
+            term->unique_terms = values;
+
+            std::vector<std::weak_ptr<Term>> weak_values;
+            for(const auto &value : values)
+                weak_values.push_back(value);
+            term->value = weak_values;
+        }
     }
 
     else {
-
         const char character = buffer.peek();
 
         // Parse constants
@@ -280,8 +286,8 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
                 if(buffer.end_reached())
                     break;
 
-                const auto letter = buffer.peek();
-                if((character >= 'a' && character <= 'z') || character == '_')
+                const char letter = buffer.peek();
+                if((letter >= 'a' && letter <= 'z') || letter == '_')
                     value += buffer.read();
                 else
                     break;
@@ -309,6 +315,8 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     if(instance_bounds == std::array<int, 2>({0, 0}))
         return nullptr;
 
+    term->instance_bounds = instance_bounds;
+    term->predicate = predicate;
     return term;
 }
 
@@ -337,6 +345,12 @@ int Term::parse_integer(TextBuffer &buffer) {
 }
 
 char Term::parse_escape_code(TextBuffer &buffer) {
+
+    const TextBuffer::Position start_position = buffer.position;
+
+    if(buffer.read('\\') == false)
+        throw;
+
     switch(buffer.read()) {
         case '\'':
             return '\'';
@@ -353,6 +367,7 @@ char Term::parse_escape_code(TextBuffer &buffer) {
         case 't':
             return '\t';
         default:
+            buffer.position = start_position;
             return 0;
     }
 }
@@ -375,7 +390,7 @@ inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
         // Parse start value
         const char start_character = buffer.peek();
         int start_value = -1;
-        if(start_character >= '0' || start_character <= '9') {
+        if(start_character >= '0' && start_character <= '9') {
             start_value = parse_integer(buffer);
             if(start_value == -1) {
                 const SyntaxError error("invalid value in instance range",
@@ -440,10 +455,10 @@ inline std::array<int, 2> Term::parse_instance_bounds(TextBuffer &buffer,
 inline std::string Term::parse_constant(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
+    const TextBuffer::Position start_position = buffer.position;
+
     if(buffer.read('\'') == false)
         throw;
-
-    // std::cout << "position at constant parse start: " << buffer.position << "\n";
 
     std::string value;
     while(true) {
@@ -453,7 +468,7 @@ inline std::string Term::parse_constant(TextBuffer &buffer,
             return "";
         }
         else if(buffer.peek('\n')) {
-            SyntaxError error("unexpected end-of-line | '" + value + "'", buffer);
+            SyntaxError error("unexpected end-of-line", buffer);
             errors.push_back(error);
             return "";
         }
@@ -461,7 +476,7 @@ inline std::string Term::parse_constant(TextBuffer &buffer,
             break;
 
         // Handle escape codes
-        else if(buffer.read('\\')) {
+        else if(buffer.peek('\\')) {
             const char escape_code = parse_escape_code(buffer);
             if(escape_code == 0) {
                 SyntaxError error("invalid escape code", buffer);
@@ -482,6 +497,7 @@ inline std::string Term::parse_constant(TextBuffer &buffer,
     }
 
     if(value.empty()) {
+        buffer.position = start_position;
         SyntaxError error("empty constant", buffer);
         errors.push_back(error);
         return "";
@@ -553,6 +569,20 @@ inline std::array<char, 2> Term::parse_range(TextBuffer &buffer,
     }
 
     return {start_value, end_value};
+}
+
+bool Term::skip_line_extension(TextBuffer &buffer, bool &line_broken) {
+    const unsigned int next_indentation =
+            buffer.line_indentation(buffer.position.line_number + 1);
+    const int indentation_delta = next_indentation - buffer.indentation();
+    if((line_broken == false && indentation_delta == 8) ||
+            (line_broken && indentation_delta >= 0)) {
+        buffer.skip_whitespace();
+        line_broken = true;
+        return true;
+    }
+
+    return false;
 }
 
 };
