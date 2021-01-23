@@ -12,12 +12,12 @@ using namespace Pimlico;
 
 int main(int argument_count, char *argument_values[]) {
     if(argument_count != 2)
-        return 1;
+        return 5;
 
     std::string grammar_filename = argument_values[1];
     std::ifstream grammar_stream(grammar_filename);
     if(grammar_stream.is_open() == false)
-        return 2;
+        return 4;
 
     std::string grammar_string((std::istreambuf_iterator<char>(grammar_stream)),
                  std::istreambuf_iterator<char>());
@@ -35,12 +35,18 @@ int main(int argument_count, char *argument_values[]) {
 
         std::cout << "output: " << *term << "\n";
 
+        buffer.skip_whitespace();
+        if(buffer.end_reached() == false) {
+            std::cerr << "incomplete parse\n";
+            return 2;
+        }
+
         return 0;
     }
     catch(ParseLogicError &exception) {
         std::cerr << exception.what() << "\n";
         for(const SyntaxError &error : errors)
             std::cerr << error << "\n";
-        return 2;
+        return 3;
     }
 }

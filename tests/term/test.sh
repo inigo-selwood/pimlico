@@ -21,8 +21,16 @@ if [[ ! -z $test_script ]]; then
             printf "    ${line}\n"
         done < errors.txt
 
-    # Report exceptions
+    # Report incomplete parses
     elif [[ $return_value -eq 2 ]]; then
+        printf "! ${test_name} (failed)\n"
+
+        while read line; do
+            printf "    ${line}\n"
+        done < output.txt
+
+    # Report exceptions
+    elif [[ $return_value -eq 3 ]]; then
         printf "! ${test_name} (threw exception)\n"
 
         while read line; do
@@ -49,8 +57,12 @@ else
         if [[ $return_value -eq 1 ]]; then
             printf "  ${test_name} (passed)\n"
 
-        # Report exceptions
+        # Report incomplete parses
         elif [[ $return_value -eq 2 ]]; then
+            printf "  ${test_name} (passed)\n"
+
+        # Report exceptions
+        elif [[ $return_value -eq 3 ]]; then
             printf "! ${test_name} (threw exception)\n"
 
             while read line; do
@@ -79,8 +91,16 @@ else
                 printf "    ${line}\n"
             done < ./errors.txt
 
-        # Report exceptions
+        # Report parse failures
         elif [[ $return_value -eq 2 ]]; then
+            printf "! ${test_name} (failed)\n"
+
+            while read line; do
+                printf "    ${line}\n"
+            done < ./errors.txt
+
+        # Report exceptions
+        elif [[ $return_value -eq 3 ]]; then
             printf "! ${test_name} (threw exception)\n"
 
             while read line; do
