@@ -59,7 +59,7 @@ else
 
         # Print output
         else
-            printf "  ${test_name} (failed)\n"
+            printf "! ${test_name} (failed)\n"
         fi
     done
 
