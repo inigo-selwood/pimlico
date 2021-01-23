@@ -596,8 +596,17 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
     std::vector<std::shared_ptr<Term>> values;
     while(true) {
         const std::shared_ptr<Term> value = parse(buffer, errors);
-        if(value == nullptr)
+        if(value == nullptr) {
+
+            // Skip to the end of the sequence
+            while(true) {
+                buffer.skip_space();
+                if(buffer.end_reached() || buffer.peek('\n'))
+                    break;
+                buffer.increment();
+            }
             return nullptr;
+        }
         values.push_back(value);
 
         // Stop parsing terms if the end-of-file or end-of-line have been
@@ -641,8 +650,17 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
     std::vector<std::shared_ptr<Term>> values;
     while(true) {
         const std::shared_ptr<Term> value = parse_choice(buffer, errors);
-        if(value == nullptr)
+        if(value == nullptr) {
+
+            // Skip to the end of the sequence
+            while(true) {
+                buffer.skip_space();
+                if(buffer.end_reached() || buffer.peek('\n'))
+                    break;
+                buffer.increment();
+            }
             return nullptr;
+        }
         values.push_back(value);
 
         buffer.skip_space();
