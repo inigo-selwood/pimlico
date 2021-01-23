@@ -38,6 +38,8 @@ public:
 
     std::function<bool(TextBuffer &)> comment_skip_function;
 
+    std::vector<unsigned int> line_indentations;
+
     Position position;
 
     TextBuffer(const std::string &text);
@@ -64,7 +66,9 @@ private:
 
     std::string text;
 
-    std::vector<unsigned int> line_indentations;
+    unsigned long length;
+
+    unsigned long line_count;
 
     inline char get_character() const;
     inline std::string get_string(const long &string_length);
@@ -76,6 +80,8 @@ TextBuffer::TextBuffer(const std::string &text) {
     position.index = 0;
     position.line_number = 1;
     position.column_number = 1;
+
+    length = text.length();
 
     for(unsigned int offset = 0; offset < text.size(); offset += 1) {
         unsigned int line_indentation = 0;
@@ -98,19 +104,21 @@ TextBuffer::TextBuffer(const std::string &text) {
         line_indentations.push_back(line_indentation);
     }
 
+    line_count = line_indentations.size();
+
     position.line_start_indentation = line_indentations.front();
     const unsigned int indentation_target = position.line_start_indentation + 8;
-    position.line_extended = position.line_number < line_indentations.size()
+    position.line_extended = position.line_number < line_count
             && line_indentations[position.line_number] >= indentation_target;
 }
 
 bool TextBuffer::end_reached() const {
-    return position.index >= text.length();
+    return position.index >= length;
 }
 
 void TextBuffer::increment(const unsigned int steps = 1) {
     for(long step = 0; step < steps; step += 1) {
-        if(position.index == text.length())
+        if(position.index == length)
             return;
 
         position.index += 1;
@@ -122,13 +130,13 @@ void TextBuffer::increment(const unsigned int steps = 1) {
             position.column_number = 1;
 
             const unsigned int indentation_target = position.line_start_indentation + 8;
-            if(position.line_number < line_indentations.size()
+            if(position.line_number < line_count
                     && line_indentations[position.line_number] >= indentation_target)
                 position.line_extended = true;
             else {
                 position.line_extended = false;
 
-                if(position.line_number + 1 < line_indentations.size()) {
+                if(position.line_number + 1 < line_count) {
                     position.line_start_indentation =
                             line_indentations[position.line_number + 1];
                 }
@@ -147,7 +155,7 @@ std::string TextBuffer::line_text() const {
 
     unsigned long end_index = position.index;
     while(true) {
-        if(end_index == text.length() || text[end_index] == '\n')
+        if(end_index == length || text[end_index] == '\n')
             break;
         end_index += 1;
     }
@@ -192,7 +200,7 @@ bool TextBuffer::read(const std::string &string) {
 
 void TextBuffer::skip_space() {
     long start_index = position.index;
-    while(position.index < text.length()) {
+    while(position.index < length) {
 
         // Handle spaces and tabs
         const auto character = get_character();
@@ -233,24 +241,24 @@ void TextBuffer::skip_whitespace() {
 
 void TextBuffer::skip_line() {
     const long start_index = position.index;
-    if(position.index < text.length() && text[position.index - 1] == '\n')
+    if(position.index < length && text[position.index - 1] == '\n')
         position.index += 1;
 
-    while(position.index < text.length() && text[position.index - 1] != '\n')
+    while(position.index < length && text[position.index - 1] != '\n')
         position.index += 1;
 
-    if(position.index >= text.length())
+    if(position.index >= length)
         return;
     position.column_number = 1;
     position.line_number += 1;
 }
 
 inline char TextBuffer::get_character() const {
-    return (position.index < text.length()) ? text[position.index] : 0;
+    return (position.index < length) ? text[position.index] : 0;
 }
 
 inline std::string TextBuffer::get_string(const long &string_length) {
-    return (position.index + string_length < text.length()) ?
+    return (position.index + string_length < length) ?
             text.substr(position.index, string_length) : "";
 }
 
