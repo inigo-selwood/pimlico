@@ -47,7 +47,6 @@ public:
     void increment(const unsigned int steps);
 
     std::string line_text() const;
-    bool line_extended() const;
 
     char peek() const;
     bool peek(const std::string &string) const;
@@ -57,7 +56,6 @@ public:
     bool read(const std::string &string);
     bool read(const char &character);
 
-    bool skip_line_extension();
     void skip_line();
     void skip_space();
     void skip_whitespace();
@@ -100,9 +98,8 @@ TextBuffer::TextBuffer(const std::string &text) {
         line_indentations.push_back(line_indentation);
     }
 
-    position.line_start_indentation = line_indentations.back();
-    const unsigned int indentation_target =
-            position.line_start_indentation + 8;
+    position.line_start_indentation = line_indentations.front();
+    const unsigned int indentation_target = position.line_start_indentation + 8;
     position.line_extended = position.line_number < line_indentations.size()
             && line_indentations[position.line_number] >= indentation_target;
 }
@@ -124,18 +121,16 @@ void TextBuffer::increment(const unsigned int steps = 1) {
             position.line_number += 1;
             position.column_number = 1;
 
-            const unsigned int indentation_target =
-                    position.line_start_indentation + 8;
+            const unsigned int indentation_target = position.line_start_indentation + 8;
             if(position.line_number < line_indentations.size()
-                    && line_indentations[position.line_number] >=
-                        indentation_target)
+                    && line_indentations[position.line_number] >= indentation_target)
                 position.line_extended = true;
             else {
                 position.line_extended = false;
 
-                if(position.line_number < line_indentations.size()) {
+                if(position.line_number + 1 < line_indentations.size()) {
                     position.line_start_indentation =
-                            line_indentations[position.line_number];
+                            line_indentations[position.line_number + 1];
                 }
             }
         }
@@ -159,10 +154,6 @@ std::string TextBuffer::line_text() const {
 
     const unsigned long length = end_index - start_index;
     return text.substr(start_index, length);
-}
-
-bool TextBuffer::line_extended() const {
-    return position.line_extended;
 }
 
 char TextBuffer::peek() const {
@@ -217,6 +208,8 @@ void TextBuffer::skip_space() {
             const int remainder = position.column_number % 5;
             position.column_number += (5 - remainder);
         }
+        else if(character == '\n' && position.line_extended)
+            increment();
 
         // Handle comments
         else if(comment_skip_function != nullptr &&
