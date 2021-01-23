@@ -156,7 +156,7 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
     else if(type == Term::Type::RANGE) {
         const std::array<char, 2> range =
                 std::get<std::array<char, 2>>(term.value);
-        stream << "[" << range[0] << " - " << range[1] << "]";
+        stream << "['" << range[0] << "' - '" << range[1] << "']";
     }
 
     // Serialize references
@@ -174,10 +174,7 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
 
             // Enclose the term if it's within one a container of the other type
             bool enclosed = false;
-            if((type == Term::Type::CHOICE
-                        && value_type == Term::Type::SEQUENCE)
-                    || (type == Term::Type::SEQUENCE
-                        && value_type == Term::Type::CHOICE))
+            if(type == Term::Type::CHOICE && value_type == Term::Type::SEQUENCE)
                 enclosed = true;
 
             if(enclosed)
@@ -364,7 +361,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
                 return nullptr;
             }
 
-            instance_bounds = {start_value, start_value};
+            instance_bounds = {start_value, end_value};
         }
 
         else {
@@ -374,7 +371,11 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
             return nullptr;
         }
     }
+    else
+        instance_bounds = {1, 1};
 
+    term->predicate = predicate;
+    term->instance_bounds = instance_bounds;
     return term;
 }
 
@@ -597,35 +598,24 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
         const std::shared_ptr<Term> value = parse(buffer, errors);
         if(value == nullptr)
             return nullptr;
+        values.push_back(value);
 
         // Stop parsing terms if the end-of-file or end-of-line have been
         // reached, or if there's no pipe character
-        buffer.skip_space();
-        if(buffer.read('\n')) {
-            if(buffer.line_extended())
-                buffer.skip_whitespace();
-            else
-                break;
-        }
-
-        if(buffer.read('|') == false
-                || buffer.end_reached()
-                || buffer.peek(')'))
+        if(buffer.end_reached()
+                || buffer.peek('\n')
+                || buffer.peek(')')
+                || buffer.read('|') == false)
             break;
 
         // Check the file/line doesn't end given a pipe character's been found
         buffer.skip_space();
-        if(buffer.read('\n')) {
-            if(buffer.line_extended())
-                buffer.skip_whitespace();
-            else {
-                const SyntaxError error("expected end-of-line", buffer);
-                errors.push_back(error);
-                return nullptr;
-            }
+        if(buffer.peek('\n')) {
+            const SyntaxError error("expected end-of-line", buffer);
+            errors.push_back(error);
+            return nullptr;
         }
-
-        if(buffer.end_reached()) {
+        else if(buffer.end_reached()) {
             const SyntaxError error("expected end-of-file", buffer);
             errors.push_back(error);
             return nullptr;
@@ -656,14 +646,7 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
         values.push_back(value);
 
         buffer.skip_space();
-        if(buffer.read('\n')) {
-            if(buffer.line_extended())
-                buffer.skip_whitespace();
-            else
-                break;
-        }
-
-        if(buffer.end_reached() || buffer.peek(')'))
+        if(buffer.end_reached() || buffer.peek('\n') || buffer.peek(')'))
             break;
     }
 
