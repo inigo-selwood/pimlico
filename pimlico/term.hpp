@@ -111,7 +111,7 @@ public:
 
     Predicate predicate;
 
-    Term() : instance_bounds({1, 1}),
+    Term() : instance_bounds({0, 0}),
             type(Type::NONE),
             predicate(Predicate::NONE) {}
 
