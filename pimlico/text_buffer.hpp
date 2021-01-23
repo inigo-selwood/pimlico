@@ -26,6 +26,14 @@ public:
                     ", column " << position.column_number << ")";
         }
 
+    private:
+
+        friend class TextBuffer;
+
+        unsigned int line_start_indentation;
+
+        bool line_extended;
+
     };
 
     std::function<bool(TextBuffer &)> comment_skip_function;
@@ -39,21 +47,20 @@ public:
     void increment(const unsigned int steps);
 
     std::string line_text() const;
-    unsigned int line_indentation(const unsigned int &line_number) const;
-
-    unsigned int indentation() const;
+    bool line_extended() const;
 
     char peek() const;
-    bool peek(const std::string &string);
+    bool peek(const std::string &string) const;
     bool peek(const char &character) const;
 
     char read();
     bool read(const std::string &string);
     bool read(const char &character);
 
+    bool skip_line_extension();
+    void skip_line();
     void skip_space();
     void skip_whitespace();
-    void skip_line();
 
 private:
 
@@ -92,6 +99,12 @@ TextBuffer::TextBuffer(const std::string &text) {
 
         line_indentations.push_back(line_indentation);
     }
+
+    position.line_start_indentation = line_indentations.back();
+    const unsigned int indentation_target =
+            position.line_start_indentation + 8;
+    position.line_extended = position.line_number < line_indentations.size()
+            && line_indentations[position.line_number] >= indentation_target;
 }
 
 bool TextBuffer::end_reached() const {
@@ -110,6 +123,21 @@ void TextBuffer::increment(const unsigned int steps = 1) {
         if(text[position.index - 1] == '\n') {
             position.line_number += 1;
             position.column_number = 1;
+
+            const unsigned int indentation_target =
+                    position.line_start_indentation + 8;
+            if(position.line_number < line_indentations.size()
+                    && line_indentations[position.line_number] >=
+                        indentation_target)
+                position.line_extended = true;
+            else {
+                position.line_extended = false;
+
+                if(position.line_number < line_indentations.size()) {
+                    position.line_start_indentation =
+                            line_indentations[position.line_number];
+                }
+            }
         }
     }
 }
@@ -133,14 +161,8 @@ std::string TextBuffer::line_text() const {
     return text.substr(start_index, length);
 }
 
-unsigned int TextBuffer::line_indentation(const unsigned int &line_number) const {
-    if(line_number == 0 || line_number > line_indentations.size())
-        return 0;
-    return line_indentations[line_number - 1];
-}
-
-unsigned int TextBuffer::indentation() const {
-    return line_indentations[position.line_number - 1];
+bool TextBuffer::line_extended() const {
+    return position.line_extended;
 }
 
 char TextBuffer::peek() const {
@@ -151,7 +173,7 @@ bool TextBuffer::peek(const char &character) const {
     return get_character() == character;
 }
 
-bool TextBuffer::peek(const std::string &string) {
+bool TextBuffer::peek(const std::string &string) const {
     return text.substr(position.index, string.length()) == string;
 }
 
