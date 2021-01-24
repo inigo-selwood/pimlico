@@ -632,12 +632,12 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
         // Check the file/line doesn't end given a pipe character's been found
         buffer.skip_space();
         if(buffer.peek('\n')) {
-            const SyntaxError error("expected end-of-line", buffer);
+            const SyntaxError error("unexpected end-of-line", buffer);
             errors.push_back(error);
             return nullptr;
         }
         else if(buffer.end_reached()) {
-            const SyntaxError error("expected end-of-file", buffer);
+            const SyntaxError error("unexpected end-of-file", buffer);
             errors.push_back(error);
             return nullptr;
         }
