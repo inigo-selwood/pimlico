@@ -4,6 +4,7 @@
 #include <memory>
 #include <ostream>
 #include <string>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
@@ -566,17 +567,16 @@ std::shared_ptr<Term> Term::parse_reference(TextBuffer &buffer,
 
     // Check there aren't trailing invalid characters
     const char character = buffer.peek();
-    if(character != ' '
-            && character != '\t'
-            && character != '\n'
-            && character != '\r'
-            && character != '\''
-            && character != '['
-            && character != '#') {
-        buffer.increment();
+    static const std::unordered_set<char> terminators = {
+        ' ', '\n', '\r', '\t', '#', // Whitespace
+        '[', '\'',                  // Term
+        '!', '&',                   // Predicates
+        '(', '|'                    // Sequences
+    };
 
+    if(terminators.count(character) == 0) {
         const std::string message =
-            "references can only contain lowercase letters and underscores";
+                "references can only contain lowercase letters and underscores";
         SyntaxError error(message, buffer);
         errors.push_back(error);
         return nullptr;
@@ -594,18 +594,29 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
     term->type = Term::Type::CHOICE;
 
     std::vector<std::shared_ptr<Term>> values;
+    bool errors_encountered = false;
     while(true) {
         const std::shared_ptr<Term> value = parse(buffer, errors);
         if(value == nullptr) {
 
-            // Skip to the end of the sequence
-            while(true) {
-                buffer.skip_space();
-                if(buffer.end_reached() || buffer.peek('\n'))
-                    break;
-                buffer.increment();
+            // Parsing can be continued (for error reporting) if we're still in
+            // the choice
+            buffer.skip_space();
+            if(buffer.peek('|'))
+                errors_encountered = true;
+
+            // Otherwise, break out
+            else {
+
+                // Skip to the end of the sequence
+                while(true) {
+                    buffer.skip_space();
+                    if(buffer.end_reached() || buffer.peek('\n'))
+                        break;
+                    buffer.increment();
+                }
+                return nullptr;
             }
-            return nullptr;
         }
         values.push_back(value);
 
@@ -633,10 +644,10 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
 
     if(values.size() == 1)
         term = values.back();
-    else
+    else if(errors_encountered == false)
         term->value = values;
 
-    return term;
+    return errors_encountered ? nullptr : term;
 }
 
 std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
