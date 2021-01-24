@@ -594,7 +594,6 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
     term->type = Term::Type::CHOICE;
 
     std::vector<std::shared_ptr<Term>> values;
-    bool errors_encountered = false;
     while(true) {
         const std::shared_ptr<Term> value = parse(buffer, errors);
         if(value == nullptr) {
@@ -602,8 +601,10 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
             // Parsing can be continued (for error reporting) if we're still in
             // the choice
             buffer.skip_space();
-            if(buffer.peek('|'))
-                errors_encountered = true;
+            if(buffer.peek('|')) {
+                term = nullptr;
+                break;
+            }
 
             // Otherwise, break out
             else {
@@ -642,12 +643,14 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
         }
     }
 
-    if(values.size() == 1)
-        term = values.back();
-    else if(errors_encountered == false)
-        term->value = values;
+    if(term) {
+        if(values.size() == 1)
+            term = values.back();
+        else
+            term->value = values;
+    }
 
-    return errors_encountered ? nullptr : term;
+    return term;
 }
 
 std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
@@ -662,15 +665,10 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
     while(true) {
         const std::shared_ptr<Term> value = parse_choice(buffer, errors);
         if(value == nullptr) {
-
-            // Skip to the end of the sequence
-            while(true) {
-                buffer.skip_space();
-                if(buffer.end_reached() || buffer.peek('\n'))
-                    break;
-                buffer.increment();
-            }
-            return nullptr;
+            term = nullptr;
+            buffer.skip_space();
+            if(buffer.end_reached() || buffer.peek('\n'))
+                return nullptr;
         }
         values.push_back(value);
 
@@ -679,10 +677,12 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
             break;
     }
 
-    if(values.size() == 1)
-        term = values.back();
-    else
-        term->value = values;
+    if(term) {
+        if(values.size() == 1)
+            term = values.back();
+        else
+            term->value = values;
+    }
 
     return term;
 }
