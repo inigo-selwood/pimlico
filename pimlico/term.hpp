@@ -598,8 +598,8 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
         const std::shared_ptr<Term> value = parse(buffer, errors);
         if(value == nullptr) {
 
-            // Parsing can be continued (for error reporting) if we're still in
-            // the choice
+            // Parsing can be continued (for error reporting) if the end of the
+            // last term was reached
             buffer.skip_space();
             if(buffer.peek('|')) {
                 term = nullptr;
@@ -664,11 +664,33 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
     std::vector<std::shared_ptr<Term>> values;
     while(true) {
         const std::shared_ptr<Term> value = parse_choice(buffer, errors);
+
         if(value == nullptr) {
             term = nullptr;
             buffer.skip_space();
             if(buffer.end_reached() || buffer.peek('\n'))
                 return nullptr;
+
+            // Parsing can continue if we've reached the next term
+            static const std::unordered_set<char> terminators = {
+                ' ', '\n', '\r', '\t', '#', // Whitespace
+                '[', '\'',                  // Term
+                '!', '&',                   // Predicates
+                '(',                        // Sequence
+            };
+            if(terminators.count(buffer.peek()))
+                break;
+
+            // Otherwise, skip to the end of the sequence and return
+            else {
+                while(true) {
+                    buffer.skip_space();
+                    if(buffer.end_reached() || buffer.peek('\n'))
+                        break;
+                    buffer.increment();
+                }
+                return nullptr;
+            }
         }
         values.push_back(value);
 
