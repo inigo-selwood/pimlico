@@ -676,11 +676,7 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
                 ' ', '\n', '\r', '\t', '#', // Whitespace
                 '[', '\'',                  // Term
                 '!', '&',                   // Predicates
-<<<<<<< HEAD
                 '(',                        // Sequence
-=======
-                '(', '|'                    // Sequences
->>>>>>> 63c6c051adf87aed31bfaffda390988be1c11b86
             };
             if(terminators.count(buffer.peek()))
                 break;
