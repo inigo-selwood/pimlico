@@ -148,10 +148,22 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
             break;
     }
 
+    static const std::unordered_set<char> escape_codes = {
+        '\n', '\r', '\b', '\t',
+        '\\', '\"', '\''
+    };
+
     // Serialize constants
     const Term::Type &type = term.type;
-    if(type == Term::Type::CONSTANT)
-        stream << "'" << std::get<std::string>(term.value) << "'";
+    if(type == Term::Type::CONSTANT) {
+        stream << "'";
+        for(const char &character : std::get<std::string>(term.value)) {
+            if(escape_codes.count(character))
+                stream << '\\';
+            stream << character;
+        }
+        stream << "'";
+    }
 
     // Serialize ranges
     else if(type == Term::Type::RANGE) {
