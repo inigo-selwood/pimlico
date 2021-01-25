@@ -687,7 +687,7 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
             errors.push_back(error);
             return nullptr;
         }
-        else if(buffer.peek('(')) {
+        else if(buffer.peek(')')) {
             const SyntaxError error("unexpected ')' after choice operator",
                     buffer);
             errors.push_back(error);
