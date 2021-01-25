@@ -64,9 +64,17 @@ else
         if [[ $return_value -eq 1 ]]; then
             printf "  ${test_name} (passed)\n"
 
+            while read -r line; do
+                printf "    ${line}\n"
+            done < ./tests/grammar/term/errors.txt
+
         # Report incomplete parses
         elif [[ $return_value -eq 2 ]]; then
             printf "  ${test_name} (passed)\n"
+
+            while read -r line; do
+                printf "    ${line}\n"
+            done < ./tests/grammar/term/errors.txt
 
         # Report exceptions
         elif [[ $return_value -eq 3 ]]; then
@@ -74,7 +82,7 @@ else
 
             while read line; do
                 printf "    ${line}\n"
-            done < ././tests/grammar/term/errors.txt
+            done < ./tests/grammar/term/errors.txt
 
         # Print output
         else
@@ -86,8 +94,8 @@ else
 
     for test_script in ./tests/grammar/term/valid/*.peg; do
         ./tests/grammar/term/test $test_script \
-                2> ././tests/grammar/term/errors.txt \
-                1> ././tests/grammar/term/output.txt
+                2> ./tests/grammar/term/errors.txt \
+                1> ./tests/grammar/term/output.txt
 
         return_value=$?
         test_name="$(basename $test_script .peg)"
@@ -98,7 +106,7 @@ else
 
             while read line; do
                 printf "    ${line}\n"
-            done < ././tests/grammar/term/errors.txt
+            done < ./tests/grammar/term/errors.txt
 
         # Report parse failures
         elif [[ $return_value -eq 2 ]]; then
@@ -106,7 +114,7 @@ else
 
             while read line; do
                 printf "    ${line}\n"
-            done < ././tests/grammar/term/errors.txt
+            done < ./tests/grammar/term/errors.txt
 
         # Report exceptions
         elif [[ $return_value -eq 3 ]]; then
@@ -114,7 +122,7 @@ else
 
             while read line; do
                 printf "    ${line}\n"
-            done < ././tests/grammar/term/errors.txt
+            done < ./tests/grammar/term/errors.txt
 
         # Print output
         else
@@ -130,6 +138,6 @@ else
     done
 fi
 
-rm -f ././tests/grammar/term/errors.txt \
-        ././tests/grammar/term/output.txt \
+rm -f ./tests/grammar/term/errors.txt \
+        ./tests/grammar/term/output.txt \
         ./tests/grammar/term/test
