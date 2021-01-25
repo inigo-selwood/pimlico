@@ -29,7 +29,7 @@ if [[ ! -z $test_script ]]; then
     elif [[ $return_value -eq 2 ]]; then
         printf "! ${test_name} (threw exception)\n"
 
-        while read line; do
+        while read -r line; do
             printf "    ${line}\n"
         done < ./tests/grammar/specification/errors.txt
 
@@ -48,4 +48,4 @@ fi
 
 rm -f ./tests/grammar/specification/errors.txt \
         ./tests/grammar/specification/output.txt \
-        ./tests/grammar/specification/test
+        # ./tests/grammar/specification/test
