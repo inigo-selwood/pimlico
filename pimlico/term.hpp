@@ -288,7 +288,10 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         else if((character >= 'a' && character <= 'z') || character == '_')
             term = parse_reference(buffer, errors);
         else {
-            const SyntaxError error("expected a term", buffer);
+            const std::string message =
+                    "invalid term: expected a constant, range, reference, or "
+                    "sequence";
+            const SyntaxError error(message, buffer);
             errors.push_back(error);
             return nullptr;
         }
@@ -299,7 +302,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
     buffer.skip_space();
     if(enclosed && buffer.read(')') == false) {
-        const SyntaxError error("expected ')'", buffer);
+        const SyntaxError error("expected matching ')'", buffer);
         errors.push_back(error);
         return nullptr;
     }
@@ -350,7 +353,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 
         buffer.skip_space();
         if(buffer.read('}') == false) {
-            SyntaxError error("expected '}'", buffer);
+            SyntaxError error("expected '}' at end of instance bound", buffer);
             errors.push_back(error);
             return nullptr;
         }
@@ -359,7 +362,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         if(start_value != -1 && end_value == -1 && colon_present == false) {
             if(start_value == 0) {
                 buffer.position = start_position;
-                SyntaxError error("zero-instance bound", buffer);
+                SyntaxError error("zero-valued instance bound", buffer);
                 errors.push_back(error);
                 return nullptr;
             }
@@ -374,7 +377,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         else if(start_value == -1 && end_value != -1 && colon_present) {
             if(end_value == 0) {
                 buffer.position = start_position;
-                SyntaxError error("up-to-zero-instance bound", buffer);
+                SyntaxError error("up-to-zero instance bound", buffer);
                 errors.push_back(error);
                 return nullptr;
             }
@@ -435,12 +438,12 @@ std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
 
         // Handle premature endings
         else if(buffer.end_reached()) {
-            SyntaxError error("unexpected end-of-file", buffer);
+            SyntaxError error("unexpected end-of-file in constant", buffer);
             errors.push_back(error);
             return nullptr;
         }
         else if(character == '\n' || character == '\r') {
-            SyntaxError error("unexpected end-of-line", buffer);
+            SyntaxError error("unexpected end-of-line in constant", buffer);
             errors.push_back(error);
             return nullptr;
         }
@@ -457,7 +460,8 @@ std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
             const TextBuffer::Position code_position = buffer.position;
             const char escape_code = parse_escape_code(buffer);
             if(escape_code == 0) {
-                const SyntaxError error("invalid escape code", buffer);
+                const SyntaxError error("invalid escape code in constant",
+                        buffer);
                 errors.push_back(error);
                 return nullptr;
             }
@@ -493,7 +497,7 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
     // Parse start value
     buffer.skip_space();
     if(buffer.read('\'') == false) {
-        const SyntaxError error("expected '\\\''", buffer);
+        const SyntaxError error("expected '\\\'' in range", buffer);
         errors.push_back(error);
         return nullptr;
     }
@@ -514,8 +518,9 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
         start_value = buffer.read();
 
     if(start_value < ' ' || start_value > '~') {
-        SyntaxError error("start constant must be a valid ASCII character",
-                buffer);
+        const std::string message = "range start constants must be a valid "
+                "ASCII letters, numbers, or symbols";
+        SyntaxError error(message, buffer);
         errors.push_back(error);
         return nullptr;
     }
@@ -676,12 +681,22 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
         // Check the file/line doesn't end given a pipe character's been found
         buffer.skip_space();
         if(buffer.peek('\n')) {
-            const SyntaxError error("unexpected end-of-line", buffer);
+            const std::string message =
+                    "unexpected end-of-line after choice operator";
+            const SyntaxError error(message, buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
+        else if(buffer.peek('(')) {
+            const SyntaxError error("unexpected ')' after choice operator",
+                    buffer);
             errors.push_back(error);
             return nullptr;
         }
         else if(buffer.end_reached()) {
-            const SyntaxError error("unexpected end-of-file", buffer);
+            const std::string message =
+                    "unexpected end-of-file after choice operator";
+            const SyntaxError error(message, buffer);
             errors.push_back(error);
             return nullptr;
         }
