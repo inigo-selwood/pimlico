@@ -19,7 +19,7 @@ if [[ ! -z $test_script ]]; then
     if [[ $return_value -eq 1 ]]; then
         printf "! ${test_name} (failed)\n"
 
-        while read line; do
+        while read -r line; do
             printf "    ${line}\n"
         done < errors.txt
 
