@@ -686,31 +686,13 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
         const std::shared_ptr<Term> value = parse_choice(buffer, errors);
 
         if(value == nullptr) {
-            term = nullptr;
-            buffer.skip_space();
-            if(buffer.end_reached() || buffer.peek('\n'))
-                return nullptr;
-
-            // Parsing can continue if we've reached the next term
-            static const std::unordered_set<char> terminators = {
-                ' ', '\n', '\r', '\t', '#', // Whitespace
-                '[', '\'',                  // Term
-                '!', '&',                   // Predicates
-                '(',                        // Sequence
-            };
-            if(terminators.count(buffer.peek()))
-                break;
-
-            // Otherwise, skip to the end of the sequence and return
-            else {
-                while(true) {
-                    buffer.skip_space();
-                    if(buffer.end_reached() || buffer.peek('\n'))
-                        break;
-                    buffer.increment();
-                }
-                return nullptr;
+            while(true) {
+                buffer.skip_space();
+                if(buffer.end_reached() || buffer.peek('\n'))
+                    break;
+                buffer.increment();
             }
+            return nullptr;
         }
         values.push_back(value);
 
