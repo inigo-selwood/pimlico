@@ -1,5 +1,5 @@
-g++-7 ./tests/specification/test.cpp \
-        -o ./tests/specification/test \
+g++-7 ./tests/grammar/specification/test.cpp \
+        -o ./tests/grammar/specification/test \
         -I ./pimlico/ \
         -std=c++17
 
@@ -10,7 +10,9 @@ fi
 
 test_script=$1
 if [[ ! -z $test_script ]]; then
-    ./tests/specification/test $test_script 2> errors.txt 1> output.txt
+    ./tests/grammar/specification/test $test_script \
+            2> ./tests/grammar/specification/errors.txt \
+            1> ./tests/grammar/specification/output.txt
 
     return_value=$?
     test_name="$(basename $test_script .peg)"
@@ -21,7 +23,7 @@ if [[ ! -z $test_script ]]; then
 
         while read -r line; do
             printf "    ${line}\n"
-        done < errors.txt
+        done < ./tests/grammar/specification/errors.txt
 
     # Report incomplete parses
     elif [[ $return_value -eq 2 ]]; then
@@ -29,7 +31,7 @@ if [[ ! -z $test_script ]]; then
 
         while read line; do
             printf "    ${line}\n"
-        done < errors.txt
+        done < ./tests/grammar/specification/errors.txt
 
     # Print output
     else
@@ -37,11 +39,13 @@ if [[ ! -z $test_script ]]; then
 
         while read -r line; do
             printf "    ${line}\n"
-        done < output.txt
+        done < ./tests/grammar/specification/output.txt
     fi
 else
     printf "no grammar file specified\n"
     exit 1
 fi
 
-rm -f errors.txt output.txt ./tests/specification/test
+rm -f ./tests/grammar/specification/errors.txt \
+        ./tests/grammar/specification/output.txt \
+        ./tests/grammar/specification/test
