@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -148,9 +149,14 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
             break;
     }
 
-    static const std::unordered_set<char> escape_codes = {
-        '\n', '\r', '\b', '\t',
-        '\\', '\"', '\''
+    static std::map<char, std::string> escape_codes = {
+        {'\n', "\\n"},
+        {'\r', "\\r"} ,
+        {'\b', "\\b"},
+        {'\t', "\\t"},
+        {'\\', "\\\\"},
+        {'\"', "\\\""},
+        {'\'', "\\\'"},
     };
 
     // Serialize constants
@@ -158,9 +164,10 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
     if(type == Term::Type::CONSTANT) {
         stream << "'";
         for(const char &character : std::get<std::string>(term.value)) {
-            if(escape_codes.count(character))
-                stream << '\\';
-            stream << character;
+            if(escape_codes.find(character) != escape_codes.end())
+                stream << escape_codes[character];
+            else
+                stream << character;
         }
         stream << "'";
     }
@@ -169,7 +176,22 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
     else if(type == Term::Type::RANGE) {
         const std::array<char, 2> range =
                 std::get<std::array<char, 2>>(term.value);
-        stream << "['" << range[0] << "' - '" << range[1] << "']";
+
+        stream << "['";
+
+        if(escape_codes.find(range[0]) != escape_codes.end())
+            stream << escape_codes[range[0]];
+        else
+            stream << range[0];
+
+        stream << "' - '";
+
+        if(escape_codes.find(range[1]) != escape_codes.end())
+            stream << escape_codes[range[1]];
+        else
+            stream << range[1];
+
+        stream << "']";
     }
 
     // Serialize references
