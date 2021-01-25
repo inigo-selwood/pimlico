@@ -1,5 +1,8 @@
 
-g++-7 ./tests/term/test.cpp -o ./tests/term/test -std=c++17 -I ./pimlico/
+g++-7 ./tests/grammar/term/test.cpp \
+        -o ./tests/grammar/term/test \
+        -I ./pimlico/ \
+        -std=c++17
 
 if [[ $? -ne 0 ]]; then
     printf "compilation failed\n"
@@ -8,7 +11,9 @@ fi
 
 test_script=$1
 if [[ ! -z $test_script ]]; then
-    ./tests/term/test $test_script 2> errors.txt 1> output.txt
+    ./tests/grammar/term/test $test_script \
+            2> ./tests/grammar/term/errors.txt \
+            1> ./tests/grammar/term/output.txt
 
     return_value=$?
     test_name="$(basename $test_script .peg)"
@@ -19,7 +24,7 @@ if [[ ! -z $test_script ]]; then
 
         while read line; do
             printf "    ${line}\n"
-        done < errors.txt
+        done < ./tests/grammar/term/errors.txt
 
     # Report incomplete parses
     elif [[ $return_value -eq 2 ]]; then
@@ -27,7 +32,7 @@ if [[ ! -z $test_script ]]; then
 
         while read line; do
             printf "    ${line}\n"
-        done < output.txt
+        done < ./tests/grammar/term/output.txt
 
     # Report exceptions
     elif [[ $return_value -eq 3 ]]; then
@@ -35,7 +40,7 @@ if [[ ! -z $test_script ]]; then
 
         while read line; do
             printf "    ${line}\n"
-        done < errors.txt
+        done < ./tests/grammar/term/errors.txt
 
     # Print output
     else
@@ -43,12 +48,14 @@ if [[ ! -z $test_script ]]; then
 
         while read line; do
             printf "    ${line}\n"
-        done < output.txt
+        done < ./tests/grammar/term/output.txt
     fi
 
 else
-    for test_script in ./tests/term/invalid/*.peg; do
-        ./tests/term/test $test_script 2> errors.txt 1> output.txt
+    for test_script in ./tests/grammar/term/invalid/*.peg; do
+        ./tests/grammar/term/test $test_script \
+                2> ./tests/grammar/term/errors.txt \
+                1> ./tests/grammar/term/output.txt
 
         return_value=$?
         test_name="$(basename $test_script .peg)"
@@ -67,7 +74,7 @@ else
 
             while read line; do
                 printf "    ${line}\n"
-            done < ./errors.txt
+            done < ././tests/grammar/term/errors.txt
 
         # Print output
         else
@@ -77,8 +84,10 @@ else
 
     printf "\n";
 
-    for test_script in ./tests/term/valid/*.peg; do
-        ./tests/term/test $test_script 2> ./errors.txt 1> ./output.txt
+    for test_script in ./tests/grammar/term/valid/*.peg; do
+        ./tests/grammar/term/test $test_script \
+                2> ././tests/grammar/term/errors.txt \
+                1> ././tests/grammar/term/output.txt
 
         return_value=$?
         test_name="$(basename $test_script .peg)"
@@ -89,7 +98,7 @@ else
 
             while read line; do
                 printf "    ${line}\n"
-            done < ./errors.txt
+            done < ././tests/grammar/term/errors.txt
 
         # Report parse failures
         elif [[ $return_value -eq 2 ]]; then
@@ -97,7 +106,7 @@ else
 
             while read line; do
                 printf "    ${line}\n"
-            done < ./errors.txt
+            done < ././tests/grammar/term/errors.txt
 
         # Report exceptions
         elif [[ $return_value -eq 3 ]]; then
@@ -105,13 +114,22 @@ else
 
             while read line; do
                 printf "    ${line}\n"
-            done < ./errors.txt
+            done < ././tests/grammar/term/errors.txt
 
         # Print output
         else
             printf "  ${test_name} (passed)\n"
+
+            # while read -r line; do
+            #     printf "    ${line}\n"
+            # done < ./tests/grammar/term/output.txt
+
+            printf "    ";
+            cat ./tests/grammar/term/output.txt
         fi
     done
 fi
 
-rm -f ./errors.txt ./output.txt ./tests/term/test
+rm -f ././tests/grammar/term/errors.txt \
+        ././tests/grammar/term/output.txt \
+        ./tests/grammar/term/test
