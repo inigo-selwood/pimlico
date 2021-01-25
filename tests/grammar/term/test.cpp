@@ -33,7 +33,7 @@ int main(int argument_count, char *argument_values[]) {
             return 1;
         }
 
-        std::cout << "output: " << *term << "\n";
+        std::cout << *term << "\n";
 
         buffer.skip_whitespace();
         if(buffer.end_reached() == false) {
