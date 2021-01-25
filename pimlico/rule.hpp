@@ -25,10 +25,16 @@ public:
 
     bool inlined;
 
+    friend std::ostream &operator<<(std::ostream &stream, const Rule &rule);
+
     static std::shared_ptr<Rule> parse(TextBuffer &buffer,
             std::vector<SyntaxError> &errors);
 
 };
+
+std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
+    return stream << rule.name << ": " << *rule.value;
+}
 
 std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
