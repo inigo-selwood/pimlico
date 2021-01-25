@@ -471,12 +471,26 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
     // Parse start value
     buffer.skip_space();
     if(buffer.read('\'') == false) {
-        SyntaxError error("expected '\\\''", buffer);
+        const SyntaxError error("expected '\\\''", buffer);
         errors.push_back(error);
         return nullptr;
     }
 
-    const char start_value = buffer.read();
+    char start_value;
+    if(buffer.peek('\\')) {
+        start_value = parse_escape_code(buffer);
+        if(start_value < ' ' || start_value > '~') {
+            const std::string message =
+                    "non letter/symbol ASCII escape codes not permitted in "
+                    "ranges";
+            const SyntaxError error(message, buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
+    }
+    else
+        start_value = buffer.read();
+
     if(start_value < ' ' || start_value > '~') {
         SyntaxError error("start constant must be a valid ASCII character",
                 buffer);
@@ -506,13 +520,20 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
         return nullptr;
     }
 
-    const char end_value = buffer.read();
-    if(end_value < ' ' || end_value > '~') {
-        SyntaxError error("end constant must be a valid ASCII character",
-                buffer);
-        errors.push_back(error);
-        return nullptr;
+    char end_value;
+    if(buffer.peek('\\')) {
+        end_value = parse_escape_code(buffer);
+        if(end_value < ' ' || end_value > '~') {
+            const std::string message =
+                    "non letter/symbol ASCII escape codes not permitted in "
+                    "ranges";
+            const SyntaxError error(message, buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
     }
+    else
+        end_value = buffer.read();
 
     if(buffer.read('\'') == false) {
         SyntaxError error("expected '\\\''", buffer);
@@ -604,32 +625,21 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
 
     std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
     term->type = Term::Type::CHOICE;
+    term->instance_bounds = {1, 1};
 
     std::vector<std::shared_ptr<Term>> values;
     while(true) {
         const std::shared_ptr<Term> value = parse(buffer, errors);
         if(value == nullptr) {
 
-            // Parsing can be continued (for error reporting) if the end of the
-            // last term was reached
-            buffer.skip_space();
-            if(buffer.peek('|')) {
-                term = nullptr;
-                break;
+            // Skip to the end of the sequence
+            while(true) {
+                buffer.skip_space();
+                if(buffer.end_reached() || buffer.peek('\n'))
+                    break;
+                buffer.increment();
             }
-
-            // Otherwise, break out
-            else {
-
-                // Skip to the end of the sequence
-                while(true) {
-                    buffer.skip_space();
-                    if(buffer.end_reached() || buffer.peek('\n'))
-                        break;
-                    buffer.increment();
-                }
-                return nullptr;
-            }
+            return nullptr;
         }
         values.push_back(value);
 
@@ -655,12 +665,10 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
         }
     }
 
-    if(term) {
-        if(values.size() == 1)
-            term = values.back();
-        else
-            term->value = values;
-    }
+    if(values.size() == 1)
+        term = values.back();
+    else
+        term->value = values;
 
     return term;
 }
@@ -711,12 +719,10 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
             break;
     }
 
-    if(term) {
-        if(values.size() == 1)
-            term = values.back();
-        else
-            term->value = values;
-    }
+    if(values.size() == 1)
+        term = values.back();
+    else
+        term->value = values;
 
     return term;
 }
