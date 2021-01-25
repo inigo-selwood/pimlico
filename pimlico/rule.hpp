@@ -47,6 +47,8 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
         const char character = buffer.peek();
         if((character >= 'a' && character <= 'z') || character == '_')
             name += buffer.read();
+        else
+            break;
     }
 
     buffer.skip_space();
