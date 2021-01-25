@@ -61,6 +61,10 @@ std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
             specification->rules.push_back(rule);
     }
 
+    buffer.skip_whitespace();
+    if(buffer.end_reached() == false)
+        throw ParseLogicError("incomplete specification parse", buffer);
+
     return specification;
 }
 
