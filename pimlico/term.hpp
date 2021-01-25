@@ -113,9 +113,12 @@ public:
 
     Predicate predicate;
 
+    bool silenced;
+
     Term() : instance_bounds({0, 0}),
             type(Type::NONE),
-            predicate(Predicate::NONE) {}
+            predicate(Predicate::NONE),
+            silenced(false) {}
 
     static std::shared_ptr<Term> parse(TextBuffer &buffer,
             std::vector<SyntaxError> &errors,
@@ -158,6 +161,9 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
         {'\"', "\\\""},
         {'\'', "\\\'"},
     };
+
+    if(term.silenced)
+        stream << "$";
 
     // Serialize constants
     const Term::Type &type = term.type;
@@ -270,6 +276,20 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     else if(buffer.read('!'))
         predicate = Predicate::NOT;
 
+    buffer.skip_space();
+    bool silenced = false;
+    if(buffer.read('$')) {
+        if(predicate != Predicate::NONE) {
+            const SyntaxError error("unneccessarily silenced predicated term",
+                    buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
+
+        silenced = true;
+    }
+
+    buffer.skip_space();
     bool enclosed = false;
     if(root == false && buffer.read('('))
         enclosed = true;
@@ -413,6 +433,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         instance_bounds = {1, 1};
 
     term->predicate = predicate;
+    term->silenced = silenced;
     term->instance_bounds = instance_bounds;
     return term;
 }
