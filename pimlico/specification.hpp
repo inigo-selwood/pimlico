@@ -16,6 +16,9 @@ class Specification {
 
 public:
 
+    friend std::ostream &operator<<(std::ostream &stream,
+            const Specification &specification);
+
     static std::shared_ptr<Specification> parse(const std::string &grammar,
             std::vector<SyntaxError> &errors);
 
@@ -26,6 +29,14 @@ private:
     static inline bool skip_comment(TextBuffer &buffer);
 
 };
+
+std::ostream &operator<<(std::ostream &stream,
+        const Specification &specification) {
+
+    for(const auto &rule : specification.rules)
+        stream << *rule << "\n";
+    return stream;
+}
 
 std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
         std::vector<SyntaxError> &errors) {
