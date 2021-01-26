@@ -150,9 +150,9 @@ Predicates can also be necessary if the parser is returning 'multiple candidate'
 
 ---
 
-### Inlining
+### Silencing
 
-To promote the use of rules for clarity, they can be inlined.
+Terms can be silenced to stop them appearing in the parser's output.
 
 Consider the following extension of a previous example:
 
@@ -165,11 +165,11 @@ For the string `3.141E0`, the parser would generate the following output:
 
 `number(digit(3), '.', digit('1'), digit('4'), 'E', digit('0'))`
 
-This might be the desired behaviour -- but equally we might not want a distinct digit term instance for each digit character parsed. Rules whose names begin with an underscore are 'inlined', and will not appear in the parser's output.
+This might be the desired behaviour -- but equally we might not want a distinct digit term instance for each digit character parsed.
 
 ```
-_digit: ['0' - '9']
-number: '-'? _digit+ ('.' _digit+)? ('E' | 'e') '-'? _digit+
+digit: ['0' - '9']
+number: '-'? $digit+ ('.' $digit+)? ('E' | 'e') '-'? $digit+
 ```
 
 Now the parsed result would look like this:
@@ -243,17 +243,6 @@ Class           | Purpose
 #include "pimlico.hpp"
 using namespace Pimlico;
 
-// Report syntax errors
-void print_error(const std::string &file_name, const SyntaxError &error) {
-    std::cerr << file_name << " [" << error.line << ":" << error.column << "] ";
-    std::cerr << error.message << "\n";
-    std::cerr << error.text << "\n";
-
-    for(unsigned int index = 0; index < error.column; index += 1)
-        std::cerr << " ";
-    std::cerr << "^";
-}
-
 // Basic token printer
 void print_token(const Token &token) {
     std::cout << token.name << "(";
@@ -281,7 +270,7 @@ int main(int argument_count, char *argument_values[]) {
     // Check the program has the right number of arguments
     if(argument_count != 3) {
         std::cerr << "wrong number of arguments\n";
-        return -1;
+        return 1;
     }
 
     // Open the grammar stream
@@ -289,7 +278,7 @@ int main(int argument_count, char *argument_values[]) {
     std::ifstream grammar_stream(grammar_filename);
     if(grammar_stream.is_open() == false) {
         std::cerr << "couldn't open grammar file\n";
-        return -2;
+        return 2;
     }
 
     // Create a specification
@@ -302,8 +291,8 @@ int main(int argument_count, char *argument_values[]) {
     if(specification == nullptr) {
         std::cerr << "error parsing grammar specification\n";
         for(const SyntaxError &syntax_error : syntax_errors)
-            print_error(grammar_filename, syntax_error);
-        return -3;
+            std::cerr << syntax_error << "\n";
+        return 3;
     }
 
     // Open the source stream
@@ -311,7 +300,7 @@ int main(int argument_count, char *argument_values[]) {
     std::ifstream source_stream(source_filename);
     if(source_stream.is_open() == false) {
         std::cerr << "couldn't open source file\n";
-        return -4;
+        return 4;
     }
 
     // Create a syntax tree
@@ -323,8 +312,8 @@ int main(int argument_count, char *argument_values[]) {
     if(tree.valid == false) {
         std::cerr << "error parsing source\n";
         for(const auto &syntax_error : syntax_errors)
-            print_error(source_filename, syntax_error);
-        return -5;
+            std::cerr << syntax_error << "\n";
+        return 5;
     }
 
     // Recursively print the tree's tokens
