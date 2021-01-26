@@ -37,9 +37,11 @@ if [[ ! -z $test_script ]]; then
     else
         printf "  ${test_name} (passed)\n"
 
-        while read -r line; do
-            printf "    ${line}\n"
-        done < ./tests/grammar/specification/output.txt
+        # while read -r line; do
+        #     printf "    ${line}\n"
+        # done < ./tests/grammar/specification/output.txt
+
+        cat ./tests/grammar/specification/output.txt
     fi
 else
     printf "no grammar file specified\n"
@@ -48,4 +50,4 @@ fi
 
 rm -f ./tests/grammar/specification/errors.txt \
         ./tests/grammar/specification/output.txt \
-        # ./tests/grammar/specification/test
+        ./tests/grammar/specification/test
