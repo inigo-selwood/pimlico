@@ -44,7 +44,7 @@ int main(int argument_count, char *argument_values[]) {
         return 0;
     }
     catch(ParseLogicError &exception) {
-        std::cerr << exception.what() << "\n";
+        std::cerr << exception << "\n";
         for(const SyntaxError &error : errors)
             std::cerr << error << "\n";
         return 3;
