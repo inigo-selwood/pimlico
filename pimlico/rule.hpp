@@ -13,14 +13,18 @@ namespace Pimlico {
 
 class Rule {
 
+private:
+
+    void add_parent_scope(const std::string &parent);
+
 public:
-
-    std::string name;
-
-    std::vector<std::string> scope;
 
     std::variant<std::shared_ptr<Term>,
             std::vector<std::shared_ptr<Rule>>> value;
+
+    std::vector<std::string> scope;
+
+    std::string name;
 
     bool terminal;
 
@@ -31,30 +35,37 @@ public:
 
 };
 
+void Rule::add_parent_scope(const std::string &parent) {
+    scope.push_back(parent);
+    if(terminal == false) {
+        const std::vector<std::shared_ptr<Rule>> children =
+                std::get<std::vector<std::shared_ptr<Rule>>>(value);
+        for(const auto &child : children)
+            child->add_parent_scope(parent);
+    }
+}
+
 std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
+
+    for(unsigned int index = 0; index < rule.scope.size(); index += 1)
+        stream << "    ";
 
     if(rule.terminal) {
         const std::shared_ptr<Term> value =
                 std::get<std::shared_ptr<Term>>(rule.value);
-
-        if(rule.scope.empty() == false) {
-            for(unsigned int index = 0;
-                    index < rule.scope.size() + 1;
-                    index += 1)
-                stream << "    ";
-        }
         stream << rule.name << ": " << *value;
     }
     else {
         const std::vector<std::shared_ptr<Rule>> children =
                 std::get<std::vector<std::shared_ptr<Rule>>>(rule.value);
 
-        for(unsigned int index = 0; index < rule.scope.size(); index += 1)
-            stream << "    ";
         stream << rule.name << "...\n";
 
-        for(const auto &child : children)
-            stream << *child << "\n";
+        for(const auto &child : children) {
+            stream << *child;
+            if(child->terminal)
+                stream << '\n';
+        }
     }
 
     return stream;
@@ -101,6 +112,7 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
             throw ParseLogicError("incomplete term parse", buffer);
 
         rule->value = value;
+        std::cerr << "position at end of rule, " << buffer.position << "\n";
         return rule;
     }
 
@@ -126,19 +138,20 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
         while(true) {
 
             // Check if the next line is a single-indented child
-            buffer.skip_whitespace();
             const unsigned int new_indentation =
-                    buffer.line_indentations[buffer.position.line_number - 1];
+                    buffer.line_indentations[buffer.position.line_number];
             if(buffer.position.line_number >= buffer.line_indentations.size()
                     || new_indentation <= start_indentation)
                 break;
+            else
+                buffer.skip_whitespace();
 
             // Parse the child
             const auto child = Rule::parse(buffer, errors);
 
             if(child == nullptr)
                 errors_found = true;
-            child->scope.push_back(rule->name);
+            child->add_parent_scope(rule->name);
             children.push_back(child);
 
             if(buffer.end_reached() == false && buffer.peek('\n') == false)
