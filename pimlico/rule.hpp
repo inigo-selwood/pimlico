@@ -35,6 +35,7 @@ public:
 
 };
 
+// Recursively adds a parent scope to this rule and its children
 void Rule::add_parent_scope(const std::string &parent) {
     scope.push_back(parent);
     if(terminal == false) {
@@ -47,14 +48,18 @@ void Rule::add_parent_scope(const std::string &parent) {
 
 std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
 
+    // Indent the rule
     for(unsigned int index = 0; index < rule.scope.size(); index += 1)
         stream << "    ";
 
+    // Serialize terminal rules
     if(rule.terminal) {
         const std::shared_ptr<Term> value =
                 std::get<std::shared_ptr<Term>>(rule.value);
         stream << rule.name << ": " << *value;
     }
+
+    // Serialize non-terminal rules (ie: rules with children)
     else {
         const std::vector<std::shared_ptr<Rule>> children =
                 std::get<std::vector<std::shared_ptr<Rule>>>(rule.value);
@@ -71,28 +76,33 @@ std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
     return stream;
 }
 
+// Parse a rule
 std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
+    // Create a rule instance
     std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
 
+    // Extract the rule's 'snake_case' name
     buffer.skip_space();
+    std::string name;
     while(true) {
         if(buffer.end_reached())
             break;
 
         const char character = buffer.peek();
         if((character >= 'a' && character <= 'z') || character == '_')
-            rule->name += buffer.read();
+            name += buffer.read();
         else
             break;
     }
 
-    buffer.skip_space();
-    if(rule->name.empty())
+    // Check there was a name at the index given
+    if(name.empty())
         throw ParseLogicError("expected rule name", buffer);
 
     // Handle rules
+    buffer.skip_space();
     if(buffer.read(':')) {
         rule->terminal = true;
 
@@ -112,28 +122,29 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
             throw ParseLogicError("incomplete term parse", buffer);
 
         rule->value = value;
-        std::cerr << "position at end of rule, " << buffer.position << "\n";
-        return rule;
     }
 
-    // Handle name extensions
+    // Handle "non-terminal" name extended rules
     else if(buffer.read("...")) {
-        const TextBuffer::Position start_position = buffer.position;
-
         rule->terminal = false;
 
+        // Hold the start position for error reporting
+        const TextBuffer::Position start_position = buffer.position;
+
+        // Check the line is empty after the ellipsis
         buffer.skip_space();
-        bool errors_found = false;
         if(buffer.peek('\n') == false) {
             SyntaxError error("trailing characters after name-extended rule",
                     buffer);
             errors.push_back(error);
-            errors_found = true;
+            rule = nullptr;
         }
 
+        // Keep track of the start indentation
         const unsigned int start_indentation =
                 buffer.line_indentations[buffer.position.line_number - 1];
 
+        // Parse children (rules defined below this one, indented by 4 spaces)
         std::vector<std::shared_ptr<Rule>> children;
         while(true) {
 
@@ -148,31 +159,38 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
             // Parse the child
             const auto child = Rule::parse(buffer, errors);
-
             if(child == nullptr)
-                errors_found = true;
-            child->add_parent_scope(rule->name);
-            children.push_back(child);
-
-            if(buffer.end_reached() == false && buffer.peek('\n') == false)
+                rule = nullptr;
+            else if(buffer.end_reached() == false && buffer.peek('\n') == false)
                 throw ParseLogicError("incomplete rule parse", buffer);
+
+            // Scope the child appropriately and add it to the vector
+            child->add_parent_scope(name);
+            children.push_back(child);
         }
 
-        if(errors_found == true)
-            return nullptr;
-        else if(children.empty()) {
+        if(children.empty()) {
             buffer.position = start_position;
             const std::string message = "no children found for name-extended "
-                    "rule " + rule->name;
+                    "rule " + name;
             SyntaxError error(message, buffer);
             errors.push_back(error);
             return nullptr;
         }
 
-        rule->value = children;
-        return rule;
+        if(rule)
+            rule->value = children;
     }
 
+    // Check there was either a semi-colon or an ellipsis found
+    else {
+        SyntaxError error("expected either ':' or '...'", buffer);
+        errors.push_back(error);
+        return nullptr;
+    }
+
+    if(rule)
+        rule->name = name;
     return rule;
 }
 
