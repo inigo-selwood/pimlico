@@ -687,7 +687,9 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
                     break;
                 buffer.increment();
             }
-            return nullptr;
+
+            term = nullptr;
+            break;
         }
         values.push_back(value);
 
@@ -706,27 +708,35 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
                     "unexpected end-of-line after choice operator";
             const SyntaxError error(message, buffer);
             errors.push_back(error);
-            return nullptr;
+
+            term = nullptr;
+            break;
         }
         else if(buffer.peek(')')) {
             const SyntaxError error("unexpected ')' after choice operator",
                     buffer);
             errors.push_back(error);
-            return nullptr;
+
+            term = nullptr;
+            break;
         }
         else if(buffer.end_reached()) {
             const std::string message =
                     "unexpected end-of-file after choice operator";
             const SyntaxError error(message, buffer);
             errors.push_back(error);
-            return nullptr;
+
+            term = nullptr;
+            break;
         }
     }
 
-    if(values.size() == 1)
-        term = values.back();
-    else
-        term->value = values;
+    if(term) {
+        if(values.size() == 1)
+            term = values.back();
+        else
+            term->value = values;
+    }
 
     return term;
 }
@@ -750,7 +760,9 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
                     break;
                 buffer.increment();
             }
-            return nullptr;
+
+            term = nullptr;
+            break;
         }
         values.push_back(value);
 
@@ -759,10 +771,12 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
             break;
     }
 
-    if(values.size() == 1)
-        term = values.back();
-    else
-        term->value = values;
+    if(term) {
+        if(values.size() == 1)
+            term = values.back();
+        else
+            term->value = values;
+    }
 
     return term;
 }
