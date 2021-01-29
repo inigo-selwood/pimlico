@@ -58,8 +58,8 @@ public:
     bool read(const std::string &string);
     bool read(const char &character);
 
-    void skip_line();
-    void skip_space();
+    void skip_line(const bool overflow_line);
+    void skip_space(const bool overflow_line);
     void skip_whitespace();
 
 private:
@@ -198,7 +198,7 @@ bool TextBuffer::read(const std::string &string) {
     return result;
 }
 
-void TextBuffer::skip_space() {
+void TextBuffer::skip_space(const bool overflow_line = false) {
     long start_index = position.index;
     while(position.index < length) {
 
@@ -216,7 +216,7 @@ void TextBuffer::skip_space() {
             const int remainder = position.column_number % 5;
             position.column_number += (5 - remainder);
         }
-        else if(character == '\n' && position.line_extended)
+        else if(overflow_line && character == '\n' && position.line_extended)
             increment();
 
         // Handle comments
@@ -239,13 +239,22 @@ void TextBuffer::skip_whitespace() {
     }
 }
 
-void TextBuffer::skip_line() {
+void TextBuffer::skip_line(const bool overflow_line = false) {
     const long start_index = position.index;
-    if(position.index < length && text[position.index - 1] == '\n')
-        position.index += 1;
+    while(true) {
+        if(position.index < length && text[position.index - 1] == '\n')
+            position.index += 1;
 
-    while(position.index < length && text[position.index - 1] != '\n')
-        position.index += 1;
+        while(position.index < length && text[position.index - 1] != '\n')
+            position.index += 1;
+
+        if(overflow_line
+                && position.index < length
+                && text[position.index] == '\n')
+            increment();
+        else
+            break;
+    }
 
     if(position.index >= length)
         return;

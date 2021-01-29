@@ -685,6 +685,7 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
 
         // Stop parsing terms if the end-of-file or end-of-line have been
         // reached, or if there's no pipe character
+        buffer.skip_space(true);
         if(buffer.end_reached()
                 || buffer.peek('\n')
                 || buffer.peek(')')
@@ -692,7 +693,7 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
             break;
 
         // Check the file/line doesn't end given a pipe character's been found
-        buffer.skip_space();
+        buffer.skip_space(true);
         if(buffer.peek('\n')) {
             const std::string message =
                     "unexpected end-of-line after choice operator";
@@ -746,7 +747,7 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
 
         values.push_back(value);
 
-        buffer.skip_space();
+        buffer.skip_space(true);
         if(buffer.end_reached() || buffer.peek('\n') || buffer.peek(')'))
             break;
     }
