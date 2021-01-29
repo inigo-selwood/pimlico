@@ -678,19 +678,9 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
     std::vector<std::shared_ptr<Term>> values;
     while(true) {
         const std::shared_ptr<Term> value = parse(buffer, errors);
-        if(value == nullptr) {
+        if(value == nullptr)
+            return nullptr;
 
-            // Skip to the end of the sequence
-            while(true) {
-                buffer.skip_space();
-                if(buffer.end_reached() || buffer.peek('\n'))
-                    break;
-                buffer.increment();
-            }
-
-            term = nullptr;
-            break;
-        }
         values.push_back(value);
 
         // Stop parsing terms if the end-of-file or end-of-line have been
@@ -731,12 +721,10 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
         }
     }
 
-    if(term) {
-        if(values.size() == 1)
-            term = values.back();
-        else
-            term->value = values;
-    }
+    if(values.size() == 1)
+        term = values.back();
+    else
+        term->value = values;
 
     return term;
 }
@@ -753,17 +741,9 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
     while(true) {
         const std::shared_ptr<Term> value = parse_choice(buffer, errors);
 
-        if(value == nullptr) {
-            while(true) {
-                buffer.skip_space();
-                if(buffer.end_reached() || buffer.peek('\n'))
-                    break;
-                buffer.increment();
-            }
+        if(value == nullptr)
+            return nullptr;
 
-            term = nullptr;
-            break;
-        }
         values.push_back(value);
 
         buffer.skip_space();
@@ -771,12 +751,10 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
             break;
     }
 
-    if(term) {
-        if(values.size() == 1)
-            term = values.back();
-        else
-            term->value = values;
-    }
+    if(values.size() == 1)
+        term = values.back();
+    else
+        term->value = values;
 
     return term;
 }
