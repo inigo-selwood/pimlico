@@ -276,6 +276,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     else if(buffer.read('!'))
         predicate = Predicate::NOT;
 
+    // Parse silencing hint
     buffer.skip_space();
     bool silenced = false;
     if(buffer.read('$')) {
@@ -289,15 +290,20 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         silenced = true;
     }
 
+    // Create a term instance
+    std::shared_ptr<Term> term = nullptr;
+
+    // Check if term should be parsed as a sequence since it's a root, or
+    // enclosed
     buffer.skip_space();
     bool enclosed = false;
     if(root == false && buffer.read('('))
         enclosed = true;
 
-    std::shared_ptr<Term> term = nullptr;
-
     if(root || enclosed)
         term = parse_sequence(buffer, errors);
+
+    // Otherwise, look for a constant, range, or reference
     else {
         const char character = buffer.peek();
 
@@ -317,9 +323,11 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         }
     }
 
+    // Check the term was parsed properly
     if(term == nullptr)
         return nullptr;
 
+    // Check for a closing bracket if the term was enclosed
     buffer.skip_space();
     if(enclosed && buffer.read(')') == false) {
         const SyntaxError error("expected matching ')'", buffer);
@@ -340,8 +348,10 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     // Parse instance ranges
     else if(buffer.read('{')) {
 
+        // Hold start position for error reporting
         const TextBuffer::Position start_position = buffer.position;
 
+        // Parse bound start value (if present)
         buffer.skip_space();
         int start_value = -1;
         char character = buffer.peek();
@@ -354,11 +364,13 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
             }
         }
 
+        // Check to see if a colon is present
         buffer.skip_space();
         bool colon_present = false;
         if(buffer.read(':'))
             colon_present = true;
 
+        // Parse bound end value (if present)
         buffer.skip_space();
         int end_value = -1;
         character = buffer.peek();
@@ -371,6 +383,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
             }
         }
 
+        // Check for a closing bracket
         buffer.skip_space();
         if(buffer.read('}') == false) {
             SyntaxError error("expected '}' at end of instance bound", buffer);
@@ -422,6 +435,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
             instance_bounds = {start_value, end_value};
         }
 
+        // Report an error if the bound was invalid
         else {
             buffer.position = start_position;
             SyntaxError error("malformed instance bounds", buffer);
@@ -448,12 +462,13 @@ std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
     if(buffer.read('\'') == false)
         throw ParseLogicError("no constant found", buffer);
 
+    // Hold start position for error reporting
     const TextBuffer::Position start_position = buffer.position;
 
+    // Parse the constant
     std::string value;
     while(true) {
         const char character = buffer.peek();
-
         if(buffer.read('\''))
             break;
 
@@ -476,11 +491,13 @@ std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
             return nullptr;
         }
 
+        // Handle escape codes
         else if(buffer.peek('\\')) {
 
             const TextBuffer::Position code_position = buffer.position;
             const char escape_code = parse_escape_code(buffer);
             if(escape_code == 0) {
+                buffer.position = code_position;
                 const SyntaxError error("invalid escape code in constant",
                         buffer);
                 errors.push_back(error);
@@ -493,6 +510,7 @@ std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
             value += buffer.read();
     }
 
+    // Check the constant wasn't empty
     if(value.empty()) {
         buffer.position = start_position;
         const SyntaxError error("empty constant", buffer);
@@ -511,6 +529,8 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
     std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
     term->type = Term::Type::RANGE;
 
+    const TextBuffer::Position start_position = buffer.position;
+
     // Check there's a range present
     if(buffer.read('[') == false)
         throw ParseLogicError("no range found", buffer);
@@ -523,22 +543,17 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
         return nullptr;
     }
 
+    // Handle escape codes
+    const TextBuffer::Position start_constant_position = buffer.position;
     char start_value;
-    if(buffer.peek('\\')) {
+    if(buffer.peek('\\'))
         start_value = parse_escape_code(buffer);
-        if(start_value < ' ' || start_value > '~') {
-            const std::string message =
-                    "non letter/symbol ASCII escape codes not permitted in "
-                    "ranges";
-            const SyntaxError error(message, buffer);
-            errors.push_back(error);
-            return nullptr;
-        }
-    }
     else
         start_value = buffer.read();
 
+    // Check the constant wasn't a formatting character
     if(start_value < ' ' || start_value > '~') {
+        buffer.position = start_constant_position;;
         const std::string message = "range start constants must be a valid "
                 "ASCII letters, numbers, or symbols";
         SyntaxError error(message, buffer);
@@ -546,6 +561,7 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
         return nullptr;
     }
 
+    // Check a closing quote was present
     if(buffer.read('\'') == false) {
         SyntaxError error("expected '\\\''", buffer);
         errors.push_back(error);
@@ -568,20 +584,22 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
         return nullptr;
     }
 
+    const TextBuffer::Position end_constant_position = buffer.position;
     char end_value;
-    if(buffer.peek('\\')) {
+    if(buffer.peek('\\'))
         end_value = parse_escape_code(buffer);
-        if(end_value < ' ' || end_value > '~') {
-            const std::string message =
-                    "non letter/symbol ASCII escape codes not permitted in "
-                    "ranges";
-            const SyntaxError error(message, buffer);
-            errors.push_back(error);
-            return nullptr;
-        }
-    }
     else
         end_value = buffer.read();
+
+    // Check the constant wasn't a formatting character
+    if(start_value < ' ' || start_value > '~') {
+        buffer.position = end_constant_position;
+        const std::string message = "range end constants must be a valid "
+                "ASCII letters, numbers, or symbols";
+        SyntaxError error(message, buffer);
+        errors.push_back(error);
+        return nullptr;
+    }
 
     if(buffer.read('\'') == false) {
         SyntaxError error("expected '\\\''", buffer);
@@ -600,6 +618,7 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
     // Check range makes logical sense
     bool errors_found = false;
     if(end_value < start_value) {
+        buffer.position = start_position;
         SyntaxError error("range's end value less than start value", buffer);
         errors.push_back(error);
         errors_found = true;
@@ -607,11 +626,13 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
 
     // Check range's start and end values are ASCII
     else if(start_value < ' ' || start_value > '~' ) {
+        buffer.position = start_position;
         SyntaxError error("range's start value is non-ASCII", buffer);
         errors.push_back(error);
         errors_found = true;
     }
     else if(end_value < ' ' || end_value > '~' ) {
+        buffer.position = start_position;
         SyntaxError error("range's end value is non-ASCII", buffer);
         errors.push_back(error);
         errors_found = true;
