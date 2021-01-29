@@ -22,6 +22,8 @@ public:
     std::variant<std::shared_ptr<Term>,
             std::vector<std::shared_ptr<Rule>>> value;
 
+    TextBuffer::Position position;
+
     std::vector<std::string> scope;
 
     std::string name;
@@ -80,64 +82,45 @@ std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
 std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
         std::vector<SyntaxError> &errors) {
 
-    // Create a rule instance
     std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
 
-    // Extract the rule's 'snake_case' name
-    buffer.skip_space();
-    std::string name;
-    while(true) {
-        if(buffer.end_reached())
-            break;
+    rule->position = buffer.position;
 
+    while(true) {
         const char character = buffer.peek();
         if((character >= 'a' && character <= 'z') || character == '_')
-            name += buffer.read();
+            rule->name += buffer.read();
         else
             break;
     }
 
-    // Check there was a name at the index given
-    if(name.empty())
-        throw ParseLogicError("expected rule name", buffer);
+    if(rule->name.empty())
+        throw ParseLogicError("no rule found", buffer);
 
-    // Handle rules
+    // Handle 'normal' rules
     buffer.skip_space();
     if(buffer.read(':')) {
         rule->terminal = true;
 
-        // Check there are terms present
-        buffer.skip_space();
-        if(buffer.end_reached() || buffer.peek('\n')) {
-            SyntaxError error("expected terms", buffer);
-            errors.push_back(error);
+        buffer.skip_space(true);
+        const auto term = Term::parse(buffer, errors, true);
+        if(term == nullptr) {
+            buffer.skip_block();
             return nullptr;
         }
 
-        // Parse the rule's value
-        const auto value = Term::parse(buffer, errors, true);
-        if(value == nullptr)
-            return nullptr;
-        else if(buffer.peek('\n') == false)
-            throw ParseLogicError("incomplete term parse", buffer);
-
-        rule->value = value;
+        rule->value = term;
     }
 
-    // Handle "non-terminal" name extended rules
+    // Handle name-extended rules
     else if(buffer.read("...")) {
-        rule->terminal = false;
-
-        // Hold the start position for error reporting
-        const TextBuffer::Position start_position = buffer.position;
-
-        // Check the line is empty after the ellipsis
-        buffer.skip_space();
+        buffer.skip_space(true);
+        bool errors_found = false;
         if(buffer.peek('\n') == false) {
-            SyntaxError error("trailing characters after name-extended rule",
+            SyntaxError error("trailing characters after '...'",
                     buffer);
             errors.push_back(error);
-            rule = nullptr;
+            errors_found = true;
         }
 
         // Keep track of the start indentation
@@ -159,38 +142,40 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
             // Parse the child
             const auto child = Rule::parse(buffer, errors);
-            if(child == nullptr)
-                rule = nullptr;
+            if(child == nullptr) {
+                buffer.skip_block();
+                errors_found = true;
+            }
             else if(buffer.end_reached() == false && buffer.peek('\n') == false)
                 throw ParseLogicError("incomplete rule parse", buffer);
 
             // Scope the child appropriately and add it to the vector
-            child->add_parent_scope(name);
-            children.push_back(child);
+            else {
+                child->add_parent_scope(rule->name);
+                children.push_back(child);
+            }
         }
 
-        if(children.empty()) {
-            buffer.position = start_position;
+        if(errors_found)
+            return nullptr;
+        else if(children.empty()) {
+            buffer.position = rule->position;
             const std::string message = "no children found for name-extended "
-                    "rule " + name;
+                    "rule '" + rule->name + "'";
             SyntaxError error(message, buffer);
             errors.push_back(error);
             return nullptr;
         }
 
-        if(rule)
-            rule->value = children;
+        rule->value = children;
     }
 
-    // Check there was either a semi-colon or an ellipsis found
     else {
-        SyntaxError error("expected either ':' or '...'", buffer);
+        SyntaxError error("expected ':' or '...'", buffer);
         errors.push_back(error);
         return nullptr;
     }
 
-    if(rule)
-        rule->name = name;
     return rule;
 }
 
