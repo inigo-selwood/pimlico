@@ -33,7 +33,8 @@ public:
     friend std::ostream &operator<<(std::ostream &stream, const Rule &rule);
 
     static std::shared_ptr<Rule> parse(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors);
+            std::vector<SyntaxError> &errors,
+            const unsigned int parent_count);
 
 };
 
@@ -80,14 +81,21 @@ std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
 
 // Parse a rule
 std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors) {
+        std::vector<SyntaxError> &errors,
+        const unsigned int parent_count = 0) {
 
     std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
 
     rule->position = buffer.position;
 
-    if(buffer.indentation() % 4) {
+    const unsigned int indentation = buffer.indentation();
+    if(indentation % 4) {
         SyntaxError error("invalid indentation level", buffer);
+        errors.push_back(error);
+        return nullptr;
+    }
+    else if(indentation != parent_count * 4) {
+        SyntaxError error("unexpected indentation increase", buffer);
         errors.push_back(error);
         return nullptr;
     }
@@ -152,7 +160,7 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
                 buffer.skip_whitespace();
 
             // Parse the child
-            const auto child = Rule::parse(buffer, errors);
+            const auto child = Rule::parse(buffer, errors, parent_count + 1);
             if(child == nullptr) {
                 buffer.skip_block();
                 errors_found = true;
