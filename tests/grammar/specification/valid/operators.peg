@@ -1,0 +1,6 @@
+
+operator...
+    arithmetic...
+        binary: '+' | '-' | '*' | '/' | '%'
+        bitwise: '&' | '|' | '^'
+    comparison: '<' | '>' | ('=' | '!' | '<' | '>' '=')
