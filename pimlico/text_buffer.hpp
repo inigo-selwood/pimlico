@@ -61,6 +61,7 @@ public:
     void skip_line(const bool overflow_line);
     void skip_space(const bool overflow_line);
     void skip_whitespace();
+    void skip_block();
 
 private:
 
@@ -260,6 +261,22 @@ void TextBuffer::skip_line(const bool overflow_line = false) {
         return;
     position.column_number = 1;
     position.line_number += 1;
+}
+
+void TextBuffer::skip_block() {
+    while(true) {
+        skip_space(true);
+        if(end_reached())
+            break;
+        else if(peek('\n')) {
+            if(position.line_extended)
+                increment();
+            else
+                break;
+        }
+        else
+            increment();
+    }
 }
 
 inline char TextBuffer::get_character() const {
