@@ -50,8 +50,8 @@ public:
 
     std::string line_text() const;
 
-    int indentation_delta() const;
-    int indentation(int line) const;
+    int indentation_delta(long reference_line);
+    unsigned int indentation(long line_number) const;
 
     char peek() const;
     bool peek(const std::string &string) const;
@@ -70,9 +70,9 @@ private:
 
     std::string text;
 
-    unsigned long length;
-
     unsigned long line_count;
+
+    unsigned long length;
 
     inline char get_character() const;
     inline std::string get_string(const long &string_length);
@@ -107,6 +107,9 @@ TextBuffer::TextBuffer(const std::string &text) {
 
         line_indentations.push_back(line_indentation);
     }
+
+    if(text[length - 1] == '\n')
+        line_indentations.push_back(0);
 
     line_count = line_indentations.size();
 
@@ -168,15 +171,34 @@ std::string TextBuffer::line_text() const {
     return text.substr(start_index, length);
 }
 
-int TextBuffer::indentation_delta() const {
-    if(position.line_number == line_count || line_count == 1)
+int TextBuffer::indentation_delta(long reference_line = -1) {
+
+    // Check the reference line
+    if(reference_line == -1) {
+        reference_line = position.line_number;
+
+        if(reference_line == line_count)
+            return 0;
+    }
+    else if(reference_line < 1 || reference_line > line_count)
         return 0;
 
-    return line_indentations[position.line_number] -
-            line_indentations[position.line_number - 1];
+    const Position start_position = position;
+
+    // Skip to the end of the current line
+    while(end_reached() == false && get_character() != '\n')
+        increment();
+
+    // Skip to the next non-empty line, store the number, and reset the position
+    skip_whitespace();
+    const unsigned long target_line = position.line_number;
+    position = start_position;
+
+    return line_indentations[target_line - 1] -
+            line_indentations[reference_line - 1];
 }
 
-int TextBuffer::indentation(int line_number = -1) const {
+unsigned int TextBuffer::indentation(long line_number = -1) const {
     if(line_number == -1)
         return line_indentations[position.line_number - 1];
 

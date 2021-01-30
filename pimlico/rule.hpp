@@ -137,10 +137,9 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
         while(true) {
 
             // Check if the next line is a single-indented child
-            const unsigned int new_indentation =
-                    buffer.indentation(buffer.position.line_number);
-            if(buffer.position.line_number >= buffer.line_indentations.size()
-                    || new_indentation <= start_indentation)
+            const int indentation_delta =
+                    buffer.indentation_delta(rule->position.line_number);
+            if(indentation_delta <= 0)
                 break;
             else
                 buffer.skip_whitespace();
