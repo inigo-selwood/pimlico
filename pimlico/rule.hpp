@@ -86,6 +86,12 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
     rule->position = buffer.position;
 
+    if(buffer.indentation() % 4) {
+        SyntaxError error("invalid indentation level", buffer);
+        errors.push_back(error);
+        return nullptr;
+    }
+
     while(true) {
         const char character = buffer.peek();
         if((character >= 'a' && character <= 'z') || character == '_')
@@ -124,8 +130,7 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
         }
 
         // Keep track of the start indentation
-        const unsigned int start_indentation =
-                buffer.line_indentations[buffer.position.line_number - 1];
+        const unsigned int start_indentation = buffer.indentation();
 
         // Parse children (rules defined below this one, indented by 4 spaces)
         std::vector<std::shared_ptr<Rule>> children;
@@ -133,7 +138,7 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
             // Check if the next line is a single-indented child
             const unsigned int new_indentation =
-                    buffer.line_indentations[buffer.position.line_number];
+                    buffer.indentation(buffer.position.line_number);
             if(buffer.position.line_number >= buffer.line_indentations.size()
                     || new_indentation <= start_indentation)
                 break;
@@ -173,6 +178,7 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
     else {
         SyntaxError error("expected ':' or '...'", buffer);
         errors.push_back(error);
+        buffer.skip_block();
         return nullptr;
     }
 
