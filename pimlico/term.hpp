@@ -671,6 +671,7 @@ std::shared_ptr<Term> Term::parse_reference(TextBuffer &buffer,
     const char character = buffer.peek();
     static const std::unordered_set<char> terminators = {
         ' ', '\n', '\r', '\t', '#', // Whitespace
+        '+', '*', '?', '{',         // Instance hints
         '[', '\'',                  // Term
         '!', '&',                   // Predicates
         '(', '|'                    // Sequences
