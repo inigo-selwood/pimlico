@@ -81,6 +81,8 @@ public:
 
     TextBuffer(const std::string &text);
 
+    bool valid(std::vector<SyntaxError> &errors);
+
     bool end_reached() const;
     int indentation_delta(unsigned long reference) const;
 
@@ -154,7 +156,7 @@ std::ostream &operator<<(std::ostream &stream,
 
 TextBuffer::SyntaxError::SyntaxError(const std::string &message,
         const TextBuffer &buffer,
-        const TextBuffer::Position *position) {
+        const TextBuffer::Position *position = nullptr) {
     references.push_back(Reference(message, buffer, position));
 }
 
@@ -202,6 +204,45 @@ TextBuffer::TextBuffer(const std::string &text) {
     const unsigned int indentation_target = position.block_indentation + 8;
     position.line_broken = position.line < line_count
             && line_indentations[position.line] >= indentation_target;
+}
+
+/* Checks whether the buffer's text is valid
+
+- Checks indentation levels are multiples of 4
+- Checks characters are valid (< 0x20 or > 0x7E)
+*/
+bool TextBuffer::valid(std::vector<TextBuffer::SyntaxError> &errors) {
+
+    bool valid = true;
+
+    // Check indentation levels
+    for(unsigned int index = 0; index < line_indentations.size(); index += 1) {
+        const unsigned int &indentation = line_indentations[index];
+        if(indentation % 4) {
+            Position position;
+            position.line = index + 1;
+            position.index = line_indices[index];
+
+            SyntaxError error("invalid indentation", *this, &position);
+            errors.push_back(error);
+            valid = false;
+        }
+    }
+
+    // Check character validity
+    const Position start_position = position;
+    while(end_reached() == false) {
+        skip_whitespace();
+        const char character = read();
+        if(character < ' ' || character > '~') {
+            SyntaxError error("invalid character", *this);
+            errors.push_back(error);
+            valid = false;
+        }
+    }
+    position = start_position;
+
+    return valid;
 }
 
 // Checks whether the buffer has reached the end of its text
