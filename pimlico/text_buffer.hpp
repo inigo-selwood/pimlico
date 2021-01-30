@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -16,42 +17,77 @@ public:
 
         unsigned long index;
 
-        unsigned long line_number;
-        unsigned long column_number;
+        unsigned long line;
+        unsigned int column;
 
         friend std::ostream &operator<<(std::ostream &stream,
-                const Position &position) {
+                const Position &position);
 
-            return stream << "(line " << position.line_number <<
-                    ", column " << position.column_number << ")";
-        }
+        Position() : index(0),
+                line(1),
+                column(1),
+                block_indentation(0),
+                line_broken(false) {}
 
     private:
 
         friend class TextBuffer;
 
-        unsigned int line_start_indentation;
+        unsigned int block_indentation;
 
-        bool line_extended;
+        bool line_broken;
+
+    };
+
+    struct SyntaxError {
+
+    public:
+
+        struct Reference {
+
+            TextBuffer::Position position;
+
+            std::string text;
+            std::string message;
+
+            friend std::ostream &operator<<(std::ostream &stream,
+                    const Reference &reference);
+
+            Reference(const std::string &message,
+                    const TextBuffer &buffer,
+                    const TextBuffer::Position *position);
+
+        };
+
+        std::vector<Reference> references;
+
+        friend std::ostream &operator<<(std::ostream &stream,
+            const SyntaxError &error);
+
+        SyntaxError() {}
+        SyntaxError(const std::string &message,
+                const TextBuffer &buffer,
+                const TextBuffer::Position *position);
+
+        void add_reference(const std::string &message,
+                const TextBuffer &buffer,
+                const TextBuffer::Position *position);
 
     };
 
     std::function<bool(TextBuffer &)> comment_skip_function;
-
-    std::vector<unsigned int> line_indentations;
 
     Position position;
 
     TextBuffer(const std::string &text);
 
     bool end_reached() const;
+    int indentation_delta(unsigned long reference) const;
 
-    void increment(const unsigned int steps);
+    std::string line_text(unsigned long number) const;
+    unsigned int line_indentation(unsigned long number) const;
 
-    std::string line_text() const;
-
-    int indentation_delta(long reference_line);
-    unsigned int indentation(long line_number) const;
+    void increment(const unsigned long steps);
 
     char peek() const;
     bool peek(const std::string &string) const;
@@ -61,33 +97,82 @@ public:
     bool read(const std::string &string);
     bool read(const char &character);
 
-    void skip_line(const bool overflow_line);
-    void skip_space(const bool overflow_line);
+    void skip_line(const bool overflow);
+    void skip_space(const bool overflow);
     void skip_whitespace();
-    void skip_block();
 
 private:
 
     std::string text;
 
-    unsigned long line_count;
+    std::vector<unsigned int> line_indentations;
+    std::vector<unsigned long> line_indices;
 
+    unsigned long line_count;
     unsigned long length;
 
     inline char get_character() const;
-    inline std::string get_string(const long &string_length);
+    inline std::string get_string(const long &string_length) const;
 
 };
 
+std::ostream &operator<<(std::ostream &stream,
+        const TextBuffer::Position &position) {
+    return stream << '[' << position.line << ':' << position.column << ']';
+}
+
+std::ostream &operator<<(std::ostream &stream,
+        const TextBuffer::SyntaxError::Reference &reference) {
+
+    stream << reference.position << ' ' << reference.message << '\n'
+            << reference.text << '\n';
+
+    for(unsigned int index = 1; index < reference.position.index; index += 1)
+        stream << ' ';
+    stream << '^';
+}
+
+TextBuffer::SyntaxError::Reference::Reference(const std::string &message,
+        const TextBuffer &buffer,
+        const TextBuffer::Position *position) {
+
+    this->position = (position) ? *position : buffer.position;
+    this->message = message;
+    this->text = buffer.line_text(this->position.line);
+}
+
+std::ostream &operator<<(std::ostream &stream,
+        const TextBuffer::SyntaxError &error) {
+
+    const unsigned int reference_count = error.references.size();
+    for(unsigned int index = 0; index < reference_count; index += 1) {
+        stream << error.references[index];
+        if(index + 1 < reference_count)
+            stream << '\n';
+    }
+}
+
+TextBuffer::SyntaxError::SyntaxError(const std::string &message,
+        const TextBuffer &buffer,
+        const TextBuffer::Position *position) {
+    references.push_back(Reference(message, buffer, position));
+}
+
+void TextBuffer::SyntaxError::add_reference(const std::string &message,
+        const TextBuffer &buffer,
+        const TextBuffer::Position *position) {
+    references.push_back(Reference(message, buffer, position));
+}
+
+// Constructor
 TextBuffer::TextBuffer(const std::string &text) {
     this->text = text;
-    position.index = 0;
-    position.line_number = 1;
-    position.column_number = 1;
 
     length = text.length();
 
-    for(unsigned int offset = 0; offset < text.size(); offset += 1) {
+    for(unsigned int offset = 0; offset < length; offset += 1) {
+        line_indices.push_back(offset);
+
         unsigned int line_indentation = 0;
         while(true) {
             if(offset == text.size())
@@ -102,7 +187,7 @@ TextBuffer::TextBuffer(const std::string &text) {
             offset += 1;
         }
 
-        while(offset < text.size() && text[offset] != '\n')
+        while(offset < length && text[offset] != '\n')
             offset += 1;
 
         line_indentations.push_back(line_indentation);
@@ -113,222 +198,264 @@ TextBuffer::TextBuffer(const std::string &text) {
 
     line_count = line_indentations.size();
 
-    position.line_start_indentation = line_indentations.front();
-    const unsigned int indentation_target = position.line_start_indentation + 8;
-    position.line_extended = position.line_number < line_count
-            && line_indentations[position.line_number] >= indentation_target;
+    position.block_indentation = line_indentations.front();
+    const unsigned int indentation_target = position.block_indentation + 8;
+    position.line_broken = position.line < line_count
+            && line_indentations[position.line] >= indentation_target;
 }
 
+// Checks whether the buffer has reached the end of its text
 bool TextBuffer::end_reached() const {
     return position.index >= length;
 }
 
-void TextBuffer::increment(const unsigned int steps = 1) {
-    for(long step = 0; step < steps; step += 1) {
-        if(position.index == length)
-            return;
+/* Finds the difference in indentation between the current line and the next
 
-        position.index += 1;
-        if(text[position.index - 1] != '\r')
-            position.column_number += 1;
+The next line is considered the next non-empty line
 
-        if(text[position.index - 1] == '\n') {
-            position.line_number += 1;
-            position.column_number = 1;
+Arguments:
+    reference: if present, the difference in indentation is calculated between
+        it and the next
+*/
+int TextBuffer::indentation_delta(unsigned long reference = 0) const {
+    if(reference == 0)
+        reference = position.line;
 
-            const unsigned int indentation_target = position.line_start_indentation + 8;
-            if(position.line_number < line_count
-                    && line_indentations[position.line_number] >= indentation_target)
-                position.line_extended = true;
-            else {
-                position.line_extended = false;
+    if(reference >= line_count)
+        return 0;
 
-                if(position.line_number + 1 < line_count) {
-                    position.line_start_indentation =
-                            line_indentations[position.line_number + 1];
-                }
+    const int reference_indentation = line_indentations[reference];
+
+    unsigned int next_line = position.line;
+    for(unsigned long index = position.index; index < length; index += 1) {
+
+        // Increment the line count
+        if(text[position.index - 1] == '\n' && index > position.index)
+            next_line += 1;
+
+        if(index == length)
+            return 0;
+
+        // Skip whitespace
+        else if(text[position.index] == ' '
+                || text[position.index] == '\t'
+                || text[position.index] == '\r')
+            continue;
+
+        // Skip comments
+        else if(text[position.index] == '#') {
+            while(true) {
+                if(index == length)
+                    return 0;
+                else if(text[position.index - 1] == '\n')
+                    break;
+
+                index += 1;
             }
         }
+
+        // Stop when a non-whitespace character has been found
+        else
+            break;
     }
+
+    if(next_line == line_count)
+        return 0;
+
+    const unsigned int &next_indentation = line_indentations[next_line];
+
+    return reference_indentation - next_indentation;
 }
 
-std::string TextBuffer::line_text() const {
-    unsigned long start_index = position.index;
-    while(true) {
-        if(start_index == 0 || text[start_index - 1] == '\n')
-            break;
-        start_index -= 1;
-    }
+/* Gets the current line's text
 
-    unsigned long end_index = position.index;
-    while(true) {
-        if(end_index == length || text[end_index] == '\n')
-            break;
-        end_index += 1;
-    }
+Arguments:
+    number: if present, the text of the given line is returned
+*/
+std::string TextBuffer::line_text(unsigned long number = 0) const {
 
-    const unsigned long length = end_index - start_index;
+    // Assign and check the line number
+    if(number == 0)
+        number = position.line;
+    else if(number > line_count)
+        return "";
+
+    const unsigned int start_index = line_indices[number - 1];
+
+    // Calculate the substring's length
+    unsigned long length = 0;
+    if(number == line_count)
+        length = std::string::npos;
+    else
+        length = line_indices[number] - start_index;
+
     return text.substr(start_index, length);
 }
 
-int TextBuffer::indentation_delta(long reference_line = -1) {
+/* Gets the current line's text
 
-    // Check the reference line
-    if(reference_line == -1) {
-        reference_line = position.line_number;
-
-        if(reference_line == line_count)
-            return 0;
-    }
-    else if(reference_line < 1 || reference_line > line_count)
-        return 0;
-
-    const Position start_position = position;
-
-    // Skip to the end of the current line
-    while(end_reached() == false && get_character() != '\n')
-        increment();
-
-    // Skip to the next non-empty line, store the number, and reset the position
-    skip_whitespace();
-    const unsigned long target_line = position.line_number;
-    position = start_position;
-
-    return line_indentations[target_line - 1] -
-            line_indentations[reference_line - 1];
-}
-
-unsigned int TextBuffer::indentation(long line_number = -1) const {
-    if(line_number == -1)
-        return line_indentations[position.line_number - 1];
-
-    if(line_number < 1 || line_number > line_count)
+Arguments:
+    number: if present, the indentation of a given line is returned
+*/
+unsigned int TextBuffer::line_indentation(unsigned long number = 0) const {
+    if(number == 0)
+        number = position.line;
+    else if(number > line_count)
         return 0;
     else
-        return line_indentations[line_number];
+        return line_indentations[number];
 }
 
+/* Increments the buffer's position
+
+Arguments:
+    steps: the number of steps to increment the buffer's position by
+*/
+void TextBuffer::increment(const unsigned long steps = 1) {
+    for(unsigned int index = 0; index < steps; index += 1) {
+        if(position.index + 1 >= length)
+            return;
+        position.index += 1;
+
+        if(text[position.index - 1] == '\n') {
+            position.line += 1;
+            position.column = 1;
+
+            const unsigned int indentation_target =
+                    position.block_indentation + 8;
+            if(position.line < line_count
+                    && line_indentations[position.line] >= indentation_target)
+                position.line_broken = true;
+            else {
+                position.line_broken = false;
+
+                if(position.line + 1 < line_count) {
+                    position.block_indentation =
+                            line_indentations[position.line + 1];
+                }
+            }
+        }
+        else if(text[position.index] == '\t') {
+            const unsigned int remainder = position.column % 5;
+            position.column += (5 - remainder);
+        }
+        else if(text[position.index] != '\r')
+            position.column += 1;
+    }
+}
+
+// Returns the current character
 char TextBuffer::peek() const {
     return get_character();
 }
 
-bool TextBuffer::peek(const char &character) const {
-    return get_character() == character;
-}
-
+// Returns true if the given string is found
 bool TextBuffer::peek(const std::string &string) const {
     return text.substr(position.index, string.length()) == string;
 }
 
+// Returns true if the character given is found
+bool TextBuffer::peek(const char &character) const {
+    return text[position.index] == character;
+}
+
+// Consumes and returns the current character
 char TextBuffer::read() {
-    const char result = get_character();
+    const char &character = text[position.index];
     increment();
-    return result;
+    return character;
 }
 
-bool TextBuffer::read(const char &character) {
-    if(get_character() == character) {
-        increment();
-        return true;
-    }
-    return false;
-}
-
+// Returns true if the given string is found, consuming it
 bool TextBuffer::read(const std::string &string) {
-    const long length = string.length();
-    bool result = text.substr(position.index, length) == string;
-    if(result)
-        increment(length);
-    return result;
+    if(text.substr(position.index, string.length()) != string)
+        return false;
+
+    increment(string.length());
+    return true;
 }
 
-void TextBuffer::skip_space(const bool overflow_line = false) {
-    long start_index = position.index;
-    while(position.index < length) {
+// Returns true if the given character is found, consuming it
+bool TextBuffer::read(const char &character) {
+    if(text[position.index] != character)
+        return false;
 
-        // Handle spaces and tabs
-        const auto character = get_character();
-        if(character == ' ') {
-            position.index += 1;
-            position.column_number += 1;
-        }
-        else if(character == '\r')
-            position.index += 1;
-        else if(character == '\t') {
-            position.index += 1;
+    increment();
+    return true;
+}
 
-            const int remainder = position.column_number % 5;
-            position.column_number += (5 - remainder);
-        }
-        else if(overflow_line && character == '\n' && position.line_extended)
+/* Skips characters until the next newline (or the buffer's end)
+
+Arguments:
+    overflow: if true, skips past broken newlines too
+*/
+void TextBuffer::skip_line(const bool overflow = false) {
+    while(true) {
+        skip_space(overflow);
+        if(end_reached() || text[position.index - 1] == '\n')
+            return
+
+        increment();
+    }
+}
+
+/* Skips whitespace characters
+
+Whitespace includes: comments, spaces, tabs, newlines, and line feeds
+*/
+void TextBuffer::skip_whitespace() {
+    while(true) {
+        while(position.index < length && text[position.index] == '\n')
+            increment();
+
+        const unsigned long start_index = position.index;
+        skip_space(true);
+        if(position.index == length || position.index == start_index)
+            return;
+    }
+}
+
+/* Skips "soft" whitespace characters
+
+"Soft" whitespace includes: comments, spaces, tabs, and line feeds
+
+Arguments:
+    overflow: if true, skips past broken newlines too
+*/
+void TextBuffer::skip_space(const bool overflow = false) {
+    while(true) {
+
+        if(position.index == length)
+            return;
+
+        // Handle spaces, tabs, line-feeds and newlines
+        else if(text[position.index] == ' '
+                || text[position.index] == '\t'
+                || text[position.index] == '\r'
+                || (text[position.index] == '\n' && position.line_broken))
             increment();
 
         // Handle comments
-        else if(comment_skip_function != nullptr &&
-                comment_skip_function(*this))
+        else if(comment_skip_function != nullptr
+                && comment_skip_function(*this))
             continue;
 
-        // Failing the above, break out
         else
             break;
     }
 }
 
-void TextBuffer::skip_whitespace() {
-    long start_index = position.index;
-    while(true) {
-        skip_space();
-        if(read('\n') == false)
-            break;
-    }
-}
-
-void TextBuffer::skip_line(const bool overflow_line = false) {
-    const long start_index = position.index;
-    while(true) {
-        if(position.index < length && text[position.index - 1] == '\n')
-            position.index += 1;
-
-        while(position.index < length && text[position.index - 1] != '\n')
-            position.index += 1;
-
-        if(overflow_line
-                && position.index < length
-                && text[position.index] == '\n')
-            increment();
-        else
-            break;
-    }
-
-    if(position.index >= length)
-        return;
-    position.column_number = 1;
-    position.line_number += 1;
-}
-
-void TextBuffer::skip_block() {
-    while(true) {
-        skip_space(true);
-        if(end_reached())
-            break;
-        else if(peek('\n')) {
-            if(position.line_extended)
-                increment();
-            else
-                break;
-        }
-        else
-            increment();
-    }
-}
-
+// Gets the current character
 inline char TextBuffer::get_character() const {
     return (position.index < length) ? text[position.index] : 0;
 }
 
-inline std::string TextBuffer::get_string(const long &string_length) {
-    return (position.index + string_length < length) ?
-            text.substr(position.index, string_length) : "";
+// Gets a string of a given length at the current index
+inline std::string TextBuffer::get_string(const long &string_length) const {
+    if(position.index + string_length > length)
+        return "";
+
+    return text.substr(position.index, string_length);
 }
 
 };
