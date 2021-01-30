@@ -50,6 +50,9 @@ public:
 
     std::string line_text() const;
 
+    int indentation_delta() const;
+    int indentation(int line) const;
+
     char peek() const;
     bool peek(const std::string &string) const;
     bool peek(const char &character) const;
@@ -163,6 +166,24 @@ std::string TextBuffer::line_text() const {
 
     const unsigned long length = end_index - start_index;
     return text.substr(start_index, length);
+}
+
+int TextBuffer::indentation_delta() const {
+    if(position.line_number == line_count || line_count == 1)
+        return 0;
+
+    return line_indentations[position.line_number] -
+            line_indentations[position.line_number - 1];
+}
+
+int TextBuffer::indentation(int line_number = -1) const {
+    if(line_number == -1)
+        return line_indentations[position.line_number - 1];
+
+    if(line_number < 1 || line_number > line_count)
+        return 0;
+    else
+        return line_indentations[line_number];
 }
 
 char TextBuffer::peek() const {
