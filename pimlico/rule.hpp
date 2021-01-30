@@ -141,6 +141,13 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
                     buffer.indentation_delta(rule->position.line_number);
             if(indentation_delta <= 0)
                 break;
+            else if(indentation_delta != 4) {
+                buffer.skip_whitespace();
+                SyntaxError error("unexpected indentation increase", buffer);
+                errors.push_back(error);
+                buffer.skip_block();
+                return nullptr;
+            }
             else
                 buffer.skip_whitespace();
 
