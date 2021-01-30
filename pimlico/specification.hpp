@@ -21,7 +21,7 @@ private:
 
     static inline bool skip_comment(TextBuffer &buffer);
 
-    static bool detect_duplicates(
+    static inline bool detect_duplicates(
             const std::vector<std::shared_ptr<Rule>> &rules,
             std::vector<SyntaxError> &errors,
             TextBuffer &buffer);
@@ -52,7 +52,7 @@ inline bool Specification::skip_comment(TextBuffer &buffer) {
     return true;
 }
 
-bool Specification::detect_duplicates(
+inline bool Specification::detect_duplicates(
         const std::vector<std::shared_ptr<Rule>> &rules,
         std::vector<SyntaxError> &errors,
         TextBuffer &buffer) {
@@ -114,8 +114,12 @@ std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
             throw ParseLogicError("incomplete rule parse", buffer);
     }
 
-    if(detect_duplicates(specification->rules, errors, buffer) || errors_found)
+    // Detect if a rule has been declared multiple times
+    errors_found |= detect_duplicates(specification->rules, errors, buffer);
+    if(errors_found)
         return nullptr;
+
+    // TODO: Emplace references
 
     return specification;
 }
