@@ -3,9 +3,11 @@
 #include <sstream>
 #include <string>
 
+#include "text_buffer.hpp"
+
 namespace Pimlico {
 
-class ParseLogicError : public SyntaxError {
+class ParseLogicError : public TextBuffer::SyntaxError {
 
 public:
 
