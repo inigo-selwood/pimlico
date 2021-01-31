@@ -238,7 +238,7 @@ bool TextBuffer::valid(std::vector<TextBuffer::SyntaxError> &errors) {
     while(end_reached() == false) {
         skip_whitespace();
         const char character = read();
-        if(character < ' ' || character > '~') {
+        if(character && (character < ' ' || character > '~')) {
             SyntaxError error("invalid character", *this);
             errors.push_back(error);
             valid = false;
@@ -269,7 +269,7 @@ int TextBuffer::indentation_delta(unsigned long reference = 0) const {
     if(reference >= line_count)
         return 0;
 
-    const int reference_indentation = line_indentations[reference];
+    const int reference_indentation = line_indentations[reference - 1];
 
     unsigned int next_line = position.line;
     for(unsigned long index = position.index; index < length; index += 1) {
@@ -309,7 +309,7 @@ int TextBuffer::indentation_delta(unsigned long reference = 0) const {
 
     const unsigned int &next_indentation = line_indentations[next_line];
 
-    return reference_indentation - next_indentation;
+    return next_indentation - reference_indentation;
 }
 
 /* Gets the current line's text
