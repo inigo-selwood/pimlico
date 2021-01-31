@@ -129,16 +129,17 @@ std::ostream &operator<<(std::ostream &stream,
     stream << reference.position << ' ' << reference.message << '\n'
             << reference.text << '\n';
 
-    for(unsigned int index = 1; index < reference.position.index; index += 1)
-        stream << ' ';
+    for(unsigned int index = 1; index < reference.position.column; index += 1)
+        stream << '.';
     stream << '^';
+    return stream;
 }
 
 TextBuffer::SyntaxError::Reference::Reference(const std::string &message,
         const TextBuffer &buffer,
         const TextBuffer::Position *position) {
 
-    this->position = (position) ? *position : buffer.position;
+    this->position = position ? *position : buffer.position;
     this->message = message;
     this->text = buffer.line_text(this->position.line);
 }
@@ -152,6 +153,7 @@ std::ostream &operator<<(std::ostream &stream,
         if(index + 1 < reference_count)
             stream << '\n';
     }
+    return stream;
 }
 
 TextBuffer::SyntaxError::SyntaxError(const std::string &message,
@@ -195,8 +197,10 @@ TextBuffer::TextBuffer(const std::string &text) {
         line_indentations.push_back(line_indentation);
     }
 
-    if(text[length - 1] == '\n')
+    if(text[length - 1] == '\n') {
         line_indentations.push_back(0);
+        line_indices.push_back(length - 1);
+    }
 
     line_count = line_indentations.size();
 
@@ -323,13 +327,14 @@ std::string TextBuffer::line_text(unsigned long number = 0) const {
 
     const unsigned int start_index = line_indices[number - 1];
 
-    // Calculate the substring's length
-    unsigned long length = 0;
-    if(number == line_count)
-        length = std::string::npos;
-    else
-        length = line_indices[number] - start_index;
+    unsigned int end_index = start_index;
+    while(true) {
+        if(end_index == length || text[end_index] == '\n')
+            break;
+        end_index += 1;
+    }
 
+    const unsigned int length = end_index - start_index;
     return text.substr(start_index, length);
 }
 
@@ -354,7 +359,7 @@ Arguments:
 */
 void TextBuffer::increment(const unsigned long steps = 1) {
     for(unsigned int index = 0; index < steps; index += 1) {
-        if(position.index + 1 >= length)
+        if(position.index >= length)
             return;
         position.index += 1;
 
@@ -473,7 +478,9 @@ void TextBuffer::skip_space(const bool overflow = false) {
         else if(text[position.index] == ' '
                 || text[position.index] == '\t'
                 || text[position.index] == '\r'
-                || (text[position.index] == '\n' && position.line_broken))
+                || (text[position.index] == '\n'
+                    && position.line_broken
+                    && overflow))
             increment();
 
         // Handle comments
