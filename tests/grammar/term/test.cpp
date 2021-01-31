@@ -4,9 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "text_buffer.hpp"
-#include "syntax_error.hpp"
-
 #include "pimlico.hpp"
 using namespace Pimlico;
 
@@ -22,13 +19,13 @@ int main(int argument_count, char *argument_values[]) {
     std::string grammar_string((std::istreambuf_iterator<char>(grammar_stream)),
                  std::istreambuf_iterator<char>());
 
-    std::vector<SyntaxError> errors;
+    std::vector<TextBuffer::SyntaxError> errors;
     TextBuffer buffer(grammar_string);
 
     try {
         const auto term = Term::parse(buffer, errors, true);
         if(term == nullptr) {
-            for(const SyntaxError &error : errors)
+            for(const TextBuffer::SyntaxError &error : errors)
                 std::cerr << error << "\n";
             return 1;
         }
@@ -45,7 +42,7 @@ int main(int argument_count, char *argument_values[]) {
     }
     catch(ParseLogicError &exception) {
         std::cerr << exception << "\n";
-        for(const SyntaxError &error : errors)
+        for(const TextBuffer::SyntaxError &error : errors)
             std::cerr << error << "\n";
         return 3;
     }
