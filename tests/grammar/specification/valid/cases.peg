@@ -1,7 +1,0 @@
-case...
-    snake: (lower_case | '_')+
-    kebab: (lower_case | '-')+
-    camel: (upper_case lower_case*)+
-
-    lower: ['a' - 'z']
-    upper: ['A' - 'Z']
