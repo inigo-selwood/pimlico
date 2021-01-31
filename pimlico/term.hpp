@@ -1,5 +1,7 @@
 #pragma once
 
+#define DEBUG
+
 #include <array>
 #include <map>
 #include <memory>
@@ -9,49 +11,12 @@
 #include <variant>
 #include <vector>
 
-#include "syntax_error.hpp"
 #include "parse_logic_error.hpp"
 #include "text_buffer.hpp"
 
 namespace Pimlico {
 
-static int parse_integer(TextBuffer &buffer) {
-
-    // Keep start index for error reporting
-    const TextBuffer::Position start_position = buffer.position;
-
-    // Extract digits
-    std::string text;
-    while(true) {
-        if(buffer.end_reached())
-            break;
-
-        const char character = buffer.peek();
-        if(character >= '0' && character <= '9')
-            text += buffer.read();
-        else
-            break;
-    }
-
-    // Check digits were found
-    if(text.empty()) {
-        buffer.position = start_position;
-        throw ParseLogicError("parse_integer called with no integer", buffer);
-    }
-
-    // Parse and return integer
-    try {
-        return std::stoi(text);
-    }
-    catch(...) {
-        return -1;
-    }
-}
-
 static char parse_escape_code(TextBuffer &buffer) {
-
-    // Keep start index for error reporting
-    const TextBuffer::Position start_position = buffer.position;
 
     // Check escape character present
     if(buffer.read('\\') == false)
@@ -101,11 +66,11 @@ public:
         NONE,
     };
 
-    friend std::ostream &operator<<(std::ostream &stream, const Term &term);
-
     std::variant<std::string,
             std::array<char, 2>,
             std::vector<std::shared_ptr<Term>>> value;
+
+    TextBuffer::Position position;
 
     std::array<int, 2> instance_bounds;
 
@@ -115,42 +80,44 @@ public:
 
     bool silenced;
 
+    friend std::ostream &operator<<(std::ostream &stream, const Term &term);
+
     Term() : instance_bounds({0, 0}),
             type(Type::NONE),
             predicate(Predicate::NONE),
             silenced(false) {}
 
     static std::shared_ptr<Term> parse(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors,
+            std::vector<TextBuffer::SyntaxError> &errors,
             const bool root);
 
 private:
 
     static std::shared_ptr<Term> parse_constant(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors);
+            std::vector<TextBuffer::SyntaxError> &errors);
     static std::shared_ptr<Term> parse_range(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors);
+            std::vector<TextBuffer::SyntaxError> &errors);
     static std::shared_ptr<Term> parse_reference(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors);
+            std::vector<TextBuffer::SyntaxError> &errors);
 
     static std::shared_ptr<Term> parse_choice(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors);
+            std::vector<TextBuffer::SyntaxError> &errors);
     static std::shared_ptr<Term> parse_sequence(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors);
+            std::vector<TextBuffer::SyntaxError> &errors);
 
 };
 
 std::ostream &operator<<(std::ostream &stream, const Term &term) {
 
-    // Serialize predicate
-    switch(term.predicate) {
-        case Term::Predicate::AND:
-            stream << "&";
-            break;
-        case Term::Predicate::NOT:
-            stream << "!";
-            break;
-    }
+    // Serialize predicates
+    if(term.predicate == Term::Predicate::AND)
+        stream << "&";
+    else if(term.predicate == Term::Predicate::NOT)
+        stream << "!";
+
+    // Serialize silenced symbol
+    else if(term.silenced)
+        stream << "$";
 
     static std::map<char, std::string> escape_codes = {
         {'\n', "\\n"},
@@ -161,9 +128,6 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
         {'\"', "\\\""},
         {'\'', "\\\'"},
     };
-
-    if(term.silenced)
-        stream << "$";
 
     // Serialize constants
     const Term::Type &type = term.type;
@@ -213,19 +177,18 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
             const auto &pointer = values[index];
             const auto value_type = pointer->type;
 
-            // Enclose the term if it's within one a container of the other type
+            // Enclose the term, enclosing it if necessary
             bool enclosed = false;
-            if(type == Term::Type::CHOICE && value_type == Term::Type::SEQUENCE)
-                enclosed = true;
-
-            if(enclosed)
+            if(type == Term::Type::CHOICE
+                    && value_type == Term::Type::SEQUENCE) {
                 stream << "(";
-
+                enclosed = true;
+            }
             stream << *pointer;
-
             if(enclosed)
                 stream << ")";
 
+            // Print a seperator
             if(index + 1 < values.size()) {
                 if(type == Term::Type::CHOICE)
                     stream << " | ";
@@ -265,29 +228,190 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
     return stream;
 }
 
-std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors,
-        const bool root = false) {
+static int parse_integer(TextBuffer &buffer) {
 
-    // Parse predicate
-    Predicate predicate = Predicate::NONE;
-    if(buffer.read('&'))
-        predicate = Predicate::AND;
-    else if(buffer.read('!'))
-        predicate = Predicate::NOT;
+    // Extract digits
+    std::string text;
+    while(true) {
+        if(buffer.end_reached())
+            break;
 
-    // Parse silencing hint
+        const char character = buffer.peek();
+        if(character >= '0' && character <= '9')
+            text += buffer.read();
+        else
+            break;
+    }
+
+    // Check digits were found
+    if(text.empty())
+        throw ParseLogicError("parse_integer called with no integer", buffer);
+
+    // Parse and return integer
+    try {
+        return std::stoi(text);
+    }
+    catch(...) {
+        return -1;
+    }
+}
+
+static inline std::array<int, 2> parse_instance_bounds(TextBuffer &buffer,
+        std::vector<TextBuffer::SyntaxError> &errors) {
+
+    const TextBuffer::Position position = buffer.position;
+
+    std::array<int, 2> instance_bounds;
+    if(buffer.read('?'))
+        return {0, 1};
+    else if(buffer.read('*'))
+        return {0, -1};
+    else if(buffer.read('+'))
+        return {1, -1};
+
+    // Parse instance ranges
+    else if(buffer.read('{') == false)
+        return {1, 1};
+
+    // Parse bound start value (if present)
     buffer.skip_space();
-    bool silenced = false;
-    if(buffer.read('$')) {
-        if(predicate != Predicate::NONE) {
-            const SyntaxError error("unneccessarily silenced predicated term",
-                    buffer);
+    int start_value = -1;
+    char character = buffer.peek();
+    if(character >= '0' && character <= '9') {
+        start_value = parse_integer(buffer);
+        if(start_value == -1) {
+            const std::string message =
+                    "invalid instance bound start value";
+            const TextBuffer::SyntaxError error(message, buffer);
             errors.push_back(error);
-            return nullptr;
+            return {0, 0};
+        }
+    }
+
+    // Check to see if a colon is present
+    buffer.skip_space();
+    bool colon_present = false;
+    if(buffer.read(':'))
+        colon_present = true;
+
+    // Parse bound end value (if present)
+    buffer.skip_space();
+    int end_value = -1;
+    character = buffer.peek();
+    if(character >= '0' && character <= '9') {
+        end_value = parse_integer(buffer);
+        if(end_value == -1) {
+            const std::string message =
+                    "invalid instance bound end value";
+            const TextBuffer::SyntaxError error(message, buffer);
+            errors.push_back(error);
+            return {0, 0};
+        }
+    }
+
+    // Check for a closing bracket
+    buffer.skip_space();
+    if(buffer.read('}') == false) {
+        const std::string message =
+                "expected '}' at end of instance bound";
+        const TextBuffer::SyntaxError error(message, buffer);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    // N instances
+    if(start_value != -1 && end_value == -1 && colon_present == false) {
+        if(start_value == 0) {
+            const TextBuffer::SyntaxError error("zero-valued instance bound",
+                    buffer,
+                    &position);
+            errors.push_back(error);
+            return {0, 0};
+        }
+        return {start_value, start_value};
+    }
+
+    // N or more instances
+    else if(start_value != -1 && end_value == -1 && colon_present)
+        return {start_value, -1};
+
+    // Up to N instances
+    else if(start_value == -1 && end_value != -1 && colon_present) {
+        if(end_value == 0) {
+            const TextBuffer::SyntaxError error("up-to-zero instance bound",
+                    buffer,
+                    &position);
+            errors.push_back(error);
+            return {0, 0};
+        }
+        return {-1, end_value};
+    }
+
+    // Between N and M values
+    else if(start_value != -1 && end_value != -1 && colon_present) {
+        if(end_value < start_value) {
+            const TextBuffer::SyntaxError error("invalid instance bound",
+                    buffer,
+                    &position);
+            errors.push_back(error);
+            return {0, 0};
+        }
+        else if(start_value == end_value && start_value == 0) {
+            const TextBuffer::SyntaxError error("zero-instance bound",
+                    buffer,
+                    &position);
+            errors.push_back(error);
+            return {0, 0};
         }
 
-        silenced = true;
+        return {start_value, end_value};
+    }
+
+    // Report an error if the bound was invalid
+    else {
+        const TextBuffer::SyntaxError error("malformed instance bounds",
+                buffer,
+                &position);
+        errors.push_back(error);
+        return {0, 0};
+    }
+
+    return {1, 1};
+}
+
+std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
+        std::vector<TextBuffer::SyntaxError> &errors,
+        const bool root = false) {
+
+    const TextBuffer::Position position = buffer.position;
+
+    Predicate predicate = Predicate::NONE;
+    bool silenced = false;
+    if(root == false) {
+
+        // Parse predicate
+        if(buffer.read('&'))
+            predicate = Predicate::AND;
+        else if(buffer.read('!'))
+            predicate = Predicate::NOT;
+
+        // Parse silencing hint
+        buffer.skip_space();
+        if(buffer.read('$')) {
+
+            buffer.skip_space();
+            if(buffer.peek('&')
+                    || buffer.peek('|')
+                    || predicate != Predicate::NONE) {
+                const std::string message =
+                        "unneccessarily silenced and predicated term";
+                const TextBuffer::SyntaxError error(message, buffer, &position);
+                errors.push_back(error);
+                return nullptr;
+            }
+
+            silenced = true;
+        }
     }
 
     // Create a term instance
@@ -314,10 +438,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         else if((character >= 'a' && character <= 'z') || character == '_')
             term = parse_reference(buffer, errors);
         else {
-            const std::string message =
-                    "invalid term: expected a constant, range, reference, or "
-                    "sequence";
-            const SyntaxError error(message, buffer);
+            const TextBuffer::SyntaxError error("expected a term", buffer);
             errors.push_back(error);
             return nullptr;
         }
@@ -330,121 +451,17 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     // Check for a closing bracket if the term was enclosed
     buffer.skip_space();
     if(enclosed && buffer.read(')') == false) {
-        const SyntaxError error("expected matching ')'", buffer);
+        const TextBuffer::SyntaxError error("expected matching ')'", buffer);
         errors.push_back(error);
         return nullptr;
     }
 
     // Parse instance hints
     buffer.skip_space();
-    std::array<int, 2> instance_bounds;
-    if(buffer.read('?'))
-        instance_bounds = {0, 1};
-    else if(buffer.read('*'))
-        instance_bounds = {0, -1};
-    else if(buffer.read('+'))
-        instance_bounds = {1, -1};
-
-    // Parse instance ranges
-    else if(buffer.read('{')) {
-
-        // Hold start position for error reporting
-        const TextBuffer::Position start_position = buffer.position;
-
-        // Parse bound start value (if present)
-        buffer.skip_space();
-        int start_value = -1;
-        char character = buffer.peek();
-        if(character >= '0' && character <= '9') {
-            start_value = parse_integer(buffer);
-            if(start_value == -1) {
-                SyntaxError error("invalid instance bound start value", buffer);
-                errors.push_back(error);
-                return nullptr;
-            }
-        }
-
-        // Check to see if a colon is present
-        buffer.skip_space();
-        bool colon_present = false;
-        if(buffer.read(':'))
-            colon_present = true;
-
-        // Parse bound end value (if present)
-        buffer.skip_space();
-        int end_value = -1;
-        character = buffer.peek();
-        if(character >= '0' && character <= '9') {
-            end_value = parse_integer(buffer);
-            if(end_value == -1) {
-                SyntaxError error("invalid instance bound end value", buffer);
-                errors.push_back(error);
-                return nullptr;
-            }
-        }
-
-        // Check for a closing bracket
-        buffer.skip_space();
-        if(buffer.read('}') == false) {
-            SyntaxError error("expected '}' at end of instance bound", buffer);
-            errors.push_back(error);
-            return nullptr;
-        }
-
-        // N instances
-        if(start_value != -1 && end_value == -1 && colon_present == false) {
-            if(start_value == 0) {
-                buffer.position = start_position;
-                SyntaxError error("zero-valued instance bound", buffer);
-                errors.push_back(error);
-                return nullptr;
-            }
-            instance_bounds = {start_value, start_value};
-        }
-
-        // N or more instances
-        else if(start_value != -1 && end_value == -1 && colon_present)
-            instance_bounds = {start_value, -1};
-
-        // Up to N instances
-        else if(start_value == -1 && end_value != -1 && colon_present) {
-            if(end_value == 0) {
-                buffer.position = start_position;
-                SyntaxError error("up-to-zero instance bound", buffer);
-                errors.push_back(error);
-                return nullptr;
-            }
-            instance_bounds = {-1, end_value};
-        }
-
-        // Between N and M values
-        else if(start_value != -1 && end_value != -1 && colon_present) {
-            if(end_value < start_value) {
-                buffer.position = start_position;
-                SyntaxError error("invalid instance bound", buffer);
-                errors.push_back(error);
-                return nullptr;
-            }
-            else if(start_value == end_value && start_value == 0) {
-                buffer.position = start_position;
-                SyntaxError error("zero-instance bound", buffer);
-                errors.push_back(error);
-                return nullptr;
-            }
-
-            instance_bounds = {start_value, end_value};
-        }
-
-        // Report an error if the bound was invalid
-        else {
-            buffer.position = start_position;
-            SyntaxError error("malformed instance bounds", buffer);
-            errors.push_back(error);
-            return nullptr;
-        }
-    }
-    else
-        instance_bounds = {1, 1};
+    const std::array<int, 2> instance_bounds =
+            parse_instance_bounds(buffer, errors);
+    if(instance_bounds == std::array<int, 2>({0, 0}))
+        return nullptr;
 
     term->predicate = predicate;
     term->silenced = silenced;
@@ -453,17 +470,13 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
 }
 
 std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors) {
+        std::vector<TextBuffer::SyntaxError> &errors) {
 
-    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
-    term->type = Term::Type::CONSTANT;
+    const TextBuffer::Position position = buffer.position;
 
     // Check there's a constant
     if(buffer.read('\'') == false)
         throw ParseLogicError("no constant found", buffer);
-
-    // Hold start position for error reporting
-    const TextBuffer::Position start_position = buffer.position;
 
     // Parse the constant
     std::string value;
@@ -472,37 +485,39 @@ std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
         if(buffer.read('\''))
             break;
 
-        // Handle premature endings
-        else if(buffer.end_reached()) {
-            SyntaxError error("unexpected end-of-file in constant", buffer);
-            errors.push_back(error);
-            return nullptr;
-        }
-        else if(character == '\n' || character == '\r') {
-            SyntaxError error("unexpected end-of-line in constant", buffer);
+        // Handle invalid characters
+        else if(character == '\t' || character == '\r') {
+            const std::string message = "invalid character in constant";
+            const TextBuffer::SyntaxError error(message, buffer);
             errors.push_back(error);
             return nullptr;
         }
 
-        // Check values are ASCII characters
-        else if(character < ' ' || character > '~') {
-            SyntaxError error("non-ascii value in constant", buffer);
+        // Handle premature endings
+        else if(buffer.end_reached()) {
+            const std::string message = "unexpected end-of-file in constant";
+            const TextBuffer::SyntaxError error(message, buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
+        else if(character == '\n' || character == '\r') {
+            const std::string message = "unexpected end-of-line in constant";
+            const TextBuffer::SyntaxError error(message, buffer);
             errors.push_back(error);
             return nullptr;
         }
 
         // Handle escape codes
         else if(buffer.peek('\\')) {
-
-            const TextBuffer::Position code_position = buffer.position;
             const char escape_code = parse_escape_code(buffer);
             if(escape_code == 0) {
-                buffer.position = code_position;
-                const SyntaxError error("invalid escape code in constant",
-                        buffer);
+                const std::string message =
+                        "invalid escape character in constant";
+                const TextBuffer::SyntaxError error(message, buffer);
                 errors.push_back(error);
                 return nullptr;
             }
+
             value += escape_code;
         }
 
@@ -512,66 +527,62 @@ std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
 
     // Check the constant wasn't empty
     if(value.empty()) {
-        buffer.position = start_position;
-        const SyntaxError error("empty constant", buffer);
+        const TextBuffer::SyntaxError error("empty constant",
+                buffer,
+                &position);
         errors.push_back(error);
         return nullptr;
     }
 
+    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
+    term->type = Term::Type::CONSTANT;
+    term->position = position;
     term->value = value;
     return term;
 }
 
 std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors) {
+        std::vector<TextBuffer::SyntaxError> &errors) {
 
-    // Create a term
-    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
-    term->type = Term::Type::RANGE;
+    const TextBuffer::Position position = buffer.position;
 
-    const TextBuffer::Position start_position = buffer.position;
-
-    // Check there's a range present
+    // Check for opening bracket
     if(buffer.read('[') == false)
         throw ParseLogicError("no range found", buffer);
 
     // Parse start value
     buffer.skip_space();
     if(buffer.read('\'') == false) {
-        const SyntaxError error("expected '\\\'' in range", buffer);
+        TextBuffer::SyntaxError error("expected '\\\''", buffer);
         errors.push_back(error);
         return nullptr;
     }
 
     // Handle escape codes
-    const TextBuffer::Position start_constant_position = buffer.position;
-    char start_value;
-    if(buffer.peek('\\'))
-        start_value = parse_escape_code(buffer);
+    char start_value = 0;
+    if(buffer.peek('\\')) {
+        const char code = parse_escape_code(buffer);
+        if(code == -1 || code < ' ' || code > '~') {
+            TextBuffer::SyntaxError error("invalid escape character", buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
+
+        start_value = code;
+    }
     else
         start_value = buffer.read();
 
-    // Check the constant wasn't a formatting character
-    if(start_value < ' ' || start_value > '~') {
-        buffer.position = start_constant_position;;
-        const std::string message = "range start constants must be a valid "
-                "ASCII letters, numbers, or symbols";
-        SyntaxError error(message, buffer);
-        errors.push_back(error);
-        return nullptr;
-    }
-
-    // Check a closing quote was present
     if(buffer.read('\'') == false) {
-        SyntaxError error("expected '\\\''", buffer);
+        TextBuffer::SyntaxError error("expected '\\\''", buffer);
         errors.push_back(error);
         return nullptr;
     }
 
-    // Check for a hyphen between start and end values
+    // Check for hyphen
     buffer.skip_space();
     if(buffer.read('-') == false) {
-        SyntaxError error("expected '-'", buffer);
+        TextBuffer::SyntaxError error("expected '-'", buffer);
         errors.push_back(error);
         return nullptr;
     }
@@ -579,79 +590,60 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
     // Parse end value
     buffer.skip_space();
     if(buffer.read('\'') == false) {
-        SyntaxError error("expected '\\\''", buffer);
+        TextBuffer::SyntaxError error("expected '\\\''", buffer);
         errors.push_back(error);
         return nullptr;
     }
 
-    const TextBuffer::Position end_constant_position = buffer.position;
-    char end_value;
-    if(buffer.peek('\\'))
-        end_value = parse_escape_code(buffer);
+    // Handle escape codes
+    char end_value = 0;
+    if(buffer.peek('\\')) {
+        const char code = parse_escape_code(buffer);
+        if(code == -1 || code < ' ' || code > '~') {
+            TextBuffer::SyntaxError error("invalid escape character", buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
+
+        end_value = code;
+    }
     else
         end_value = buffer.read();
 
-    // Check the constant wasn't a formatting character
-    if(start_value < ' ' || start_value > '~') {
-        buffer.position = end_constant_position;
-        const std::string message = "range end constants must be a valid "
-                "ASCII letters, numbers, or symbols";
-        SyntaxError error(message, buffer);
-        errors.push_back(error);
-        return nullptr;
-    }
-
     if(buffer.read('\'') == false) {
-        SyntaxError error("expected '\\\''", buffer);
+        TextBuffer::SyntaxError error("expected '\\\''", buffer);
         errors.push_back(error);
         return nullptr;
     }
 
-    // Check there's a closing bracket
+    // Check for end bracket
     buffer.skip_space();
     if(buffer.read(']') == false) {
-        SyntaxError error("expected ']'", buffer);
+        TextBuffer::SyntaxError error("expected ']'", buffer);
         errors.push_back(error);
         return nullptr;
     }
 
-    // Check range makes logical sense
-    bool errors_found = false;
-    if(end_value < start_value) {
-        buffer.position = start_position;
-        SyntaxError error("range's end value less than start value", buffer);
+    if(start_value >= end_value) {
+        TextBuffer::SyntaxError error("illogical range values",
+                buffer,
+                &position);
         errors.push_back(error);
-        errors_found = true;
-    }
-
-    // Check range's start and end values are ASCII
-    else if(start_value < ' ' || start_value > '~' ) {
-        buffer.position = start_position;
-        SyntaxError error("range's start value is non-ASCII", buffer);
-        errors.push_back(error);
-        errors_found = true;
-    }
-    else if(end_value < ' ' || end_value > '~' ) {
-        buffer.position = start_position;
-        SyntaxError error("range's end value is non-ASCII", buffer);
-        errors.push_back(error);
-        errors_found = true;
-    }
-
-    if(errors_found)
         return nullptr;
+    }
 
+    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
+    term->type = Term::Type::RANGE;
+    term->position = position;
     term->value = std::array<char, 2>({start_value, end_value});
 
     return term;
 }
 
 std::shared_ptr<Term> Term::parse_reference(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors) {
+        std::vector<TextBuffer::SyntaxError> &errors) {
 
-    // Create term
-    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
-    term->type = Term::Type::REFERENCE;
+    const TextBuffer::Position position = buffer.position;
 
     // Extract characters
     std::string value;
@@ -663,110 +655,100 @@ std::shared_ptr<Term> Term::parse_reference(TextBuffer &buffer,
             break;
     }
 
-    // Check term found
+    // Check a term was found
     if(value.empty())
-        throw ParseLogicError("no reference term found", buffer);
+        throw ParseLogicError("no reference found", buffer);
 
-    // Check there aren't trailing invalid characters
-    const char character = buffer.peek();
-    static const std::unordered_set<char> terminators = {
-        ' ', '\n', '\r', '\t', '#', // Whitespace
-        '+', '*', '?', '{',         // Instance hints
-        '[', '\'',                  // Term
-        '!', '&',                   // Predicates
-        '(', '|'                    // Sequences
-    };
-
-    if(terminators.count(character) == 0) {
-        const std::string message =
-                "references can only contain lowercase letters and underscores";
-        SyntaxError error(message, buffer);
-        errors.push_back(error);
-        return nullptr;
-    }
-
+    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
+    term->type = Term::Type::REFERENCE;
+    term->position = position;
     term->value = value;
 
     return term;
 }
 
 std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors) {
+        std::vector<TextBuffer::SyntaxError> &errors) {
 
-    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
-    term->type = Term::Type::CHOICE;
-    term->instance_bounds = {1, 1};
+    const TextBuffer::Position position = buffer.position;
 
+    // Parse options
     std::vector<std::shared_ptr<Term>> values;
     while(true) {
+
+        // Parse option
         const std::shared_ptr<Term> value = parse(buffer, errors);
         if(value == nullptr)
             return nullptr;
-
         values.push_back(value);
 
         // Stop parsing terms if the end-of-file or end-of-line have been
         // reached, or if there's no pipe character
         buffer.skip_space(true);
-        if(buffer.end_reached()
-                || buffer.peek('\n')
-                || buffer.peek(')')
-                || buffer.read('|') == false)
+        if(buffer.read('|') == false)
             break;
 
-        // Check the file/line doesn't end given a pipe character's been found
+        // Report an error if an invalid state is encountered after the choice
+        // operator has already been encountered
+        enum class ErrorState {
+            NONE,
+
+            END_OF_FILE,
+            END_OF_LINE,
+            END_OF_STATEMENT,
+        };
+        ErrorState state = ErrorState::NONE;
+
+        static std::map<ErrorState, std::string> error_messages = {
+            {ErrorState::END_OF_FILE,
+                    "unexpected end-of-file after choice operator"},
+            {ErrorState::END_OF_LINE,
+                    "unexpected end-of-line after choice operator"},
+            {ErrorState::END_OF_STATEMENT,
+                    "unexpected ')' after choice operator"}
+        };
+
         buffer.skip_space(true);
-        if(buffer.peek('\n')) {
-            const std::string message =
-                    "unexpected end-of-line after choice operator";
-            const SyntaxError error(message, buffer);
-            errors.push_back(error);
+        if(buffer.end_reached())
+            state = ErrorState::END_OF_FILE;
+        else if(buffer.peek('\n'))
+            state = ErrorState::END_OF_LINE;
+        else if(buffer.peek(')'))
+            state = ErrorState::END_OF_STATEMENT;
 
-            term = nullptr;
-            break;
-        }
-        else if(buffer.peek(')')) {
-            const SyntaxError error("unexpected ')' after choice operator",
-                    buffer);
+        if(state != ErrorState::NONE) {
+            const TextBuffer::SyntaxError error(error_messages[state], buffer);
             errors.push_back(error);
-
-            term = nullptr;
-            break;
-        }
-        else if(buffer.end_reached()) {
-            const std::string message =
-                    "unexpected end-of-file after choice operator";
-            const SyntaxError error(message, buffer);
-            errors.push_back(error);
-
-            term = nullptr;
-            break;
+            return nullptr;
         }
     }
 
+    // If the choice only has one option, return that instead
     if(values.size() == 1)
-        term = values.back();
-    else
-        term->value = values;
+        return values.back();
+
+    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
+    term->type = Term::Type::CHOICE;
+    term->position = position;
+    term->value = values;
+    term->instance_bounds = {1, 1};
 
     return term;
 }
 
 std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors) {
+        std::vector<TextBuffer::SyntaxError> &errors) {
 
-    // Create a term
-    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
-    term->type = Term::Type::SEQUENCE;
+    const TextBuffer::Position position = buffer.position;
 
     // Parse elements
     std::vector<std::shared_ptr<Term>> values;
     while(true) {
-        const std::shared_ptr<Term> value = parse_choice(buffer, errors);
 
+        // Parse value
+        const std::shared_ptr<Term> value = parse_choice(buffer, errors);
         if(value == nullptr)
             return nullptr;
-
         values.push_back(value);
 
         buffer.skip_space(true);
@@ -774,10 +756,14 @@ std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
             break;
     }
 
+    // If the sequence only has one term, return that instead
     if(values.size() == 1)
-        term = values.back();
-    else
-        term->value = values;
+        return values.back();
+
+    std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
+    term->type = Term::Type::SEQUENCE;
+    term->position = position;
+    term->value = values;
 
     return term;
 }
