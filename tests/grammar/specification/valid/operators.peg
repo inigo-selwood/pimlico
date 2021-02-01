@@ -1,8 +1,8 @@
 operator...
     arithmetic...
         bitwise: '&' | '|' | '^'
-        numerical: '+' | '-' | '*' | '/' | '%'
+        numerical: '+' | '-' | '*' | '/'
     assignment: $arithmetic_operator? '='
     comparison: '<' | '>' | ('<' | '>' | '=' | '!' '=')
     logical: '&&' | '||'
-    unary: '~' '-'
+    unary: '~' | '-'
