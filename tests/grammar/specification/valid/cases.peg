@@ -1,0 +1,7 @@
+case...
+    camel: ($upper $lower*)+
+    kebab: ($lower* '-')+
+    snake: ($lower* '_')+
+
+    lower: ['a' - 'z']
+    upper: ['A' - 'Z']

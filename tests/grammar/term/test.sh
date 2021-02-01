@@ -97,6 +97,8 @@ else
                 2> ./tests/grammar/term/errors.txt \
                 1> ./tests/grammar/term/output.txt
 
+        printf "testing ${test_script}\n"
+
         return_value=$?
         test_name="$(basename $test_script .peg)"
 
