@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "parse_logic_error.hpp"
-#include "syntax_error.hpp"
 #include "text_buffer.hpp"
 
 #include "rule.hpp"
@@ -21,18 +20,13 @@ private:
 
     static inline bool skip_comment(TextBuffer &buffer);
 
-    static inline bool detect_duplicates(
-            const std::vector<std::shared_ptr<Rule>> &rules,
-            std::vector<SyntaxError> &errors,
-            TextBuffer &buffer);
-
 public:
 
     friend std::ostream &operator<<(std::ostream &stream,
             const Specification &specification);
 
     static std::shared_ptr<Specification> parse(const std::string &grammar,
-            std::vector<SyntaxError> &errors);
+            std::vector<TextBuffer::SyntaxError> &errors);
 
 };
 
@@ -52,48 +46,14 @@ inline bool Specification::skip_comment(TextBuffer &buffer) {
     return true;
 }
 
-inline bool Specification::detect_duplicates(
-        const std::vector<std::shared_ptr<Rule>> &rules,
-        std::vector<SyntaxError> &errors,
-        TextBuffer &buffer) {
-
-    bool duplicates_detected = false;
-
-    std::vector<std::string> names;
-    std::map<std::string, std::vector<TextBuffer::Position>> duplicates;
-    for(const auto &rule : rules) {
-        if(std::find(names.begin(), names.end(), rule->name) != names.end()) {
-            duplicates[rule->name].push_back(rule->position);
-            duplicates_detected = true;
-        }
-        else
-            names.push_back(rule->name);
-
-        if(rule->terminal == false) {
-            const std::vector<std::shared_ptr<Rule>> children =
-                    std::get<std::vector<std::shared_ptr<Rule>>>(rule->value);
-            duplicates_detected |= detect_duplicates(children, errors, buffer);
-        }
-    }
-
-    for(const auto &duplicate : duplicates) {
-        for(const auto &position : duplicate.second) {
-            buffer.position = position;
-            std::string message =
-                    "redefinition of rule '" + duplicate.first + "'";
-            SyntaxError error(message, buffer);
-            errors.push_back(error);
-        }
-    }
-
-    return duplicates_detected;
-}
-
 std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
-        std::vector<SyntaxError> &errors) {
+        std::vector<TextBuffer::SyntaxError> &errors) {
 
     TextBuffer buffer(grammar);
     buffer.comment_skip_function = skip_comment;
+
+    if(buffer.valid(errors) == false)
+        return nullptr;
 
     std::shared_ptr<Specification> specification =
             std::shared_ptr<Specification>(new Specification());
@@ -105,21 +65,17 @@ std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
             break;
 
         const auto rule = Rule::parse(buffer, errors);
-        if(rule == nullptr)
+        if(rule == nullptr) {
+            if(buffer.end_reached() == false && buffer.peek('\n') == false)
+                throw ParseLogicError("incomplete rule parse", buffer);
             errors_found = true;
+        }
         else
             specification->rules.push_back(rule);
-
-        if(buffer.end_reached() == false && buffer.peek('\n') == false)
-            throw ParseLogicError("incomplete rule parse", buffer);
     }
 
-    // Detect if a rule has been declared multiple times
-    errors_found |= detect_duplicates(specification->rules, errors, buffer);
     if(errors_found)
         return nullptr;
-
-    // TODO: Emplace references
 
     return specification;
 }

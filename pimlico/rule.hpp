@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "syntax_error.hpp"
 #include "text_buffer.hpp"
 
 #include "term.hpp"
@@ -33,7 +32,7 @@ public:
     friend std::ostream &operator<<(std::ostream &stream, const Rule &rule);
 
     static std::shared_ptr<Rule> parse(TextBuffer &buffer,
-            std::vector<SyntaxError> &errors,
+            std::vector<TextBuffer::SyntaxError> &errors,
             const unsigned int parent_count);
 
 };
@@ -81,88 +80,77 @@ std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
 
 // Parse a rule
 std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
-        std::vector<SyntaxError> &errors,
+        std::vector<TextBuffer::SyntaxError> &errors,
         const unsigned int parent_count = 0) {
 
-    std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
+    TextBuffer::Position position = buffer.position;
 
-    rule->position = buffer.position;
-
-    const unsigned int indentation = buffer.indentation();
-    if(indentation % 4) {
-        SyntaxError error("invalid indentation level", buffer);
-        errors.push_back(error);
-        return nullptr;
-    }
-    else if(indentation != parent_count * 4) {
-        SyntaxError error("unexpected indentation increase", buffer);
-        errors.push_back(error);
-        return nullptr;
-    }
-
+    // Parse the rule's name
+    std::string name;
     while(true) {
         const char character = buffer.peek();
         if((character >= 'a' && character <= 'z') || character == '_')
-            rule->name += buffer.read();
+            name += buffer.read();
         else
             break;
     }
 
-    if(rule->name.empty())
+    // Check a name was found
+    if(name.empty())
         throw ParseLogicError("no rule found", buffer);
 
     // Handle 'normal' rules
     buffer.skip_space();
     if(buffer.read(':')) {
-        rule->terminal = true;
 
+        // Parse the rule's value
         buffer.skip_space(true);
         const auto term = Term::parse(buffer, errors, true);
         if(term == nullptr) {
-            buffer.skip_block();
+            buffer.skip_line(true);
             return nullptr;
         }
 
+        // Create the rule
+        std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
+        rule->name = name;
+        rule->position = position;
+        rule->terminal = true;
         rule->value = term;
+
+        return rule;
     }
 
     // Handle name-extended rules
     else if(buffer.read("...")) {
-        buffer.skip_space(true);
-        bool errors_found = false;
-        if(buffer.peek('\n') == false) {
-            SyntaxError error("trailing characters after '...'",
-                    buffer);
-            errors.push_back(error);
-            errors_found = true;
-        }
 
-        // Keep track of the start indentation
-        const unsigned int start_indentation = buffer.indentation();
+        // Check there weren't trailing characters
+        buffer.skip_space(true);
+        if(buffer.peek('\n') == false) {
+            const std::string message =
+                    "trailing characters after name extended rule";
+            const TextBuffer::SyntaxError error(message, buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
 
         // Parse children (rules defined below this one, indented by 4 spaces)
         std::vector<std::shared_ptr<Rule>> children;
+        bool errors_found = false;
         while(true) {
 
             // Check if the next line is a single-indented child
             const int indentation_delta =
-                    buffer.indentation_delta(rule->position.line_number);
+                    buffer.indentation_delta(position.line);
             if(indentation_delta <= 0)
                 break;
-            else if(indentation_delta != 4) {
-                buffer.skip_whitespace();
-                SyntaxError error("unexpected indentation increase", buffer);
-                errors.push_back(error);
-                buffer.skip_block();
-                return nullptr;
-            }
             else
                 buffer.skip_whitespace();
 
             // Parse the child
             const auto child = Rule::parse(buffer, errors, parent_count + 1);
             if(child == nullptr) {
-                buffer.skip_block();
+                buffer.skip_line(true);
                 errors_found = true;
             }
             else if(buffer.end_reached() == false && buffer.peek('\n') == false)
@@ -170,33 +158,40 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
             // Scope the child appropriately and add it to the vector
             else {
-                child->add_parent_scope(rule->name);
+                child->add_parent_scope(name);
                 children.push_back(child);
             }
         }
 
         if(errors_found)
             return nullptr;
+
+        // Check there were children found
         else if(children.empty()) {
-            buffer.position = rule->position;
+            buffer.position = position;
             const std::string message = "no children found for name-extended "
-                    "rule '" + rule->name + "'";
-            SyntaxError error(message, buffer);
+                    "rule '" + name + "'";
+            const TextBuffer::SyntaxError error(message, buffer);
             errors.push_back(error);
             return nullptr;
         }
 
+        // Create the rule
+        std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
+        rule->name = name;
+        rule->terminal = false;
+        rule->position = position;
         rule->value = children;
+
+        return rule;
     }
 
     else {
-        SyntaxError error("expected ':' or '...'", buffer);
+        const TextBuffer::SyntaxError error("expected ':' or '...'", buffer);
         errors.push_back(error);
-        buffer.skip_block();
+        buffer.skip_line(true);
         return nullptr;
     }
-
-    return rule;
 }
 
 };

@@ -16,34 +16,6 @@
 
 namespace Pimlico {
 
-static char parse_escape_code(TextBuffer &buffer) {
-
-    // Check escape character present
-    if(buffer.read('\\') == false)
-        throw ParseLogicError("parse_escape_code called with no code", buffer);
-
-    // Extract character
-    switch(buffer.read()) {
-        case '\'':
-            return '\'';
-        case '\"':
-            return '\"';
-        case '\\':
-            return '\\';
-        case 'b':
-            return '\b';
-        case 'n':
-            return '\n';
-        case 'r':
-            return '\r';
-        case 't':
-            return '\t';
-
-        default:
-            return 0;
-    }
-}
-
 class Term {
 
 public:
@@ -82,7 +54,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &stream, const Term &term);
 
-    Term() : instance_bounds({0, 0}),
+    Term() : instance_bounds({1, 1}),
             type(Type::NONE),
             predicate(Predicate::NONE),
             silenced(false) {}
@@ -170,22 +142,27 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
 
     // Serialize choices and sequences
     else if(type == Term::Type::CHOICE || type == Term::Type::SEQUENCE) {
-        const auto values =
+        const std::vector<std::shared_ptr<Term>> values =
                 std::get<std::vector<std::shared_ptr<Term>>>(term.value);
 
+        bool enclosed = false;
+        if(term.instance_bounds != std::array<int, 2>({1, 1})) {
+            enclosed = true;
+            stream << "(";
+        }
+
         for(unsigned int index = 0; index < values.size(); index += 1) {
-            const auto &pointer = values[index];
-            const auto value_type = pointer->type;
+            const std::shared_ptr<Term> &pointer = values[index];
 
             // Enclose the term, enclosing it if necessary
-            bool enclosed = false;
+            bool child_enclosed = false;
             if(type == Term::Type::CHOICE
-                    && value_type == Term::Type::SEQUENCE) {
+                        && pointer->type == Term::Type::SEQUENCE) {
                 stream << "(";
-                enclosed = true;
+                child_enclosed = true;
             }
             stream << *pointer;
-            if(enclosed)
+            if(child_enclosed)
                 stream << ")";
 
             // Print a seperator
@@ -196,6 +173,9 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
                     stream << " ";
             }
         }
+
+        if(enclosed)
+            stream << ")";
     }
 
     // Extract bounds
@@ -383,35 +363,35 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         std::vector<TextBuffer::SyntaxError> &errors,
         const bool root = false) {
 
+    if(root)
+        return parse_sequence(buffer, errors);
+
     const TextBuffer::Position position = buffer.position;
 
+    // Parse predicate
     Predicate predicate = Predicate::NONE;
+    if(buffer.read('&'))
+        predicate = Predicate::AND;
+    else if(buffer.read('!'))
+        predicate = Predicate::NOT;
+
+    // Parse silencing hint
+    buffer.skip_space();
     bool silenced = false;
-    if(root == false) {
+    if(buffer.read('$')) {
 
-        // Parse predicate
-        if(buffer.read('&'))
-            predicate = Predicate::AND;
-        else if(buffer.read('!'))
-            predicate = Predicate::NOT;
-
-        // Parse silencing hint
         buffer.skip_space();
-        if(buffer.read('$')) {
-
-            buffer.skip_space();
-            if(buffer.peek('&')
-                    || buffer.peek('|')
-                    || predicate != Predicate::NONE) {
-                const std::string message =
-                        "unneccessarily silenced and predicated term";
-                const TextBuffer::SyntaxError error(message, buffer, &position);
-                errors.push_back(error);
-                return nullptr;
-            }
-
-            silenced = true;
+        if(buffer.peek('&')
+                || buffer.peek('|')
+                || predicate != Predicate::NONE) {
+            const std::string message =
+                    "unneccessarily silenced and predicated term";
+            const TextBuffer::SyntaxError error(message, buffer, &position);
+            errors.push_back(error);
+            return nullptr;
         }
+
+        silenced = true;
     }
 
     // Create a term instance
@@ -420,11 +400,9 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     // Check if term should be parsed as a sequence since it's a root, or
     // enclosed
     buffer.skip_space();
-    bool enclosed = false;
-    if(root == false && buffer.read('('))
-        enclosed = true;
+    bool enclosed = buffer.read('(');
 
-    if(root || enclosed)
+    if(enclosed)
         term = parse_sequence(buffer, errors);
 
     // Otherwise, look for a constant, range, or reference
@@ -451,7 +429,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     // Check for a closing bracket if the term was enclosed
     buffer.skip_space();
     if(enclosed && buffer.read(')') == false) {
-        const TextBuffer::SyntaxError error("expected matching ')'", buffer);
+        const TextBuffer::SyntaxError error("expected ')'", buffer);
         errors.push_back(error);
         return nullptr;
     }
@@ -463,10 +441,48 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     if(instance_bounds == std::array<int, 2>({0, 0}))
         return nullptr;
 
+    if(term->type != Term::Type::REFERENCE && silenced) {
+        const std::string message = "can't silence a non-reference term";
+        const TextBuffer::SyntaxError error(message, buffer, &position);
+        errors.push_back(error);
+        return nullptr;
+    }
+    else
+        term->silenced = silenced;
+
     term->predicate = predicate;
     term->silenced = silenced;
     term->instance_bounds = instance_bounds;
+
     return term;
+}
+
+static char parse_escape_code(TextBuffer &buffer) {
+
+    // Check escape character present
+    if(buffer.read('\\') == false)
+        throw ParseLogicError("parse_escape_code called with no code", buffer);
+
+    // Extract character
+    switch(buffer.read()) {
+        case '\'':
+            return '\'';
+        case '\"':
+            return '\"';
+        case '\\':
+            return '\\';
+        case 'b':
+            return '\b';
+        case 'n':
+            return '\n';
+        case 'r':
+            return '\r';
+        case 't':
+            return '\t';
+
+        default:
+            return 0;
+    }
 }
 
 std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
@@ -731,7 +747,6 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
     term->type = Term::Type::CHOICE;
     term->position = position;
     term->value = values;
-    term->instance_bounds = {1, 1};
 
     return term;
 }
