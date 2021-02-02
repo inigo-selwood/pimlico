@@ -9,14 +9,27 @@
 #include "pimlico.hpp"
 using namespace Pimlico;
 
+enum Error {
+    NONE = 0,
+
+    WRONG_ARGUMENT_COUNT,
+    INVALID_FILENAME,
+    PARSE_SYNTAX_ERROR,
+    PARSE_LOGIC_ERROR,
+};
+
 int main(int argument_count, char *argument_values[]) {
-    if(argument_count != 2)
-        return 5;
+    if(argument_count != 2) {
+        std::cerr << "wrong number of arguments\n";
+        return Error::WRONG_ARGUMENT_COUNT;
+    }
 
     std::string grammar_filename = argument_values[1];
     std::ifstream grammar_stream(grammar_filename);
-    if(grammar_stream.is_open() == false)
-        return 4;
+    if(grammar_stream.is_open() == false) {
+        std::cerr << "invalid filename\n";
+        return Error::INVALID_FILENAME;
+    }
 
     std::string grammar_string((std::istreambuf_iterator<char>(grammar_stream)),
                  std::istreambuf_iterator<char>());
@@ -27,7 +40,7 @@ int main(int argument_count, char *argument_values[]) {
         if(specification == nullptr) {
             for(const TextBuffer::SyntaxError &error : errors)
                 std::cerr << error << "\n";
-            return 1;
+            return Error::PARSE_SYNTAX_ERROR;
         }
 
         std::cout << *specification << "\n";
@@ -38,6 +51,6 @@ int main(int argument_count, char *argument_values[]) {
         std::cerr << exception << "\n";
         for(const TextBuffer::SyntaxError &error : errors)
             std::cerr << error << "\n";
-        return 2;
+        return Error::PARSE_LOGIC_ERROR;
     }
 }
