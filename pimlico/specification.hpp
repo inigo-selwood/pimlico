@@ -38,6 +38,7 @@ private:
 
 };
 
+// Serialize specification
 std::ostream &operator<<(std::ostream &stream,
         const Specification &specification) {
 
@@ -49,21 +50,26 @@ std::ostream &operator<<(std::ostream &stream,
 std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
         std::vector<TextBuffer::SyntaxError> &errors) {
 
+    // Create a buffer
     TextBuffer buffer(grammar);
     buffer.comment_skip_function = skip_comment;
 
+    // Check the buffer's text is valid
     if(buffer.valid(errors) == false)
         return nullptr;
 
+    // Create a specification
     std::shared_ptr<Specification> specification =
             std::shared_ptr<Specification>(new Specification());
 
+    // Parse the grammar's rules
     bool errors_found = false;
     while(true) {
         buffer.skip_whitespace();
         if(buffer.end_reached())
             break;
 
+        // Parse an (expected) rule
         const auto rule = Rule::parse(buffer, errors);
         if(rule == nullptr) {
             if(buffer.end_reached() == false && buffer.peek('\n') == false)
@@ -76,6 +82,8 @@ std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
 
     if(errors_found)
         return nullptr;
+
+    // Place the rules in the hash map, checking for duplicates
     else if(hash_rules(specification->rules,
             specification->rule_hashes,
             buffer,
@@ -85,6 +93,7 @@ std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
     return specification;
 }
 
+// Skip comments
 inline bool Specification::skip_comment(TextBuffer &buffer) {
     if(buffer.read('#') == false)
         return false;
@@ -93,6 +102,17 @@ inline bool Specification::skip_comment(TextBuffer &buffer) {
     return true;
 }
 
+/* Adds a vector of rules' name hashes to a map
+
+Arguments:
+    rules: the rules to hash and add to the map
+    rule_hashes: the map of hashes to add the rules to
+    buffer: text buffer for error reporting
+    errors: list of errors to add duplicates to
+
+Returns:
+    true if there were no duplicates detected
+*/
 bool Specification::hash_rules(
         const std::vector<std::shared_ptr<Rule>> &rules,
         std::map<unsigned int, std::shared_ptr<Rule>> &rule_hashes,
@@ -101,7 +121,10 @@ bool Specification::hash_rules(
 
     bool result = true;
     for(const auto &rule : rules) {
-        const unsigned int hash = std::hash<std::string>{}(rule->name);
+        const unsigned int hash =
+                std::hash<std::string>{}(rule->name + rule->path);
+
+        // Check the rule wasn't already in the map
         if(rule_hashes[hash]) {
             TextBuffer::SyntaxError error;
 
@@ -118,6 +141,7 @@ bool Specification::hash_rules(
         else
             rule_hashes[hash] = rule;
 
+        // If the rule is non-terminal, check its children for duplicates
         if(rule->terminal == false) {
             const std::vector<std::shared_ptr<Rule>> children =
                     std::get<std::vector<std::shared_ptr<Rule>>>(rule->value);

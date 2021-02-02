@@ -23,6 +23,8 @@ public:
 
     TextBuffer::Position position;
 
+    std::string path;
+
     std::string name;
 
     unsigned int parent_count;
@@ -39,7 +41,7 @@ public:
 
 // Recursively adds a parent scope to this rule and its children
 void Rule::add_parent_scope(const std::string &parent) {
-    name += ("_" + parent);
+    path += ("_" + parent);
     if(terminal == false) {
         const std::vector<std::shared_ptr<Rule>> children =
                 std::get<std::vector<std::shared_ptr<Rule>>>(value);
@@ -85,6 +87,7 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
     TextBuffer::Position position = buffer.position;
 
+    // Check the indentation level is correct
     if(buffer.line_indentation() != parent_count * 4) {
         const std::string message = "unexpected indentation increase";
         const TextBuffer::SyntaxError error(message, buffer);
