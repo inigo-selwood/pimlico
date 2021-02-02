@@ -23,9 +23,9 @@ public:
 
     TextBuffer::Position position;
 
-    std::vector<std::string> scope;
-
     std::string name;
+
+    unsigned int parent_count;
 
     bool terminal;
 
@@ -39,11 +39,11 @@ public:
 
 // Recursively adds a parent scope to this rule and its children
 void Rule::add_parent_scope(const std::string &parent) {
-    scope.push_back(parent);
+    name += ("_" + parent);
     if(terminal == false) {
         const std::vector<std::shared_ptr<Rule>> children =
                 std::get<std::vector<std::shared_ptr<Rule>>>(value);
-        for(const auto &child : children)
+        for(const std::shared_ptr<Rule> &child : children)
             child->add_parent_scope(parent);
     }
 }
@@ -51,7 +51,7 @@ void Rule::add_parent_scope(const std::string &parent) {
 std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
 
     // Indent the rule
-    for(unsigned int index = 0; index < rule.scope.size(); index += 1)
+    for(unsigned int index = 0; index < rule.parent_count; index += 1)
         stream << "    ";
 
     // Serialize terminal rules
@@ -85,6 +85,14 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
     TextBuffer::Position position = buffer.position;
 
+    if(buffer.line_indentation() != parent_count * 4) {
+        const std::string message = "unexpected indentation increase";
+        const TextBuffer::SyntaxError error(message, buffer);
+        errors.push_back(error);
+        buffer.skip_line(true);
+        return nullptr;
+    }
+
     // Parse the rule's name
     std::string name;
     while(true) {
@@ -113,6 +121,7 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
         // Create the rule
         std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
+        rule->parent_count = parent_count;
         rule->name = name;
         rule->position = position;
         rule->terminal = true;
@@ -134,7 +143,8 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
             return nullptr;
         }
 
-        // Parse children (rules defined below this one, indented by 4 spaces)
+        // Parse children (rules defined below this one, indented by 4
+        // spaces)
         std::vector<std::shared_ptr<Rule>> children;
         bool errors_found = false;
         while(true) {
@@ -148,12 +158,15 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
                 buffer.skip_whitespace();
 
             // Parse the child
-            const auto child = Rule::parse(buffer, errors, parent_count + 1);
+            const auto child = Rule::parse(buffer,
+                    errors,
+                    parent_count + 1);
             if(child == nullptr) {
                 buffer.skip_line(true);
                 errors_found = true;
             }
-            else if(buffer.end_reached() == false && buffer.peek('\n') == false)
+            else if(buffer.end_reached() == false
+                    && buffer.peek('\n') == false)
                 throw ParseLogicError("incomplete rule parse", buffer);
 
             // Scope the child appropriately and add it to the vector
@@ -168,9 +181,9 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
         // Check there were children found
         else if(children.empty()) {
-            buffer.position = position;
-            const std::string message = "no children found for name-extended "
-                    "rule '" + name + "'";
+            const std::string message =
+                    "no children found for name-extended rule '" +
+                            name + "'";
             const TextBuffer::SyntaxError error(message, buffer);
             errors.push_back(error);
             return nullptr;
@@ -178,6 +191,7 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
 
         // Create the rule
         std::shared_ptr<Rule> rule = std::shared_ptr<Rule>(new Rule());
+        rule->parent_count = parent_count;
         rule->name = name;
         rule->terminal = false;
         rule->position = position;
@@ -187,7 +201,8 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
     }
 
     else {
-        const TextBuffer::SyntaxError error("expected ':' or '...'", buffer);
+        const TextBuffer::SyntaxError error("expected ':' or '...'",
+                buffer);
         errors.push_back(error);
         buffer.skip_line(true);
         return nullptr;
