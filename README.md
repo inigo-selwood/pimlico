@@ -150,9 +150,9 @@ Predicates can also be necessary if the parser is returning 'multiple candidate'
 
 ---
 
-### Silencing
+### Inlining
 
-Terms can be silenced to stop them appearing in the parser's output.
+References can be inlined to stop them appearing as seperate sub-tokens in the parser's output.
 
 Consider the following extension of a previous example:
 
@@ -169,7 +169,7 @@ This might be the desired behaviour -- but equally we might not want a distinct 
 
 ```
 digit: ['0' - '9']
-number: '-'? $digit+ ('.' $digit+)? ('E' | 'e') '-'? $digit+
+number: '-'? @digit+ ('.' @digit+)? ('E' | 'e') '-'? @digit+
 ```
 
 Now the parsed result would look like this:
@@ -177,6 +177,17 @@ Now the parsed result would look like this:
 `number(3.14E0)`
 
 ---
+
+### Silencing
+
+Terms can be silenced to stop them appearing in the parser's output.
+
+For instance, if we wanted to strip periods out of a string of period-separated-tokens, we could use the silencing operator (`$`) to ignore them:
+
+```
+path: token ($'.' token)*
+token: ['a' - 'z'] | ['A' - 'Z']
+```
 
 ### Name Extension
 
