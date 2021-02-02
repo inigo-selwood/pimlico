@@ -90,6 +90,16 @@ std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
             errors) == false)
         return nullptr;
 
+    // Resolve rules' terms' references, checking for errors
+    bool reference_errors = false;
+    for(const auto &rule : specification->rules) {
+        reference_errors &= rule->resolve_references(specification->rule_hashes,
+                buffer,
+                errors);
+    }
+    if(reference_errors)
+        return nullptr;
+
     return specification;
 }
 
@@ -121,8 +131,10 @@ bool Specification::hash_rules(
 
     bool result = true;
     for(const auto &rule : rules) {
-        const unsigned int hash =
-                std::hash<std::string>{}(rule->name + rule->path);
+        std::string full_path = rule->name;
+        for(const auto &parent : rule->path)
+            full_path += "_" + parent;
+        const unsigned int hash = std::hash<std::string>{}(full_path);
 
         // Check the rule wasn't already in the map
         if(rule_hashes[hash]) {
