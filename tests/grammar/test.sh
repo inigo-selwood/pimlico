@@ -1,6 +1,6 @@
 # !/bin/bash -
 
-make > /dev/null
+make >/dev/null
 
 if [[ $? -ne 0 ]]; then
     exit 1
@@ -46,7 +46,7 @@ for script in ./invalid/*.peg; do
             done < ./errors.txt
         fi
 
-    elif [[ $return_value -eq 3 ]]; then
+    elif [[ $return_value -eq 4 ]]; then
 
         printf "! ${name} (threw exception)\n"
         ((scripts_thrown=scripts_thrown+1))
@@ -94,7 +94,7 @@ for script in ./valid/*.peg; do
             done < ./errors.txt
         fi
 
-    elif [[ $return_value -eq 3 ]]; then
+    elif [[ $return_value -eq 4 ]]; then
 
         printf "! ${name} (threw exception)\n"
         ((scripts_thrown=scripts_thrown+1))
