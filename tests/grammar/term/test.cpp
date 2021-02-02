@@ -13,8 +13,8 @@ enum Error {
     WRONG_ARGUMENT_COUNT,
     INVALID_FILENAME,
     PARSE_SYNTAX_ERROR,
-    INCOMPLETE_PARSE,
     PARSE_LOGIC_ERROR,
+    INCOMPLETE_PARSE,
 };
 
 int main(int argument_count, char *argument_values[]) {

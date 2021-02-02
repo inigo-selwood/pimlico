@@ -12,10 +12,10 @@ using namespace Pimlico;
 enum Error {
     NONE = 0,
 
-    WRONG_ARGUMENT_COUNT = 1,
-    INVALID_FILENAME = 2,
-    PARSE_SYNTAX_ERROR = 3,
-    PARSE_LOGIC_ERROR = 4,
+    WRONG_ARGUMENT_COUNT,
+    INVALID_FILENAME,
+    PARSE_SYNTAX_ERROR,
+    PARSE_LOGIC_ERROR,
 };
 
 int main(int argument_count, char *argument_values[]) {
