@@ -313,8 +313,8 @@ unsigned int TextBuffer::line_indentation(unsigned long number = 0) const {
         number = position.line;
     else if(number > line_count)
         return 0;
-    else
-        return line_indentations[number - 1];
+    
+    return line_indentations[number - 1];
 }
 
 /* Increments the buffer's position
