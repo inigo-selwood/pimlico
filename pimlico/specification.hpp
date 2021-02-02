@@ -14,18 +14,26 @@ namespace Pimlico {
 
 class Specification {
 
+public:
+
+    std::map<unsigned int, std::shared_ptr<Rule>> rule_hashes;
+
+    friend std::ostream &operator<<(std::ostream &stream,
+            const Specification &specification);
+
+    static std::shared_ptr<Specification> parse(const std::string &grammar,
+            std::vector<TextBuffer::SyntaxError> &errors);
+
 private:
 
     std::vector<std::shared_ptr<Rule>> rules;
 
     static inline bool skip_comment(TextBuffer &buffer);
 
-public:
-
-    friend std::ostream &operator<<(std::ostream &stream,
-            const Specification &specification);
-
-    static std::shared_ptr<Specification> parse(const std::string &grammar,
+    static bool hash_rules(
+            const std::vector<std::shared_ptr<Rule>> &rules,
+            std::map<unsigned int, std::shared_ptr<Rule>> &rule_hashes,
+            const TextBuffer &buffer,
             std::vector<TextBuffer::SyntaxError> &errors);
 
 };
@@ -36,14 +44,6 @@ std::ostream &operator<<(std::ostream &stream,
     for(const auto &rule : specification.rules)
         stream << *rule << "\n";
     return stream;
-}
-
-inline bool Specification::skip_comment(TextBuffer &buffer) {
-    if(buffer.read('#') == false)
-        return false;
-
-    buffer.skip_line();
-    return true;
 }
 
 std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
@@ -76,8 +76,56 @@ std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
 
     if(errors_found)
         return nullptr;
+    else if(hash_rules(specification->rules,
+            specification->rule_hashes,
+            buffer,
+            errors) == false)
+        return nullptr;
 
     return specification;
+}
+
+inline bool Specification::skip_comment(TextBuffer &buffer) {
+    if(buffer.read('#') == false)
+        return false;
+
+    buffer.skip_line();
+    return true;
+}
+
+bool Specification::hash_rules(
+        const std::vector<std::shared_ptr<Rule>> &rules,
+        std::map<unsigned int, std::shared_ptr<Rule>> &rule_hashes,
+        const TextBuffer &buffer,
+        std::vector<TextBuffer::SyntaxError> &errors) {
+
+    bool result = true;
+    for(const auto &rule : rules) {
+        const unsigned int hash = std::hash<std::string>{}(rule->name);
+        if(rule_hashes[hash]) {
+            TextBuffer::SyntaxError error;
+
+            error.add_reference("duplicate of rule '" + rule->name + "'",
+                    buffer,
+                    &rule->position);
+            error.add_reference("first defined here:",
+                    buffer,
+                    &rule_hashes[hash]->position);
+
+            errors.push_back(error);
+            result = false;
+        }
+        else
+            rule_hashes[hash] = rule;
+
+        if(rule->terminal == false) {
+            const std::vector<std::shared_ptr<Rule>> children =
+                    std::get<std::vector<std::shared_ptr<Rule>>>(rule->value);
+            result &= hash_rules(children, rule_hashes, buffer, errors);
+        }
+    }
+
+    return result;
 }
 
 };
