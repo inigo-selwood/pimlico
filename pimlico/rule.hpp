@@ -48,7 +48,7 @@ public:
 void Rule::add_parent_scope(const std::string &parent) {
     path.push_back(parent);
     if(terminal == false) {
-        const std::vector<std::shared_ptr<Rule>> children =
+        const std::vector<std::shared_ptr<Rule>> &children =
                 std::get<std::vector<std::shared_ptr<Rule>>>(value);
         for(const std::shared_ptr<Rule> &child : children)
             child->add_parent_scope(parent);
@@ -63,14 +63,14 @@ std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
 
     // Serialize terminal rules
     if(rule.terminal) {
-        const std::shared_ptr<Term> value =
+        const std::shared_ptr<Term> &value =
                 std::get<std::shared_ptr<Term>>(rule.value);
         stream << rule.name << ": " << *value;
     }
 
     // Serialize non-terminal rules (ie: rules with children)
     else {
-        const std::vector<std::shared_ptr<Rule>> children =
+        const std::vector<std::shared_ptr<Rule>> &children =
                 std::get<std::vector<std::shared_ptr<Rule>>>(rule.value);
 
         stream << rule.name << "...\n";
@@ -224,14 +224,14 @@ bool Rule::resolve_references(
 
     // If the rule isn't terminal, resolve its children's references
     if(terminal == false) {
-        const std::vector<std::shared_ptr<Rule>> children =
+        const std::vector<std::shared_ptr<Rule>> &children =
                 std::get<std::vector<std::shared_ptr<Rule>>>(value);
         for(const auto &child : children)
             result &= child->resolve_references(rules, buffer, errors);
         return result;
     }
 
-    const std::shared_ptr<Term> root = std::get<std::shared_ptr<Term>>(value);
+    const std::shared_ptr<Term> &root = std::get<std::shared_ptr<Term>>(value);
     std::vector<std::shared_ptr<Term>> stack = {root};
     while(true) {
         if(stack.empty())
@@ -246,7 +246,7 @@ bool Rule::resolve_references(
             stack.pop_back();
 
             // Add its children to the stack
-            const std::vector<std::shared_ptr<Term>> children =
+            const std::vector<std::shared_ptr<Term>> &children =
                     std::get<std::vector<std::shared_ptr<Term>>>(term->value);
             for(const auto &child : children)
                 stack.push_back(child);
@@ -259,7 +259,9 @@ bool Rule::resolve_references(
             // parents' names
             std::vector<std::shared_ptr<Rule>> candidates;
             const unsigned int parent_count = this->path.size();
-            std::string test_path = std::get<std::string>(term->value);
+            Term::Reference &reference = std::get<Term::Reference>(term->value);
+            std::string test_path = reference.name;
+
             for(unsigned int index = 0; index < parent_count; index += 1) {
 
                 const unsigned int hash = std::hash<std::string>{}(test_path);
@@ -298,15 +300,8 @@ bool Rule::resolve_references(
             }
 
             // Replace the reference with the rule it's referencing's value
-            else {
-                const std::shared_ptr<Term> value =
-                        candidates.back()->term_value();
-                value->instance_bounds = term->instance_bounds;
-                value->predicate = term->predicate;
-                value->silenced = term->silenced;
-
-                term = value;
-            }
+            else
+                reference.value = candidates.back()->term_value();
 
             stack.pop_back();
         }
@@ -327,7 +322,7 @@ std::shared_ptr<Term> Rule::term_value() {
 
     // Place children's value into a vector of terms
     std::vector<std::shared_ptr<Term>> options;
-    const std::vector<std::shared_ptr<Rule>> children =
+    const std::vector<std::shared_ptr<Rule>> &children =
             std::get<std::vector<std::shared_ptr<Rule>>>(value);
     for(const auto &child : children)
         options.push_back(child->term_value());

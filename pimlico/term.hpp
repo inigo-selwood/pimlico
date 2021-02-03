@@ -20,6 +20,20 @@ class Term {
 
 public:
 
+    struct Reference {
+
+    public:
+
+        std::string name;
+
+        std::shared_ptr<Term> value;
+
+        Reference(const std::string &name) {
+            this->name = name;
+        }
+
+    };
+
     enum class Type {
         CONSTANT,
         RANGE,
@@ -39,6 +53,7 @@ public:
     };
 
     std::variant<std::string,
+            Reference,
             std::array<char, 2>,
             std::vector<std::shared_ptr<Term>>> value;
 
@@ -116,7 +131,7 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
 
     // Serialize ranges
     else if(type == Term::Type::RANGE) {
-        const std::array<char, 2> range =
+        const std::array<char, 2> &range =
                 std::get<std::array<char, 2>>(term.value);
 
         stream << "['";
@@ -142,7 +157,7 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
 
     // Serialize choices and sequences
     else if(type == Term::Type::CHOICE || type == Term::Type::SEQUENCE) {
-        const std::vector<std::shared_ptr<Term>> values =
+        const std::vector<std::shared_ptr<Term>> &values =
                 std::get<std::vector<std::shared_ptr<Term>>>(term.value);
 
         bool enclosed = false;
@@ -441,15 +456,7 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     if(instance_bounds == std::array<int, 2>({0, 0}))
         return nullptr;
 
-    if(term->type != Term::Type::REFERENCE && silenced) {
-        const std::string message = "can't silence a non-reference term";
-        const TextBuffer::SyntaxError error(message, buffer, &position);
-        errors.push_back(error);
-        return nullptr;
-    }
-    else
-        term->silenced = silenced;
-
+    term->silenced = silenced;
     term->predicate = predicate;
     term->silenced = silenced;
     term->instance_bounds = instance_bounds;
@@ -662,23 +669,23 @@ std::shared_ptr<Term> Term::parse_reference(TextBuffer &buffer,
     const TextBuffer::Position position = buffer.position;
 
     // Extract characters
-    std::string value;
+    std::string name;
     while(true) {
         const char character = buffer.peek();
         if((character >= 'a' && character <= 'z') || character == '_')
-            value += buffer.read();
+            name += buffer.read();
         else
             break;
     }
 
     // Check a term was found
-    if(value.empty())
+    if(name.empty())
         throw ParseLogicError("no reference found", buffer);
 
     std::shared_ptr<Term> term = std::shared_ptr<Term>(new Term());
     term->type = Term::Type::REFERENCE;
     term->position = position;
-    term->value = value;
+    term->value = Term::Reference(name);
 
     return term;
 }
