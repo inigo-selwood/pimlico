@@ -153,7 +153,7 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
 
     // Serialize references
     else if(type == Term::Type::REFERENCE)
-        stream << std::get<std::string>(term.value);
+        stream << std::get<Term::Reference>(term.value).name;
 
     // Serialize choices and sequences
     else if(type == Term::Type::CHOICE || type == Term::Type::SEQUENCE) {
