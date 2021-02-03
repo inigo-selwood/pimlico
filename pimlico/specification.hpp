@@ -91,13 +91,13 @@ std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
         return nullptr;
 
     // Resolve rules' terms' references, checking for errors
-    bool reference_errors = false;
+    bool references_valid = true;
     for(const auto &rule : specification->rules) {
-        reference_errors &= rule->resolve_references(specification->rule_hashes,
+        references_valid &= rule->resolve_references(specification->rule_hashes,
                 buffer,
                 errors);
     }
-    if(reference_errors)
+    if(references_valid == false)
         return nullptr;
 
     return specification;

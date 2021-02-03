@@ -262,12 +262,14 @@ bool Rule::resolve_references(
             Term::Reference &reference = std::get<Term::Reference>(term->value);
             std::string test_path = reference.name;
 
-            for(unsigned int index = 0; index < parent_count; index += 1) {
-
+            for(unsigned int index = 0; index <= parent_count; index += 1) {
                 const unsigned int hash = std::hash<std::string>{}(test_path);
                 const std::shared_ptr<Rule> candidate = rules[hash];
                 if(candidate)
                     candidates.push_back(candidate);
+
+                if(index == parent_count)
+                    break;
 
                 test_path += "_" + this->path[index];
             }
