@@ -137,7 +137,7 @@ std::ostream &operator<<(std::ostream &stream,
 
 TextBuffer::SyntaxError::Reference::Reference(const std::string &message,
         const TextBuffer &buffer,
-        const TextBuffer::Position *position) {
+        const TextBuffer::Position *position = nullptr) {
 
     this->position = position ? *position : buffer.position;
     this->message = message;
@@ -164,7 +164,7 @@ TextBuffer::SyntaxError::SyntaxError(const std::string &message,
 
 void TextBuffer::SyntaxError::add_reference(const std::string &message,
         const TextBuffer &buffer,
-        const TextBuffer::Position *position) {
+        const TextBuffer::Position *position = nullptr) {
     references.push_back(Reference(message, buffer, position));
 }
 
@@ -313,7 +313,7 @@ unsigned int TextBuffer::line_indentation(unsigned long number = 0) const {
         number = position.line;
     else if(number > line_count)
         return 0;
-    
+
     return line_indentations[number - 1];
 }
 
