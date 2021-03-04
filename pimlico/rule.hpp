@@ -264,9 +264,9 @@ bool Rule::resolve_references(
 
             for(unsigned int index = 0; index <= parent_count; index += 1) {
                 const unsigned int hash = std::hash<std::string>{}(test_path);
-                const std::shared_ptr<Rule> candidate = rules[hash];
-                if(candidate)
-                    candidates.push_back(candidate);
+                const auto candidate = rules.find(hash);
+                if(rules.find(hash) != rules.end())
+                    candidates.push_back((*candidate).second);
 
                 if(index == parent_count)
                     break;
