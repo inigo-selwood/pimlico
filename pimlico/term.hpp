@@ -94,6 +94,12 @@ private:
 
 };
 
+/* Pretty-print a term
+
+Arguments:
+    stream (std::ostream &): the stream to print to
+    term (const Term &): the term to print
+*/
 std::ostream &operator<<(std::ostream &stream, const Term &term) {
 
     // Serialize predicates
@@ -223,6 +229,11 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
     return stream;
 }
 
+/* Parse a positive integer
+
+Arguments:
+    buffer (TextBuffer &): the buffer containing an integer at its current index
+*/
 static int parse_integer(TextBuffer &buffer) {
 
     // Extract digits
