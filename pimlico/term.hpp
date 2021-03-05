@@ -69,11 +69,15 @@ public:
 
     friend std::ostream &operator<<(std::ostream &stream, const Term &term);
 
+    Term();
+
+    // void print_bytecode(std::ostream &stream);
+    // void print_json(std::ostream &stream, unsigned int indentation_level);
+    // void print_pretty(std::ostream &stream);
+
     static std::shared_ptr<Term> parse(TextBuffer &buffer,
             std::vector<TextBuffer::SyntaxError> &errors,
             const bool root);
-
-    Term();
 
 private:
 
@@ -231,6 +235,257 @@ Term::Term() : instance_bounds({1, 1}),
         type(Type::NONE),
         predicate(Predicate::NONE),
         silenced(false) {}
+
+// ************************************************************* Print functions
+
+/*
+void Term::print_bytecode(std::ostream &stream) {
+
+}
+
+void Term::print_json(std::ostream &stream, unsigned int indentation_level = 0) {
+
+
+    std::string start_indentation;
+    std::string indentation;
+    for(unsigned int index = 0; index < indentation_level; index += 1)
+        start_indentation += "    ";
+    indentation = start_indentation;
+    indentation += "    ";
+
+    stream << start_indentation << "{\n";
+
+    std::map<Term::Predicate, std::string> predicate_strings = {
+        {Term::Predicate::AND, "and"},
+        {Term::Predicate::NOT, "not"},
+        {Term::Predicate::NONE, "none"}
+    };
+
+    stream << indentation << "\"predicate\": \"" << predicate_strings[predicate] << "\",\n";
+
+    stream << indentation << "\"silenced\": " << (silenced ? "true" : "false") << ",\n";
+
+    static std::map<char, std::string> escape_codes = {
+        {'\n', "\\n"},
+        {'\r', "\\r"} ,
+        {'\b', "\\b"},
+        {'\t', "\\t"},
+        {'\\', "\\\\"},
+        {'\"', "\\\""},
+        {'\'', "\\\'"},
+    };
+
+    std::map<Term::Type, std::string> type_strings = {
+        {Term::Type::CONSTANT, "constant"},
+        {Term::Type::RANGE, "range"},
+        {Term::Type::REFERENCE, "reference"},
+        {Term::Type::CHOICE, "choice"},
+        {Term::Type::SEQUENCE, "sequence"},
+        {Term::Type::NONE, "none"}
+    };
+
+    stream << indentation << "\"type\": \"" << type_strings[type] << "\",\n";
+
+    stream << indentation << "\"bounds\": [" << instance_bounds[0] << ", " << instance_bounds[1] << "],\n";
+
+    stream << indentation << "\"value\": ";
+
+    // Serialize constants
+    if(type == Term::Type::CONSTANT) {
+        stream << "\"";
+        for(const char &character : std::get<std::string>(value)) {
+            if(escape_codes.find(character) != escape_codes.end())
+                stream << escape_codes[character];
+            else
+                stream << character;
+        }
+        stream << "\"\n";
+    }
+
+    // Serialize ranges
+    else if(type == Term::Type::RANGE) {
+        const std::array<char, 2> &range =
+                std::get<std::array<char, 2>>(value);
+
+        stream << "[";
+
+        if(escape_codes.find(range[0]) != escape_codes.end())
+            stream << escape_codes[range[0]];
+        else
+            stream << range[0];
+
+        stream << ", ";
+
+        if(escape_codes.find(range[1]) != escape_codes.end())
+            stream << escape_codes[range[1]];
+        else
+            stream << range[1];
+
+        stream << "]\n";
+    }
+
+    // Serialize references
+    else if(type == Term::Type::REFERENCE)
+        stream << indentation << "\"" << std::get<Term::Reference>(value).name << "\"\n";
+
+    // Serialize choices and sequences
+    else if(type == Term::Type::CHOICE || type == Term::Type::SEQUENCE) {
+        const std::vector<std::shared_ptr<Term>> &values =
+                std::get<std::vector<std::shared_ptr<Term>>>(value);
+
+        if(type == Term::Type::CHOICE)
+            stream << "[\n";
+        else if(type == Term::Type::SEQUENCE)
+            stream << "{\n";
+
+        for(unsigned int index = 0; index < values.size(); index += 1) {
+            (*values[index]).print_json(stream, indentation_level + 2);
+
+            // Print a seperator
+            if(index + 1 < values.size())
+                stream << ",\n";
+            else
+                stream << "\n";
+        }
+
+        if(type == Term::Type::CHOICE)
+            stream << indentation << "]\n";
+        else if(type == Term::Type::SEQUENCE)
+            stream << indentation << "}\n";
+    }
+
+    stream << start_indentation << "}";
+}
+
+void Term::print_pretty(std::ostream &stream) {
+
+    // Serialize predicates
+    if(predicate == Term::Predicate::AND)
+        stream << "&";
+    else if(predicate == Term::Predicate::NOT)
+        stream << "!";
+
+    // Serialize silenced symbol
+    else if(silenced)
+        stream << "$";
+
+    static std::map<char, std::string> escape_codes = {
+        {'\n', "\\n"},
+        {'\r', "\\r"} ,
+        {'\b', "\\b"},
+        {'\t', "\\t"},
+        {'\\', "\\\\"},
+        {'\"', "\\\""},
+        {'\'', "\\\'"},
+    };
+
+    // Serialize constants
+    const Term::Type &type = type;
+    if(type == Term::Type::CONSTANT) {
+        stream << "'";
+        for(const char &character : std::get<std::string>(value)) {
+            if(escape_codes.find(character) != escape_codes.end())
+                stream << escape_codes[character];
+            else
+                stream << character;
+        }
+        stream << "'";
+    }
+
+    // Serialize ranges
+    else if(type == Term::Type::RANGE) {
+        const std::array<char, 2> &range =
+                std::get<std::array<char, 2>>(value);
+
+        stream << "['";
+
+        if(escape_codes.find(range[0]) != escape_codes.end())
+            stream << escape_codes[range[0]];
+        else
+            stream << range[0];
+
+        stream << "' - '";
+
+        if(escape_codes.find(range[1]) != escape_codes.end())
+            stream << escape_codes[range[1]];
+        else
+            stream << range[1];
+
+        stream << "']";
+    }
+
+    // Serialize references
+    else if(type == Term::Type::REFERENCE)
+        stream << std::get<Term::Reference>(value).name;
+
+    // Serialize choices and sequences
+    else if(type == Term::Type::CHOICE || type == Term::Type::SEQUENCE) {
+        const std::vector<std::shared_ptr<Term>> &values =
+                std::get<std::vector<std::shared_ptr<Term>>>(value);
+
+        bool enclosed = false;
+        if(instance_bounds != std::array<int, 2>({1, 1})) {
+            enclosed = true;
+            stream << "(";
+        }
+
+        for(unsigned int index = 0; index < values.size(); index += 1) {
+            const std::shared_ptr<Term> &pointer = values[index];
+
+            // Enclose the term, enclosing it if necessary
+            bool child_enclosed = false;
+            if(type == Term::Type::CHOICE
+                        && pointer->type == Term::Type::SEQUENCE) {
+                stream << "(";
+                child_enclosed = true;
+            }
+            stream << *pointer;
+            if(child_enclosed)
+                stream << ")";
+
+            // Print a seperator
+            if(index + 1 < values.size()) {
+                if(type == Term::Type::CHOICE)
+                    stream << " | ";
+                else if(type == Term::Type::SEQUENCE)
+                    stream << " ";
+            }
+        }
+
+        if(enclosed)
+            stream << ")";
+    }
+
+    // Extract bounds
+    const std::array<int, 2> instance_bounds = instance_bounds;
+    const int lower_bound = instance_bounds[0];
+    const int upper_bound = instance_bounds[1];
+
+    // Don't print anything more if the bounds are default
+    if(lower_bound == upper_bound && lower_bound == 1)
+        return;
+
+    // Serialize instance hints
+    else if(lower_bound == 0 && upper_bound == 1)
+        stream << "?";
+    else if(lower_bound == 0 && upper_bound == -1)
+        stream << "*";
+    else if(lower_bound == 1 && upper_bound == -1)
+        stream << "+";
+
+    // Serialize instance bounds
+    else if(lower_bound == upper_bound)
+        stream << "{" << lower_bound << "}";
+    else if(lower_bound == -1)
+        stream << "{:" << upper_bound << "}";
+    else if(upper_bound == -1)
+        stream << "{" << lower_bound << ":}";
+    else
+        stream << "{" << lower_bound << " : " << upper_bound << "}";
+
+    return;
+}
+*/
 
 // ****************************************************** Parse helper functions
 
