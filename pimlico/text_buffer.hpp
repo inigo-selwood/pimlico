@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <ostream>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -21,7 +22,11 @@ public:
         unsigned int column;
 
         friend std::ostream &operator<<(std::ostream &stream,
-                const Position &position);
+                const Position &position) {
+            return stream << '['
+                    << position.line << ':'
+                    << position.column << ']';
+        }
 
         Position() : index(0),
                 line(1),
@@ -39,66 +44,38 @@ public:
 
     };
 
-    struct SyntaxError {
-
-    public:
-
-        struct Reference {
-
-            TextBuffer::Position position;
-
-            std::string text;
-            std::string message;
-
-            friend std::ostream &operator<<(std::ostream &stream,
-                    const Reference &reference);
-
-            Reference(const std::string &message,
-                    const TextBuffer &buffer,
-                    const TextBuffer::Position *position);
-
-        };
-
-        std::vector<Reference> references;
-
-        friend std::ostream &operator<<(std::ostream &stream,
-            const SyntaxError &error);
-
-        SyntaxError() {}
-        SyntaxError(const std::string &message,
-                const TextBuffer &buffer,
-                const TextBuffer::Position *position);
-
-        void add_reference(const std::string &message,
-                const TextBuffer &buffer,
-                const TextBuffer::Position *position);
-
-    };
-
+    // Used during whitespace skipping
     std::function<bool(TextBuffer &)> comment_skip_function;
 
     Position position;
 
+    // Constructor
     TextBuffer(const std::string &text);
 
-    bool valid(std::vector<SyntaxError> &errors);
-
+    // Status
     bool end_reached() const;
     int indentation_delta(unsigned long reference);
 
+    // Meta information
     std::string line_text(unsigned long number) const;
     unsigned int line_indentation(unsigned long number) const;
 
+    // Increment
     void increment(const unsigned long steps);
 
+    // Non-consuming read
     char peek() const;
     bool peek(const std::string &string) const;
     bool peek(const char &character) const;
+    std::string peek(const std::regex &regex) const;
 
+    // Consuming read
     char read();
     bool read(const std::string &string);
     bool read(const char &character);
+    std::string read(const std::regex &regex);
 
+    // Skip
     void skip_line(const bool overflow);
     void skip_space(const bool overflow);
     void skip_whitespace();
@@ -113,62 +90,14 @@ private:
     unsigned long line_count;
     unsigned long length;
 
+    // Internal read
     inline char get_character() const;
     inline std::string get_string(const long &string_length) const;
 
 };
 
-std::ostream &operator<<(std::ostream &stream,
-        const TextBuffer::Position &position) {
-    return stream << '[' << position.line << ':' << position.column << ']';
-}
+// ***************************************************************** Constructor
 
-std::ostream &operator<<(std::ostream &stream,
-        const TextBuffer::SyntaxError::Reference &reference) {
-
-    stream << reference.position << ' ' << reference.message << '\n'
-            << reference.text << '\n';
-
-    for(unsigned int index = 1; index < reference.position.column; index += 1)
-        stream << '.';
-    stream << '^';
-    return stream;
-}
-
-TextBuffer::SyntaxError::Reference::Reference(const std::string &message,
-        const TextBuffer &buffer,
-        const TextBuffer::Position *position = nullptr) {
-
-    this->position = position ? *position : buffer.position;
-    this->message = message;
-    this->text = buffer.line_text(this->position.line);
-}
-
-std::ostream &operator<<(std::ostream &stream,
-        const TextBuffer::SyntaxError &error) {
-
-    const unsigned int reference_count = error.references.size();
-    for(unsigned int index = 0; index < reference_count; index += 1) {
-        stream << error.references[index];
-        if(index + 1 < reference_count)
-            stream << '\n';
-    }
-    return stream;
-}
-
-TextBuffer::SyntaxError::SyntaxError(const std::string &message,
-        const TextBuffer &buffer,
-        const TextBuffer::Position *position = nullptr) {
-    references.push_back(Reference(message, buffer, position));
-}
-
-void TextBuffer::SyntaxError::add_reference(const std::string &message,
-        const TextBuffer &buffer,
-        const TextBuffer::Position *position = nullptr) {
-    references.push_back(Reference(message, buffer, position));
-}
-
-// Constructor
 TextBuffer::TextBuffer(const std::string &text) {
     this->text = text;
 
@@ -210,44 +139,7 @@ TextBuffer::TextBuffer(const std::string &text) {
             && line_indentations[position.line] >= indentation_target;
 }
 
-/* Checks whether the buffer's text is valid
-
-- Checks indentation levels are multiples of 4
-- Checks characters are valid (< 0x20 or > 0x7E)
-*/
-bool TextBuffer::valid(std::vector<TextBuffer::SyntaxError> &errors) {
-
-    bool valid = true;
-
-    // Check indentation levels
-    for(unsigned int index = 0; index < line_indentations.size(); index += 1) {
-        const unsigned int &indentation = line_indentations[index];
-        if(indentation % 4) {
-            Position position;
-            position.line = index + 1;
-            position.index = line_indices[index];
-
-            SyntaxError error("invalid indentation", *this, &position);
-            errors.push_back(error);
-            valid = false;
-        }
-    }
-
-    // Check character validity
-    const Position start_position = position;
-    while(end_reached() == false) {
-        skip_whitespace();
-        const char character = read();
-        if(character && (character < ' ' || character > '~')) {
-            SyntaxError error("invalid character", *this);
-            errors.push_back(error);
-            valid = false;
-        }
-    }
-    position = start_position;
-
-    return valid;
-}
+// ********************************************************************** Status
 
 // Checks whether the buffer has reached the end of its text
 bool TextBuffer::end_reached() const {
@@ -276,6 +168,8 @@ int TextBuffer::indentation_delta(unsigned long reference = 0) {
 
     return line_indentations[next_line - 1] - line_indentations[reference - 1];
 }
+
+// ************************************************************ Meta information
 
 /* Gets the current line's text
 
@@ -317,6 +211,8 @@ unsigned int TextBuffer::line_indentation(unsigned long number = 0) const {
     return line_indentations[number - 1];
 }
 
+// *********************************************************** Position changing
+
 /* Increments the buffer's position
 
 Arguments:
@@ -356,6 +252,8 @@ void TextBuffer::increment(const unsigned long steps = 1) {
     }
 }
 
+// ********************************************************** Non-consuming read
+
 // Returns the current character
 char TextBuffer::peek() const {
     return get_character();
@@ -370,6 +268,29 @@ bool TextBuffer::peek(const std::string &string) const {
 bool TextBuffer::peek(const char &character) const {
     return get_character() == character;
 }
+
+std::string TextBuffer::peek(const std::regex &regex) const {
+    static constexpr std::regex_constants::match_flag_type flags =
+        std::regex_constants::match_continuous
+            | std::regex_constants::match_not_null;
+
+    const auto start = text.cbegin() + (position.index - 1);
+    const auto end = text.cbegin() + line_indices[position.line];
+    std::smatch matches;
+    const bool result_count = std::regex_match(start,
+            end,
+            matches,
+            regex,
+            flags);
+
+    if(result_count == 0)
+        return "";
+
+    const std::string &first_match = matches[0];
+    return first_match;
+}
+
+// ************************************************************** Consuming read
 
 // Consumes and returns the current character
 char TextBuffer::read() {
@@ -395,6 +316,15 @@ bool TextBuffer::read(const char &character) {
     increment();
     return true;
 }
+
+std::string TextBuffer::read(const std::regex &regex) {
+    const std::string result = peek(regex);
+    if(result.empty() == false)
+        increment(result.length());
+    return result;
+}
+
+// ************************************************************************ Skip
 
 /* Skips characters until the next newline (or the buffer's end)
 
@@ -458,6 +388,8 @@ void TextBuffer::skip_space(const bool overflow = false) {
             break;
     }
 }
+
+// *************************************************************** Internal read
 
 // Gets the current character
 inline char TextBuffer::get_character() const {
