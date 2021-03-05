@@ -69,14 +69,11 @@ public:
 
     friend std::ostream &operator<<(std::ostream &stream, const Term &term);
 
-    Term() : instance_bounds({1, 1}),
-            type(Type::NONE),
-            predicate(Predicate::NONE),
-            silenced(false) {}
-
     static std::shared_ptr<Term> parse(TextBuffer &buffer,
             std::vector<TextBuffer::SyntaxError> &errors,
             const bool root);
+
+    Term();
 
 private:
 
@@ -229,10 +226,67 @@ std::ostream &operator<<(std::ostream &stream, const Term &term) {
     return stream;
 }
 
+// Constructor
+Term::Term() : instance_bounds({1, 1}),
+        type(Type::NONE),
+        predicate(Predicate::NONE),
+        silenced(false) {}
+
+// ****************************************************** Parse helper functions
+
+/* Parse an escaped character
+
+Arguments:
+    buffer (TextBuffer &): buffer at backslash before escaped code
+
+Returns:
+    result (char): corresponding escape sequence, or zero if unsupported
+
+Throws:
+    error (ParseLogicError): if buffer not at backslash
+*/
+static char parse_escape_code(TextBuffer &buffer) {
+
+    // Check escape character present
+    if(buffer.read('\\') == false)
+        throw ParseLogicError("parse_escape_code called with no code", buffer);
+
+    // Extract character
+    switch(buffer.read()) {
+        case '\'':
+            return '\'';
+        case '\"':
+            return '\"';
+        case '\\':
+            return '\\';
+        case 'b':
+            return '\b';
+        case 'n':
+            return '\n';
+        case 'r':
+            return '\r';
+        case 't':
+            return '\t';
+
+        default:
+            return 0;
+    }
+}
+
 /* Parse a positive integer
 
 Arguments:
-    buffer (TextBuffer &): the buffer containing an integer at its current index
+    buffer (TextBuffer &): the buffer, at an integer
+
+Returns:
+    result (int): integer representation of string
+
+Throws:
+    error (ParseLogicError): if buffer not at integer
+    invalid (std::invalid_argument): if no conversion could be performed
+    range (std::out_of_range): if the converted value would fall out of the
+        range of the result type or if the underlying function (std::strtol or
+        std::strtoll) sets errno to ERANGE.
 */
 static int parse_integer(TextBuffer &buffer) {
 
@@ -262,6 +316,18 @@ static int parse_integer(TextBuffer &buffer) {
     }
 }
 
+/* Parses a term's instance bounds
+
+Arguments:
+    buffer (TextBuffer &): buffer, presumed to be at an instance bound
+    errors (std::vector<TextBuffer::SyntaxError> &): list of errors encountered
+
+Returns:
+    bounds (std::array<int, 2>): the bounds, where:
+        [-1, n]: up to n instances
+        [n, n]: n instances
+        [n, -1]: n or more instances
+*/
 static inline std::array<int, 2> parse_instance_bounds(TextBuffer &buffer,
         std::vector<TextBuffer::SyntaxError> &errors) {
 
@@ -385,6 +451,20 @@ static inline std::array<int, 2> parse_instance_bounds(TextBuffer &buffer,
     return {1, 1};
 }
 
+// ***************************************************** Descent parse functions
+
+/* Parse a term of unknown type
+
+Arguments:
+    buffer (TextBuffer &): buffer at term
+    errors (std::vector<TextBuffer::SyntaxError> &): list of errors encountered
+    root (const bool): whether to treat the term as the root of a rule
+        (synonymous to a sequence, but without enclosing brackets)
+
+Returns:
+    result (std::shared_ptr<Term>): the parsed term, or nullptr if an error was
+        encountered
+*/
 std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
         std::vector<TextBuffer::SyntaxError> &errors,
         const bool root = false) {
@@ -475,34 +555,21 @@ std::shared_ptr<Term> Term::parse(TextBuffer &buffer,
     return term;
 }
 
-static char parse_escape_code(TextBuffer &buffer) {
+/* Parse a constant term
 
-    // Check escape character present
-    if(buffer.read('\\') == false)
-        throw ParseLogicError("parse_escape_code called with no code", buffer);
+Arguments:
+    buffer (TextBuffer &): buffer at constant
+    errors (std::vector<TextBuffer::SyntaxError> &): list of errors encountered
+    root (const bool): whether to treat the term as the root of a rule
+        (synonymous to a sequence, but without enclosing brackets)
 
-    // Extract character
-    switch(buffer.read()) {
-        case '\'':
-            return '\'';
-        case '\"':
-            return '\"';
-        case '\\':
-            return '\\';
-        case 'b':
-            return '\b';
-        case 'n':
-            return '\n';
-        case 'r':
-            return '\r';
-        case 't':
-            return '\t';
+Returns:
+    result (std::shared_ptr<Term>): the parsed term, or nullptr if an error was
+        encountered
 
-        default:
-            return 0;
-    }
-}
-
+Throws:
+    error (ParseLogicError): if buffer not at constant
+*/
 std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
         std::vector<TextBuffer::SyntaxError> &errors) {
 
@@ -575,6 +642,21 @@ std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
     return term;
 }
 
+/* Parse a range term
+
+Arguments:
+    buffer (TextBuffer &): buffer at range
+    errors (std::vector<TextBuffer::SyntaxError> &): list of errors encountered
+    root (const bool): whether to treat the term as the root of a rule
+        (synonymous to a sequence, but without enclosing brackets)
+
+Returns:
+    result (std::shared_ptr<Term>): the parsed term, or nullptr if an error was
+        encountered
+
+Throws:
+    error (ParseLogicError): if buffer not at range
+*/
 std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
         std::vector<TextBuffer::SyntaxError> &errors) {
 
@@ -674,6 +756,21 @@ std::shared_ptr<Term> Term::parse_range(TextBuffer &buffer,
     return term;
 }
 
+/* Parse a reference term
+
+Arguments:
+    buffer (TextBuffer &): buffer at reference
+    errors (std::vector<TextBuffer::SyntaxError> &): list of errors encountered
+    root (const bool): whether to treat the term as the root of a rule
+        (synonymous to a sequence, but without enclosing brackets)
+
+Returns:
+    result (std::shared_ptr<Term>): the parsed term, or nullptr if an error was
+        encountered
+
+Throws:
+    error (ParseLogicError): if buffer not at reference
+*/
 std::shared_ptr<Term> Term::parse_reference(TextBuffer &buffer,
         std::vector<TextBuffer::SyntaxError> &errors) {
 
@@ -701,6 +798,18 @@ std::shared_ptr<Term> Term::parse_reference(TextBuffer &buffer,
     return term;
 }
 
+/* Parse a choice of terms
+
+Arguments:
+    buffer (TextBuffer &): buffer at choice
+    errors (std::vector<TextBuffer::SyntaxError> &): list of errors encountered
+    root (const bool): whether to treat the term as the root of a rule
+        (synonymous to a sequence, but without enclosing brackets)
+
+Returns:
+    result (std::shared_ptr<Term>): the parsed term, or nullptr if an error was
+        encountered
+*/
 std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
         std::vector<TextBuffer::SyntaxError> &errors) {
 
@@ -769,6 +878,18 @@ std::shared_ptr<Term> Term::parse_choice(TextBuffer &buffer,
     return term;
 }
 
+/* Parse a sequence of terms
+
+Arguments:
+    buffer (TextBuffer &): buffer at sequence
+    errors (std::vector<TextBuffer::SyntaxError> &): list of errors encountered
+    root (const bool): whether to treat the term as the root of a rule
+        (synonymous to a sequence, but without enclosing brackets)
+
+Returns:
+    result (std::shared_ptr<Term>): the parsed term, or nullptr if an error was
+        encountered
+*/
 std::shared_ptr<Term> Term::parse_sequence(TextBuffer &buffer,
         std::vector<TextBuffer::SyntaxError> &errors) {
 
