@@ -1,0 +1,26 @@
+# This is a comment
+
+sequence: and_predicate not_predicate
+
+one_or_more: choice+
+    zero_or_more: choice*
+        optional: choice?
+
+thing: [a-z]{1}
+
+
+
+# This is another comment
+
+    n_or_more: choice{5:} # Here's another one
+up_to_n: choice{:5}
+between_n_m: choice{0:5}
+
+and_predicate: &choice
+not_predicate: !choice
+
+choice: constant | range | reference
+
+constant: 'constant'
+reference: range
+reference: 'thing'
