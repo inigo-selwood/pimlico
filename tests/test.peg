@@ -3,8 +3,13 @@
 sequence: and_predicate not_predicate
 
 one_or_more: choice+
+<<<<<<< HEAD
     zero_or_more: choice*
         optional: choice?
+=======
+zero_or_more: choice*
+optional: choice?
+>>>>>>> 1393f6d0916443edc24af43b903592facab1a4d9
 
 thing: [a-z]{1}
 
