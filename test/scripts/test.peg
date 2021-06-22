@@ -1,0 +1,29 @@
+# Pimlico PEG test file | Inigo Selwood 2021 (c)
+
+# Matches floating point numbers
+(float) number:
+    [0-9] _exponent {
+
+    }
+    [0-9] '.'  [0-9]+ _exponent? {
+
+    }
+    [0-9]+ '.' _exponent? {
+
+    }
+(int) _exponent: "eE" "+-"? [0-9] {
+
+}
+
+# Matches positive and negative integers
+(int) integer: [1-9] [0-9]* {
+
+}
+
+# Space, whitespace, and comments
+newline: (space? '\n')+
+space: " \t\r"+ inline_comment?
+
+# Matches either single-line or multi-line comments
+block_comment: '##' .* '##'
+inline_comment: '#' .* &'\n'
