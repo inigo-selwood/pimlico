@@ -18,6 +18,8 @@ public:
 
     std::map<unsigned int, std::shared_ptr<Rule>> rule_hashes;
 
+    std::vector<std::shared_ptr<Rule>> rules;
+
     friend std::ostream &operator<<(std::ostream &stream,
             const Specification &specification);
 
@@ -25,8 +27,6 @@ public:
             std::vector<TextBuffer::SyntaxError> &errors);
 
 private:
-
-    std::vector<std::shared_ptr<Rule>> rules;
 
     static inline bool skip_comment(TextBuffer &buffer);
 
@@ -47,6 +47,17 @@ std::ostream &operator<<(std::ostream &stream,
     return stream;
 }
 
+/* Parses a grammar specification
+
+Arguments:
+    grammar (const std::string &): the grammar specification
+    errors (std::vector<TextBuffer::SyntaxError &): a vector of errors to store
+        accumulated errors in
+
+Returns:
+    specification (std:shared_ptr<Specification>): the resultant specification,
+        or nullptr if an error occured during parsing
+*/
 std::shared_ptr<Specification> Specification::parse(const std::string &grammar,
         std::vector<TextBuffer::SyntaxError> &errors) {
 
@@ -115,13 +126,16 @@ inline bool Specification::skip_comment(TextBuffer &buffer) {
 /* Adds a vector of rules' name hashes to a map
 
 Arguments:
-    rules: the rules to hash and add to the map
-    rule_hashes: the map of hashes to add the rules to
-    buffer: text buffer for error reporting
-    errors: list of errors to add duplicates to
+    rules (const std::vector<std::shared_ptr<Rule>>): the rules to hash and add
+        to the map
+    rule_hashes (std::map<unsigned int, std::shared_ptr<Rule>>): the map of
+        hashes to add the rules to
+    buffer (const TextBuffer &): text buffer (used for error reporting)
+    errors (std::vector<TextBuffer::SyntaxError> &): list of errors to add
+        duplicates to
 
 Returns:
-    true if there were no duplicates detected
+    valid (bool): true if there were no duplicates detected
 */
 bool Specification::hash_rules(
         const std::vector<std::shared_ptr<Rule>> &rules,

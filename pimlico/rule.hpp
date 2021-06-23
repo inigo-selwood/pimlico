@@ -85,7 +85,19 @@ std::ostream &operator<<(std::ostream &stream, const Rule &rule) {
     return stream;
 }
 
-// Parse a rule
+/* Parse a rule
+
+Arguments:
+    buffer (TextBuffer &): the buffer to parse the rule from
+    errors (std::vector<TextBuffer::SyntaxError> &): a vector of errors to add
+        to in the event of syntax issues
+    parent_count (const unsigned int): the number of parents this rule
+        currently has
+
+Returns:
+    rule (std::shared_ptr<Rule>): the parsed rule, or nullptr if errors were
+        encountered
+*/
 std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
         std::vector<TextBuffer::SyntaxError> &errors,
         const unsigned int parent_count = 0) {
@@ -215,6 +227,19 @@ std::shared_ptr<Rule> Rule::parse(TextBuffer &buffer,
     }
 }
 
+/* Replaces references in a rule with pointers to said references
+
+Arguments:
+    rules (std::map<unsigned int, std::shared_ptr<Rule>> &): a hash map of all
+        known rules in the grammar specification
+    buffer (const TextBuffer &): the buffer used during grammar parsing (used
+        for error reporting)
+    errors (std::vector<TextBuffer::SyntaxError> &): vector of errors to add to
+        in the event of duplicates, etc.
+
+Returns:
+    valid (bool): true if all references were sucessfully replaced
+*/
 bool Rule::resolve_references(
         std::map<unsigned int, std::shared_ptr<Rule>> &rules,
         const TextBuffer &buffer,
@@ -316,6 +341,15 @@ bool Rule::resolve_references(
     return result;
 }
 
+/* Expresses the rule as a single term or choice of terms
+
+Used during reference emplacement, this function either returns the rule's
+value if it's terminal, or a choice term of each of its sub-rules, if it's
+non-terminal
+
+Returns:
+    result (std::shared_ptr<Term>): the newly created term
+*/
 std::shared_ptr<Term> Rule::term_value() {
 
     // If terminal, just return the single value
