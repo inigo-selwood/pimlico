@@ -84,7 +84,7 @@ public:
     bool valid(std::vector<SyntaxError> &errors);
 
     bool end_reached() const;
-    int indentation_delta(unsigned long reference);
+    int indentation_delta(unsigned long line_number);
 
     std::string line_text(unsigned long number) const;
     unsigned int line_indentation(unsigned long number) const;
@@ -118,11 +118,32 @@ private:
 
 };
 
+/* Prints a text buffer position
+
+Prints a position in the format "[line:column]"
+
+Arguments:
+    stream (std::ostream &): the stream to print to
+    position (const TextBuffer::Position &): the position struct to print
+
+Returns:
+    stream (std::ostream &): the stream that's been printed to
+*/
 std::ostream &operator<<(std::ostream &stream,
         const TextBuffer::Position &position) {
     return stream << '[' << position.line << ':' << position.column << ']';
 }
 
+/* Prints a syntax error reference
+
+Arguments:
+    stream (std::ostream &): the stream to print to
+    reference (const TextBuffer::SyntaxError::Reference &): the syntax error
+        reference struct to print
+
+Returns:
+    stream (std::ostream &): the stream that's been printed to
+*/
 std::ostream &operator<<(std::ostream &stream,
         const TextBuffer::SyntaxError::Reference &reference) {
 
@@ -135,6 +156,7 @@ std::ostream &operator<<(std::ostream &stream,
     return stream;
 }
 
+// Constructor
 TextBuffer::SyntaxError::Reference::Reference(const std::string &message,
         const TextBuffer &buffer,
         const TextBuffer::Position *position = nullptr) {
@@ -144,6 +166,15 @@ TextBuffer::SyntaxError::Reference::Reference(const std::string &message,
     this->text = buffer.line_text(this->position.line);
 }
 
+/* Prints a syntax error
+
+Arguments:
+    stream (std::ostream &): the stream to print to
+    error (const TextBuffer::SyntaxError &): the syntax error to print
+
+Returns:
+    stream (std::ostream &): the stream that's been printed to
+*/
 std::ostream &operator<<(std::ostream &stream,
         const TextBuffer::SyntaxError &error) {
 
@@ -156,12 +187,24 @@ std::ostream &operator<<(std::ostream &stream,
     return stream;
 }
 
+// Constructor
 TextBuffer::SyntaxError::SyntaxError(const std::string &message,
         const TextBuffer &buffer,
         const TextBuffer::Position *position = nullptr) {
     references.push_back(Reference(message, buffer, position));
 }
 
+/* Add a reference to a given syntax error
+
+Arguments:
+    message (const std::string &): the message to display with the new
+        entry
+    buffer (const TextBuffer &): the buffer in which the reference is
+        located
+    position (const TextBuffer::Position *): a pointer to the position in the
+        buffer where the syntax error was encountered, or nullptr to use the
+        buffer's current position
+*/
 void TextBuffer::SyntaxError::add_reference(const std::string &message,
         const TextBuffer &buffer,
         const TextBuffer::Position *position = nullptr) {
@@ -174,6 +217,7 @@ TextBuffer::TextBuffer(const std::string &text) {
 
     length = text.length();
 
+    // Record the indentation on each line
     for(unsigned int offset = 0; offset < length; offset += 1) {
         line_indices.push_back(offset);
 
@@ -197,23 +241,34 @@ TextBuffer::TextBuffer(const std::string &text) {
         line_indentations.push_back(line_indentation);
     }
 
+    // Add an empty un-indented line if the text ends in a newline
     if(text[length - 1] == '\n') {
         line_indentations.push_back(0);
         line_indices.push_back(length - 1);
     }
-
     line_count = line_indentations.size();
 
+    // Initialize the buffer's position's indentation value
     position.block_indentation = line_indentations.front();
     const unsigned int indentation_target = position.block_indentation + 8;
     position.line_broken = position.line < line_count
             && line_indentations[position.line] >= indentation_target;
 }
 
-/* Checks whether the buffer's text is valid
+/* Check whether the buffer's text is valid
 
 - Checks indentation levels are multiples of 4
 - Checks characters are valid (< 0x20 or > 0x7E)
+
+To do:
+    - Check for unicode characters
+
+Arguments:
+    errors (std::vector<TextBuffer::SyntaxError> &): a vector to store recorded
+        errors in
+
+Returns:
+    valid (bool): true if the buffer contains text in a valid format
 */
 bool TextBuffer::valid(std::vector<TextBuffer::SyntaxError> &errors) {
 
@@ -249,24 +304,32 @@ bool TextBuffer::valid(std::vector<TextBuffer::SyntaxError> &errors) {
     return valid;
 }
 
-// Checks whether the buffer has reached the end of its text
+/* Checks whether the buffer has reached the end of its text
+
+Returns:
+    end_reached (bool): true if the end of the buffer has been reached
+*/
 bool TextBuffer::end_reached() const {
     return (position.index + 1) >= length;
 }
 
-/* Finds the difference in indentation between the current line and the next
+/* Find the difference in indentation between the current line and the next
 
 The next line is considered the next non-empty line
 
 Arguments:
-    reference: if present, the difference in indentation is calculated between
-        it and the next
-*/
-int TextBuffer::indentation_delta(unsigned long reference = 0) {
-    if(reference == 0)
-        reference = position.line;
+    line_number (unsigned long): if given, the difference in indentation is
+        calculated against the line of the same number
 
-    if(reference >= line_count)
+Returns:
+    difference: the difference in indentation between the current line and
+        the next line (or given) line
+*/
+int TextBuffer::indentation_delta(unsigned long line_number = 0) {
+    if(line_number == 0)
+        line_number = position.line;
+
+    if(line_number >= line_count)
         return 0;
 
     const Position start_position = position;
@@ -274,13 +337,17 @@ int TextBuffer::indentation_delta(unsigned long reference = 0) {
     const unsigned int next_line = position.line;
     position = start_position;
 
-    return line_indentations[next_line - 1] - line_indentations[reference - 1];
+    return line_indentations[next_line - 1] -
+            line_indentations[line_number - 1];
 }
 
 /* Gets the current line's text
 
 Arguments:
     number: if present, the text of the given line is returned
+
+Returns:
+    text (std::string): the text on the given line
 */
 std::string TextBuffer::line_text(unsigned long number = 0) const {
 
@@ -307,6 +374,9 @@ std::string TextBuffer::line_text(unsigned long number = 0) const {
 
 Arguments:
     number: if present, the indentation of a given line is returned
+
+Returns:
+    indentation (unsigned int): the indentation level on the line specified
 */
 unsigned int TextBuffer::line_indentation(unsigned long number = 0) const {
     if(number == 0)
@@ -356,29 +426,64 @@ void TextBuffer::increment(const unsigned long steps = 1) {
     }
 }
 
-// Returns the current character
+/* Returns the current character without incrementing the buffer's index
+
+Returns:
+    character (char): the character at the buffer's current index, or 0 if the
+        end of the buffer has been reached
+*/
 char TextBuffer::peek() const {
     return get_character();
 }
 
-// Returns true if the given string is found
+/* Checks for the presence of a given string at the buffer's position
+
+Arguments:
+    string (const std::string &): the string to check for
+
+Returns:
+    found (bool): true if the given string was found at the buffer's current
+        position
+*/
 bool TextBuffer::peek(const std::string &string) const {
     return get_string(string.length()) == string;
 }
 
-// Returns true if the character given is found
+/* Checks for the presence of a given character at the buffer's current position
+
+Arguments:
+    character (const char &): the character to check for
+
+Returns:
+    found (bool): true if the given character was found at the buffer's
+        current position
+*/
 bool TextBuffer::peek(const char &character) const {
     return get_character() == character;
 }
 
-// Consumes and returns the current character
+/* Consumes and returns the current character
+
+Returns:
+    character (char): the character at the buffer's position at the time of this
+        function being called -- now the previous position. Or 0, if the end
+        of the buffer has been reached
+*/
 char TextBuffer::read() {
     const char &character = get_character();
     increment();
     return character;
 }
 
-// Returns true if the given string is found, consuming it
+/* Check for (and if found, consume) a given string
+
+Arguments:
+    string (const std::string &): the string to check for and consume
+
+Returns:
+    found (bool): true if the given string was found at the buffer's current
+        position
+*/
 bool TextBuffer::read(const std::string &string) {
     if(get_string(string.length()) != string)
         return false;
@@ -387,7 +492,15 @@ bool TextBuffer::read(const std::string &string) {
     return true;
 }
 
-// Returns true if the given character is found, consuming it
+/* Checks for (and if found, consume) a given character
+
+Arguments:
+    character (const char &): the character to check for
+
+Returns:
+    found (bool): true if the given character was found at the buffer's
+        current position
+*/
 bool TextBuffer::read(const char &character) {
     if(get_character() != character)
         return false;

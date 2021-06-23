@@ -100,6 +100,9 @@ private:
 Arguments:
     stream (std::ostream &): the stream to print to
     term (const Term &): the term to print
+
+Returns:
+    stream (std::ostream &): the stream that's been printed to
 */
 std::ostream &operator<<(std::ostream &stream, const Term &term) {
 
