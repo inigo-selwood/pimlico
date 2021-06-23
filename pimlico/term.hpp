@@ -845,7 +845,7 @@ std::shared_ptr<Term> Term::parse_constant(TextBuffer &buffer,
             break;
 
         // Handle invalid characters
-        else if(character == '\t' || character == '\r') {
+        else if(character == '\t') {
             const std::string message = "invalid character in constant";
             const TextBuffer::SyntaxError error(message, buffer);
             errors.push_back(error);
@@ -1037,9 +1037,24 @@ std::shared_ptr<Term> Term::parse_reference(TextBuffer &buffer,
     // Extract characters
     std::string name;
     while(true) {
+
+        // Read and store the current character if it's lowercase, as expected
         const char character = buffer.peek();
         if((character >= 'a' && character <= 'z') || character == '_')
             name += buffer.read();
+
+        // If an uppercase letter is encountered, assume the programmer has
+        // made a typo
+        else if(character >= 'A' && character <= 'Z') {
+            const std::string message = "unexpected uppercase letter in "
+                    "reference";
+            TextBuffer::SyntaxError error(message, buffer);
+            errors.push_back(error);
+            return nullptr;
+        }
+
+        // If not a letter, assume the start of the next term has been reached,
+        // and stop parsing
         else
             break;
     }
