@@ -249,7 +249,9 @@ TextBuffer::TextBuffer(const std::string &text) {
     line_count = line_indentations.size();
 
     // Initialize the buffer's position's indentation value
-    position.block_indentation = line_indentations.front();
+    position.block_indentation = 0;
+    if(line_indentations.empty() == false)
+        position.block_indentation = line_indentations.front();
     const unsigned int indentation_target = position.block_indentation + 8;
     position.line_broken = position.line < line_count
             && line_indentations[position.line] >= indentation_target;
