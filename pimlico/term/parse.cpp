@@ -1,4 +1,5 @@
-#include <tuple>
+#include <string>
+#include <vector>
 
 #include "term.hpp"
 
@@ -10,6 +11,7 @@
 
 #include "../parse_buffer/parse_buffer.hpp"
 #include "../error_buffer/error_buffer.hpp"
+#include "../text_position/text_position.hpp"
 
 /* Parse an instance bound
 

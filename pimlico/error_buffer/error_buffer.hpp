@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "../text_position/text_position.hpp"
 
 class ErrorBuffer {

@@ -1,7 +1,10 @@
-#include "parse_buffer.hpp"
-
+#include <string>
 #include <utility>
 #include <vector>
+
+#include "parse_buffer.hpp"
+
+#include "../text_position/text_position.hpp"
 
 /* Calculate line:(index, indentation) pairs for each line
 

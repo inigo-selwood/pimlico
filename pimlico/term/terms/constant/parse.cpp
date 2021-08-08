@@ -2,6 +2,11 @@
 
 #include "../parse_escape_code.hpp"
 
+#include "../../term.hpp"
+
+#include "../../../parse_buffer/parse_buffer.hpp"
+#include "../../../error_buffer/error_buffer.hpp"
+
 Constant *Constant::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
     if(buffer.read('\'') == false)
         throw "no constant found";

@@ -1,3 +1,5 @@
+#include <string>
+
 #include "parse_buffer.hpp"
 
 /* Look at the current character in the buffer, without incrementing

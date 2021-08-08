@@ -1,8 +1,6 @@
 #pragma once
 
 #include <string>
-#include <utility>
-#include <vector>
 
 #include "../text_position/text_position.hpp"
 
@@ -25,6 +23,7 @@ public:
     bool finished() const;
 
     void skip(const bool &overflow);
+    void skip_line(const bool &overflow);
 
 private:
 

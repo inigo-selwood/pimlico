@@ -2,11 +2,11 @@
 
 #include "../choice/choice.hpp"
 
-#include "../../../error_buffer/error_buffer.hpp"
-#include "../../../parse_buffer/parse_buffer.hpp"
+#include "../../term.hpp"
 
-/*
-*/
+#include "../../../parse_buffer/parse_buffer.hpp"
+#include "../../../error_buffer/error_buffer.hpp"
+
 Term *Sequence::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
     Sequence *sequence = new Sequence();
     sequence->position = buffer.position;

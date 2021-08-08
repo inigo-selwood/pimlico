@@ -1,6 +1,13 @@
 #include "range.hpp"
 
+#include <array>
+
 #include "../parse_escape_code.hpp"
+
+#include "../../term.hpp"
+
+#include "../../../parse_buffer/parse_buffer.hpp"
+#include "../../../error_buffer/error_buffer.hpp"
 
 static char parse_character(ParseBuffer &buffer, ErrorBuffer &errors) {
 

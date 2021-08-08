@@ -1,7 +1,11 @@
+#include <vector>
+
 #include "choice.hpp"
 
-#include "../../../error_buffer/error_buffer.hpp"
+#include "../../term.hpp"
+
 #include "../../../parse_buffer/parse_buffer.hpp"
+#include "../../../error_buffer/error_buffer.hpp"
 
 Term *Choice::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
 

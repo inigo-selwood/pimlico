@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "../parse_escape_code.hpp"
+
 #include "../../term.hpp"
 
 #include "../../../parse_buffer/parse_buffer.hpp"
