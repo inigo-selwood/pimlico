@@ -13,7 +13,7 @@ public:
 
     std::vector<Term *> values;
 
-    Sequence() : Term(Term::Type::SEQUENCE) {}
+    Sequence();
 
     static Term *parse(ParseBuffer &buffer, ErrorBuffer &errors);
 

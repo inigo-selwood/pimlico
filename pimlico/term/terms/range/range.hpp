@@ -13,7 +13,7 @@ public:
 
     std::array<char, 2> values;
 
-    Range() : Term(Term::Type::RANGE) {}
+    Range();
 
     static Range *parse(ParseBuffer &buffer, ErrorBuffer &errors);
 

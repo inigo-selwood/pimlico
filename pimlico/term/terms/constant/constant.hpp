@@ -13,7 +13,7 @@ public:
 
     std::string value;
 
-    Constant() : Term(Term::Type::CONSTANT) {}
+    Constant();
 
     static Constant *parse(ParseBuffer &buffer, ErrorBuffer &errors);
 

@@ -15,7 +15,7 @@ public:
 
     Term *value;
 
-    Reference() : Term(Term::Type::REFERENCE) {}
+    Reference();
 
     static Reference *parse(ParseBuffer &buffer, ErrorBuffer &errors);
 

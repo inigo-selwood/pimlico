@@ -13,7 +13,7 @@ public:
 
     std::vector<Term *> values;
 
-    Choice() : Term(Term::Type::CHOICE) {}
+    Choice();
 
     static Term *parse(ParseBuffer &buffer, ErrorBuffer &errors);
 
