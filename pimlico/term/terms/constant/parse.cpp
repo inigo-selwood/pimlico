@@ -25,7 +25,7 @@ Constant *Constant::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
 
         // Check the character is valid
         const char character = buffer.peek();
-        if(character < ' ' || character < '~') {
+        if(character < ' ' || character > '~') {
             errors.add("invalid character in constant", buffer.position);
             return nullptr;
         }
