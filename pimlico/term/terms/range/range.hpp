@@ -11,10 +11,12 @@ class Range : public Term {
 
 public:
 
-    std::array<char, 2> values;
+    std::array<char, 2> value;
 
     Range();
 
     static Range *parse(ParseBuffer &buffer, ErrorBuffer &errors);
+
+    void print(std::ostream &stream) const override;
 
 };

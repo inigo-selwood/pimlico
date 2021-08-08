@@ -19,4 +19,6 @@ public:
 
     static Constant *parse(ParseBuffer &buffer, ErrorBuffer &errors);
 
+    void print(std::ostream &stream) const override;
+
 };
