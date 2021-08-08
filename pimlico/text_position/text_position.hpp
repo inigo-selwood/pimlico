@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ostream>
 #include <utility>
 #include <vector>
 
@@ -16,7 +17,12 @@ public:
 
     bool line_broken;
 
-    TextPosition(const std::vector<std::pair<long, int>> &line_indices);
+    friend std::ostream &operator<<(std::ostream &stream, 
+            const TextPosition &position);
+
     TextPosition();
+    TextPosition(const std::vector<std::pair<long, int>> &line_indices);
+    
+    void print(std::ostream &stream) const;
 
 };
