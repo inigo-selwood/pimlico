@@ -17,4 +17,8 @@ public:
 
     static Term *parse(ParseBuffer &buffer, ErrorBuffer &errors);
 
+    void print(std::ostream &stream) const override;
+
+    virtual ~Sequence();
+
 };

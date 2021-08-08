@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <ostream>
 
 #include "../../term.hpp"
 
@@ -18,5 +19,9 @@ public:
     Reference();
 
     static Reference *parse(ParseBuffer &buffer, ErrorBuffer &errors);
+
+    void print(std::ostream &stream) const override;
+
+    virtual ~Reference();
 
 };

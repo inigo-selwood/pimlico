@@ -40,10 +40,16 @@ public:
 
     Predicate predicate;
 
+    friend std::ostream &operator<<(std::ostream &stream, const Term &term);
+
     Term(const Term::Type &type);
 
     static Term *parse(ParseBuffer &buffer,
             ErrorBuffer &errors,
             const bool root);
-    
+
+    virtual void print(std::ostream &stream) const = 0;
+
+    virtual ~Term() = default;
+
 };

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 
 #include "../text_position/text_position.hpp"
@@ -19,5 +21,7 @@ public:
     Rule();
 
     static Rule *parse(ParseBuffer &buffer, ErrorBuffer &errors);
+
+    ~Rule();
 
 };
