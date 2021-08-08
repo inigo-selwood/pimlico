@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "term.hpp"
 
@@ -31,7 +32,6 @@ bound
 static int parse_bound_value(ParseBuffer &buffer, ErrorBuffer &errors) {
 
     // Extract digits
-    buffer.skip(false);
     std::string text;
     while(true) {
         if(buffer.finished())
@@ -87,6 +87,9 @@ bound
 static Term::Bounds parse_specific_bounds(ParseBuffer &buffer,
         ErrorBuffer &errors) {
 
+    if(buffer.read('{') == false)
+        throw "expected '{'";
+
     // Parse the range-start value
     int start_value = parse_bound_value(buffer, errors);
     if(start_value == -2)
@@ -99,9 +102,16 @@ static Term::Bounds parse_specific_bounds(ParseBuffer &buffer,
         colon_present = true;
 
     // Parse the range-end value
+    buffer.skip(false);
+
     int end_value = parse_bound_value(buffer, errors);
-    if(start_value == -1)
+    if(end_value == -2)
         return {0, 0};
+
+    if(buffer.read('}') == false) {
+        errors.add("expected '}'", buffer.position);
+        return {0, 0};
+    }
 
     // N instances
     if(start_value != -1 && end_value == -1 && colon_present == false) {
@@ -189,7 +199,7 @@ static Term::Bounds parse_bounds(ParseBuffer &buffer, ErrorBuffer &errors) {
         return {1, -1};
 
     // Parse specific bounds
-    else if(buffer.read('{') == false)
+    else if(buffer.peek('{'))
         return parse_specific_bounds(buffer, errors);
 
     // Otherwise, default to one instance
@@ -221,8 +231,6 @@ Term *Term::parse(ParseBuffer &buffer,
     if(root)
         return Sequence::parse(buffer, errors);
 
-    Term *term = nullptr;
-
     // Check for predicates
     Term::Predicate predicate = Predicate::NONE;
     if(buffer.read('&'))
@@ -232,6 +240,7 @@ Term *Term::parse(ParseBuffer &buffer,
 
     // Check if the term is enclosed
     buffer.skip(false);
+    Term *term = nullptr;
     bool enclosed = buffer.read('(');
     if(enclosed)
         term = Sequence::parse(buffer, errors);
