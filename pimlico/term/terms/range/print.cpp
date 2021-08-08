@@ -4,6 +4,13 @@
 
 #include "range.hpp"
 
+/* Print a term instance 
+
+Arguments
+---------
+stream
+    the stream to print to
+*/
 void Range::print(std::ostream &stream) const {
     stream << "[\'";
 

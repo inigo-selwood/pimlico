@@ -9,6 +9,24 @@
 #include "../../../parse_buffer/parse_buffer.hpp"
 #include "../../../error_buffer/error_buffer.hpp"
 
+/* Parse a range-character 
+
+Ranges contain two range-characters, where each looks like this:
+
+`'a'`
+
+Arguments
+---------
+buffer
+    the buffer to parse the range character from
+errors
+    buffer for error reporting
+
+Returns
+-------
+character
+    the character found, or 0 if an error was encountered
+*/
 static char parse_character(ParseBuffer &buffer, ErrorBuffer &errors) {
 
     // Check for opening quote
@@ -44,7 +62,24 @@ static char parse_character(ParseBuffer &buffer, ErrorBuffer &errors) {
     return value;
 }
 
+/* Parses a Range term
 
+Ranges have the following format:
+
+`['a' - 'z']`
+
+Arguments
+---------
+buffer
+    the buffer to parse range from
+errors
+    buffer for error reporting
+
+Returns
+-------
+term
+    a populated Range instance, or nullptr if an error is encountered
+*/
 Range *Range::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
     if(buffer.read('[') == false)
         throw "no range found";
@@ -85,6 +120,6 @@ Range *Range::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
         return nullptr;
     }
 
-    range->values = std::array<char, 2>({start_value, end_value});
+    range->value = std::array<char, 2>({start_value, end_value});
     return range;
 }

@@ -3,6 +3,13 @@
 
 #include "sequence.hpp"
 
+/* Print a term instance 
+
+Arguments
+---------
+stream
+    the stream to print to
+*/
 void Sequence::print(std::ostream &stream) const {
     bool enclosed = false;
     if(this->bounds != std::array<int, 2>({1, 1})) {

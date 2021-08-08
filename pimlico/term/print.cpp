@@ -2,6 +2,58 @@
 
 #include "term.hpp"
 
+/* Overloads the stream print operator for a term
+
+Arguments
+---------
+stream
+    the stream to print to
+term
+    the term to print
+
+Returns
+-------
+stream
+    the stream, having been printed to
+*/
+std::ostream &operator<<(std::ostream &stream, const Term &term) {
+    if(term.predicate == Term::Predicate::AND)
+        stream << '&';
+    else if(term.predicate == Term::Predicate::NOT)
+        stream << '!';
+
+    // Overloaded function, will delegate to inherited type
+    term.print(stream);
+
+    print_bounds(stream, term.bounds);
+
+    return stream;
+}
+
+/* Print term bounds
+
+Prints instance bounds, where the following formats are used:
+
+```
+# Single-character hints
+term+   # One-or-more instances
+term*   # Zero-or-more instances
+term?   # An optional instance
+
+# Specific intance bounds
+term{n}     # N instances
+term{:n}    # Up to N instances
+term{n:}    # N or more instances
+term{n:m}   # Between N and M instances
+```
+
+Arguments
+---------
+stream
+    the stream to print the instance bounds to
+bounds
+    the bounds to print
+*/
 static void print_bounds(std::ostream &stream, const Term::Bounds &bounds) {
     int lower = bounds[0];
     int upper = bounds[1];
@@ -27,18 +79,4 @@ static void print_bounds(std::ostream &stream, const Term::Bounds &bounds) {
         stream << "{" << lower << ":}";
     else
         stream << "{" << lower << " : " << upper << "}";
-}
-
-std::ostream &operator<<(std::ostream &stream, const Term &term) {
-    if(term.predicate == Term::Predicate::AND)
-        stream << '&';
-    else if(term.predicate == Term::Predicate::NOT)
-        stream << '!';
-
-    // Overloaded function, will delegate to inherited type
-    term.print(stream);
-
-    print_bounds(stream, term.bounds);
-
-    return stream;
 }

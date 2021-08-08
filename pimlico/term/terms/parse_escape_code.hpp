@@ -1,8 +1,24 @@
+#pragma once
+
 #include "../../parse_buffer/parse_buffer.hpp"
 #include "../../error_buffer/error_buffer.hpp"
 
+/* Parses escaped characters
+
+Arguments
+-------
+buffer
+    the buffer to parse the escaped character from
+errors
+    buffer for error reporting
+
+Returns
+-------
+character
+    the escaped character, or 0 if an error was encountered
+*/
 static char parse_escape_code(ParseBuffer &buffer, ErrorBuffer &errors) {
-    
+
     // Check escape character present
     if(buffer.read('\\') == false)
         throw "parse_escape_code called with no code";

@@ -7,4 +7,3 @@ Term::Term(const Term::Type &type) {
     this->type = type;
     this->predicate = Predicate::NONE;
 }
-

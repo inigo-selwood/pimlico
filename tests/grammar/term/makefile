@@ -1,9 +1,16 @@
 
-header_path = ./../../../pimlico
-headers = $(header_path)/*.hpp
+sources = ./../../../pimlico/*/*.cpp
+
+root = ../../../
 
 test: $(headers) ./test.cpp
-	clang++ ./test.cpp -o ./test -I $(header_path) -std=c++17
+	clang++ ./test.cpp \
+			$(root)pimlico/*/*.cpp \
+			$(root)pimlico/*/*/*/*.cpp \
+			-I $(root)pimlico \
+			-o ./test \
+			-std=c++17 \
+			-g3
 
 clean:
 	@rm -f ./test

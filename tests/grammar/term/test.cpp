@@ -5,16 +5,15 @@
 #include <vector>
 
 #include "pimlico.hpp"
-using namespace Pimlico;
 
 enum Error {
     NONE = 0,
 
-    WRONG_ARGUMENT_COUNT,
-    INVALID_FILENAME,
-    PARSE_SYNTAX_ERROR,
-    PARSE_LOGIC_ERROR,
-    INCOMPLETE_PARSE,
+    WRONG_ARGUMENT_COUNT    = 1,
+    INVALID_FILENAME        = 2,
+    PARSE_SYNTAX_ERROR      = 3,
+    PARSE_LOGIC_ERROR       = 4,
+    INCOMPLETE_PARSE        = 5,
 };
 
 int main(int argument_count, char *argument_values[]) {
@@ -37,13 +36,12 @@ int main(int argument_count, char *argument_values[]) {
                  std::istreambuf_iterator<char>());
 
     // Parse the grammar term
-    std::vector<TextBuffer::SyntaxError> errors;
-    TextBuffer buffer(grammar_string);
+    ErrorBuffer errors;
+    ParseBuffer buffer(grammar_string);
     try {
         const auto term = Term::parse(buffer, errors, true);
         if(term == nullptr) {
-            for(const TextBuffer::SyntaxError &error : errors)
-                std::cerr << error << "\n";
+            errors.print(std::cerr);
             return Error::PARSE_SYNTAX_ERROR;
         }
 
@@ -51,20 +49,29 @@ int main(int argument_count, char *argument_values[]) {
         std::cout << *term << "\n";
 
         // Check the EOF was reached
-        buffer.skip_whitespace();
-        if(buffer.end_reached() == false) {
-            std::cerr << "incomplete parse\n";
+        buffer.skip(false);
+        if(buffer.finished() == false) {
+            errors.add("incomplete parse", buffer.position);
+            errors.print(std::cerr);
             return Error::INCOMPLETE_PARSE;
         }
+
+        delete term;
 
         return 0;
     }
 
-    // Handle exceptions
-    catch(ParseLogicError &exception) {
-        std::cerr << exception << "\n";
-        for(const TextBuffer::SyntaxError &error : errors)
-            std::cerr << error << "\n";
+    catch(const char *exception) {
+        errors.print(std::cout);
+        std::cout << "exception: " << exception << '\n';
         return Error::PARSE_LOGIC_ERROR;
     }
+
+    // Handle exceptions
+    // catch(ParseLogicError &exception) {
+    //     std::cerr << exception << "\n";
+    //     // for(const TextBuffer::SyntaxError &error : errors)
+    //     //     std::cerr << error << "\n";
+    //     return Error::PARSE_LOGIC_ERROR;
+    // }
 }

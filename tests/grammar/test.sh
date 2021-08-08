@@ -128,4 +128,4 @@ printf "  scripts failed:             ${scripts_failed}\n"
 printf "  scripts threw an exception: ${scripts_thrown}\n"
 
 # Do a bit of tidying up
-rm -f ./output.txt ./errors.txt ./test
+rm -f ./output.txt ./errors.txt

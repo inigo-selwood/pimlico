@@ -7,6 +7,24 @@
 #include "../../../parse_buffer/parse_buffer.hpp"
 #include "../../../error_buffer/error_buffer.hpp"
 
+/* Parses a constant term
+
+Constants have the following format:
+
+`'this is a constant`
+
+Arguments
+---------
+buffer
+    the buffer to parse the constant from
+errors
+    buffer for error reporting
+
+Returns
+-------
+term
+    a populated Constant instance, or nullptr if an error is encountered
+*/
 Constant *Constant::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
     if(buffer.read('\'') == false)
         throw "no constant found";

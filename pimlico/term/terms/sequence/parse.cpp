@@ -7,6 +7,26 @@
 #include "../../../parse_buffer/parse_buffer.hpp"
 #include "../../../error_buffer/error_buffer.hpp"
 
+/* Parses a Sequence term
+
+Sequences have the following format:
+
+`term_1 term_2 term_3`
+
+And so on...
+
+Arguments
+---------
+buffer
+    the buffer to parse sequence from
+errors
+    buffer for error reporting
+
+Returns
+-------
+term
+    a populated Sequence instance, or nullptr if an error is encountered
+*/
 Term *Sequence::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
     Sequence *sequence = new Sequence();
     sequence->position = buffer.position;

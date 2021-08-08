@@ -3,6 +3,13 @@
 
 #include "constant.hpp"
 
+/* Print a term instance 
+
+Arguments
+---------
+stream
+    the stream to print to
+*/
 void Constant::print(std::ostream &stream) const {
     static const std::map<char, std::string> escape_codes = {
         {'\n', "\\n"},

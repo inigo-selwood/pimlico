@@ -7,6 +7,24 @@
 #include "../../../parse_buffer/parse_buffer.hpp"
 #include "../../../error_buffer/error_buffer.hpp"
 
+/* Parses a choice term
+
+Choices have the following format:
+
+`term | other_term | a_third_term`
+
+Arguments
+---------
+buffer
+    the buffer to parse choice from
+errors
+    buffer for error reporting
+
+Returns
+-------
+term
+    a populated Choice instance, or nullptr if an error is encountered
+*/
 Term *Choice::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
 
     // Create a choice term
