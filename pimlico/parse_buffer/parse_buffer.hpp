@@ -24,7 +24,7 @@ public:
 
     bool finished() const;
 
-    void skip(const bool overflow = false);
+    void skip(const bool &overflow);
 
 private:
 

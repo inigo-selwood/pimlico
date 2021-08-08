@@ -1,6 +1,6 @@
 #include "parse_buffer.hpp"
 
-void ParseBuffer::skip(const bool overflow = false) {
+void ParseBuffer::skip(const bool &overflow) {
     while(true) {
         if(finished())
             return;
