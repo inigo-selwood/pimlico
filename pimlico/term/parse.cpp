@@ -224,11 +224,11 @@ Term *Term::parse(ParseBuffer &buffer,
     Term *term = nullptr;
 
     // Check for predicates
-    term->predicate = Predicate::NONE;
+    Term::Predicate predicate = Predicate::NONE;
     if(buffer.read('&'))
-        term->predicate = Predicate::AND;
+        predicate = Predicate::AND;
     else if(buffer.read('!'))
-        term->predicate = Predicate::NOT;
+        predicate = Predicate::NOT;
 
     // Check if the term is enclosed
     buffer.skip(false);
@@ -272,5 +272,6 @@ Term *Term::parse(ParseBuffer &buffer,
     if(std::get<0>(term->bounds) == 0 && std::get<1>(term->bounds) == 0)
         return nullptr;
 
+    term->predicate = predicate;
     return term;
 }
