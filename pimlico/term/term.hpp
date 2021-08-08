@@ -46,7 +46,4 @@ public:
             ErrorBuffer &errors,
             const bool root);
     
-    static std::array<int, 2> parse_bounds(ParseBuffer &buffer, 
-            ErrorBuffer &errors);
-
 };
