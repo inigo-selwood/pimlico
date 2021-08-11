@@ -1,29 +1,53 @@
 #include "parse_buffer.hpp"
 
-/* Skip whitespace characters (excluding newlines, unless `overflow` is set)
-
-Arguments
----------
-overflow
-    if true, newlines on "broken" lines will be skipped too (for details on 
-    broken lines, see [ParseBuffer](parse_buffer.cpp))
-*/
-void ParseBuffer::skip(const bool &overflow) {
+// Skips everything, newlines included
+void ParseBuffer::skip_whitespace() {
     while(true) {
-        if(finished())
-        // if((this->position.index + 1) >= this->length)
+        if(this->position.index == this->length)
             return;
 
-        // Handle spaces, tabs, line-feeds and newlines
-        if(this->text[this->position.index] == ' '
-                || this->text[this->position.index] == '\t'
-                || this->text[this->position.index] == '\r'
-                || (this->text[this->position.index] == '\n'
-                    && this->position.line_broken
+        char character = this->text[this->position.index];
+        if(character != ' ' &&
+                character != '\t' &&
+                character != '\n' &&
+                character != '\r' &&
+                character != '\v')
+            break;
+
+        this->position.index += 1;
+    }
+}
+
+void ParseBuffer::skip_space(const bool &overflow) {
+    while(true) {
+        if(this->position.index == this->length)
+            return;
+
+        char character = this->text[this->position.index];
+        if(character == ' '
+                || character == '\t'
+                || character == '\r'
+                || character == '\v'
+                || (character == '\n'
+                    && position.line_broken
                     && overflow))
             increment();
 
         else
             break;
+    }
+}
+
+void ParseBuffer::skip_line(const bool &overflow) {
+    TextPosition &position = this->position;
+    while(true) {
+        if(position.index >= this->length)
+            return;
+
+        bool ignore_newline = (position.line_broken && overflow);
+        if(this->text[position.index] == '\n' && ignore_newline == false)
+            return
+
+        increment();
     }
 }
