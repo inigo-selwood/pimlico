@@ -22,8 +22,12 @@ public:
 
     bool finished() const;
 
-    void skip(const bool &overflow);
+    void skip_space(const bool &overflow);
     void skip_line(const bool &overflow);
+    void skip_whitespace();
+
+    std::string line_text(const bool &escaped) const;
+    std::string line_text(const long &line_number, const bool &escaped) const;
 
 private:
 
