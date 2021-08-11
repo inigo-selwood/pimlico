@@ -41,23 +41,23 @@ Term *Choice::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
 
         // Stop parsing terms if the end-of-file or end-of-line have been
         // reached, or if there's no pipe character
-        buffer.skip(true);
+        buffer.skip_space(true);
         if(buffer.read('|') == false)
             break;
 
         // Report an error if an invalid state is encountered after the choice
         // operator
-        buffer.skip(true);
+        buffer.skip_space(true);
         if(buffer.finished()) {
-            errors.add("unexpected end-of-file in choice", buffer.position);
+            errors.add("unexpected end-of-file in choice", buffer);
             return nullptr;
         }
         else if(buffer.peek('\n')) {
-            errors.add("unexpected end-of-line in choice", buffer.position);
+            errors.add("unexpected end-of-line in choice", buffer);
             return nullptr;
         }
         else if(buffer.peek(')')) {
-            errors.add("unexpected ')' in choice", buffer.position);
+            errors.add("unexpected ')' in choice", buffer);
             return nullptr;
         }
     }

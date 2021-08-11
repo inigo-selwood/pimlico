@@ -8,5 +8,5 @@ finished
     if the buffer's index has passed the final character in the buffer
 */
 bool ParseBuffer::finished() const {
-    return (this->position.index + 1) >= this->length;
+    return (this->position.index + 1) == this->length;
 }

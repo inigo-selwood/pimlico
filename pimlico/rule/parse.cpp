@@ -5,7 +5,7 @@
 #include "../error_buffer/error_buffer.hpp"
 #include "../parse_buffer/parse_buffer.hpp"
 
-/* Parses a rule 
+/* Parses a rule
 
 Arguments
 ---------
@@ -22,7 +22,7 @@ rule
 Throws
 ------
 parse_logic_exception
-    if parse_rule was called at an invalid position, or any of its child terms 
+    if parse_rule was called at an invalid position, or any of its child terms
     are called in error
 */
 Rule *Rule::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
@@ -44,17 +44,17 @@ Rule *Rule::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
     if(rule->name.empty())
         throw "no rule found";
 
-    buffer.skip(false);
+    buffer.skip_space(false);
     if(buffer.read(':') == false) {
-        errors.add("expected ':'", buffer.position);
+        errors.add("expected ':'", buffer);
         buffer.skip_line(true);
         return nullptr;
     }
 
-    buffer.skip(true);
+    buffer.skip_space(true);
     rule->value = Term::parse(buffer, errors, true);
     if(rule->value == nullptr) {
-        buffer.skip(true);
+        buffer.skip_space(true);
         return nullptr;
     }
 

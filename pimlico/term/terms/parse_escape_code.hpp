@@ -41,7 +41,7 @@ static char parse_escape_code(ParseBuffer &buffer, ErrorBuffer &errors) {
             return '\t';
 
         default:
-            errors.add("invalid escape code", buffer.position);
+            errors.add("invalid escape code", buffer);
             return 0;
     }
 }

@@ -6,8 +6,8 @@
 TextPosition::TextPosition() {
     this->index = 0;
 
-    this->line = 0;
-    this->column = 0;
+    this->line = 1;
+    this->column = 1;
 
     this->block_indentation = 0;
     this->line_broken = false;
@@ -18,8 +18,8 @@ TextPosition::TextPosition(
 
     this->index = 0;
 
-    this->line = 0;
-    this->column = 0;
+    this->line = 1;
+    this->column = 1;
 
     this->block_indentation = 0;
     this->line_broken = false;

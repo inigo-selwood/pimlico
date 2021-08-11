@@ -53,7 +53,7 @@ static int parse_bound_value(ParseBuffer &buffer, ErrorBuffer &errors) {
         return std::stoi(text);
     }
     catch(...) {
-        errors.add("invalid number in instance bound", buffer.position);
+        errors.add("invalid number in instance bound", buffer);
         return -2;
     }
 }
@@ -96,27 +96,27 @@ static Term::Bounds parse_specific_bounds(ParseBuffer &buffer,
         return {0, 0};
 
     // Check to see if a colon is present
-    buffer.skip(false);
+    buffer.skip_space(false);
     bool colon_present = false;
     if(buffer.read(':'))
         colon_present = true;
 
     // Parse the range-end value
-    buffer.skip(false);
+    buffer.skip_space(false);
 
     int end_value = parse_bound_value(buffer, errors);
     if(end_value == -2)
         return {0, 0};
 
     if(buffer.read('}') == false) {
-        errors.add("expected '}'", buffer.position);
+        errors.add("expected '}'", buffer);
         return {0, 0};
     }
 
     // N instances
     if(start_value != -1 && end_value == -1 && colon_present == false) {
         if(start_value == 0) {
-            errors.add("zero-valued instance bound", buffer.position);
+            errors.add("zero-valued instance bound", buffer);
             return {0, 0};
         }
 
@@ -130,7 +130,7 @@ static Term::Bounds parse_specific_bounds(ParseBuffer &buffer,
     // Up to N instances
     else if(start_value == -1 && end_value != -1 && colon_present) {
         if(end_value == 0) {
-            errors.add("zero-valued upper instance bound", buffer.position);
+            errors.add("zero-valued upper instance bound", buffer);
             return {0, 0};
         }
 
@@ -140,11 +140,11 @@ static Term::Bounds parse_specific_bounds(ParseBuffer &buffer,
     // Between N and M values
     else if(start_value != -1 && end_value != -1 && colon_present) {
         if(end_value < start_value) {
-            errors.add("illogical instance bound", buffer.position);
+            errors.add("illogical instance bound", buffer);
             return {0, 0};
         }
         else if(start_value == end_value && start_value == 0) {
-            errors.add("zero-instance bound", buffer.position);
+            errors.add("zero-instance bound", buffer);
             return {0, 0};
         }
 
@@ -153,7 +153,7 @@ static Term::Bounds parse_specific_bounds(ParseBuffer &buffer,
 
     // Report an error if the bound was invalid
     else {
-        errors.add("invalid instance bound", buffer.position);
+        errors.add("invalid instance bound", buffer);
         return {0, 0};
     }
 }
@@ -239,7 +239,7 @@ Term *Term::parse(ParseBuffer &buffer,
         predicate = Predicate::NOT;
 
     // Check if the term is enclosed
-    buffer.skip(false);
+    buffer.skip_space(false);
     Term *term = nullptr;
     bool enclosed = buffer.read('(');
     if(enclosed)
@@ -259,7 +259,7 @@ Term *Term::parse(ParseBuffer &buffer,
             term = Reference::parse(buffer, errors);
 
         else {
-            errors.add("expected a term", buffer.position);
+            errors.add("expected a term", buffer);
             return nullptr;
         }
     }
@@ -269,14 +269,14 @@ Term *Term::parse(ParseBuffer &buffer,
         return nullptr;
 
     // Ensure enclosed terms are closed
-    buffer.skip(false);
+    buffer.skip_space(false);
     if(enclosed && buffer.read(')') == false) {
-        errors.add("expected ')'", buffer.position);
+        errors.add("expected ')'", buffer);
         return nullptr;
     }
 
     // Parse bounds
-    buffer.skip(false);
+    buffer.skip_space(false);
     term->bounds = parse_bounds(buffer, errors);
     if(std::get<0>(term->bounds) == 0 && std::get<1>(term->bounds) == 0)
         return nullptr;

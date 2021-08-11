@@ -14,10 +14,10 @@ Source *Source::parse(const std::string &grammar, ErrorBuffer &errors) {
 
     bool errors_found = false;
     while(true) {
-        buffer.skip(false);
+        buffer.skip_whitespace();
         if(buffer.finished())
             break;
-        
+
         Rule *rule = Rule::parse(buffer, errors);
         if(buffer.finished() == false && buffer.peek('\n') == false)
             throw "incomplete rule parse";
@@ -25,10 +25,10 @@ Source *Source::parse(const std::string &grammar, ErrorBuffer &errors) {
             errors_found = true;
             continue;
         }
-        
+
         int name_hash = std::hash<std::string>{}(rule->name);
         if(source->rules.find(name_hash) == source->rules.end()) {
-            errors.add("rule redefinition", buffer.position);
+            errors.add("rule redefinition", buffer);
             errors_found = true;
             continue;
         }

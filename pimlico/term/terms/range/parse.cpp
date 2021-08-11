@@ -9,7 +9,7 @@
 #include "../../../parse_buffer/parse_buffer.hpp"
 #include "../../../error_buffer/error_buffer.hpp"
 
-/* Parse a range-character 
+/* Parse a range-character
 
 Ranges contain two range-characters, where each looks like this:
 
@@ -31,7 +31,7 @@ static char parse_character(ParseBuffer &buffer, ErrorBuffer &errors) {
 
     // Check for opening quote
     if(buffer.read('\'') == false) {
-        errors.add("expected '\\\''", buffer.position);
+        errors.add("expected '\\\''", buffer);
         return 0;
     }
 
@@ -42,7 +42,7 @@ static char parse_character(ParseBuffer &buffer, ErrorBuffer &errors) {
         if(code == -1)
             return 0;
         else if(code < ' ' || code > '~') {
-            errors.add("escape code invalid in range", buffer.position);
+            errors.add("escape code invalid in range", buffer);
             return 0;
         }
 
@@ -55,7 +55,7 @@ static char parse_character(ParseBuffer &buffer, ErrorBuffer &errors) {
 
     // Check for closing quote
     if(buffer.read('\'') == false) {
-        errors.add("expected '\\\''", buffer.position);
+        errors.add("expected '\\\''", buffer);
         return 0;
     }
 
@@ -89,34 +89,34 @@ Range *Range::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
     range->position = buffer.position;
 
     // Parse the start value
-    buffer.skip(false);
+    buffer.skip_space(false);
     char start_value = parse_character(buffer, errors);
     if(start_value == 0)
         return nullptr;
 
     // Check for the comma separator
-    buffer.skip(false);
+    buffer.skip_space(false);
     if(buffer.read('-') == false) {
-        errors.add("expected '-'", buffer.position);
+        errors.add("expected '-'", buffer);
         return nullptr;
     }
 
     // Parse the end value
-    buffer.skip(false);
+    buffer.skip_space(false);
     char end_value = parse_character(buffer, errors);
     if(end_value == 0)
         return nullptr;
 
     // Check for a closing bracket
-    buffer.skip(false);
+    buffer.skip_space(false);
     if(buffer.read(']') == false) {
-        errors.add("expected ']'", buffer.position);
+        errors.add("expected ']'", buffer);
         return nullptr;
     }
 
     // Verify the range is a valid one
     if(start_value >= end_value) {
-        errors.add("illogical range values", buffer.position);
+        errors.add("illogical range values", buffer);
         return nullptr;
     }
 

@@ -38,7 +38,7 @@ Term *Sequence::parse(ParseBuffer &buffer, ErrorBuffer &errors) {
             return nullptr;
         sequence->values.push_back(value);
 
-        buffer.skip(true);
+        buffer.skip_space(true);
         if(buffer.finished() || buffer.peek('\n') || buffer.peek(')'))
             break;
     }
