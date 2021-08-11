@@ -2,6 +2,8 @@
 #include <utility>
 #include <vector>
 
+#include <iostream>
+
 #include "parse_buffer.hpp"
 
 #include "../text_position/text_position.hpp"
@@ -26,12 +28,12 @@ static std::vector<std::pair<long, int>> evaluate_line_indices(
 
     // Iterate lines
     std::vector<std::pair<long, int>> line_indices;
-    for(unsigned int index = 0; index < length; index += 1) {
+    for(long index = 0; index < length; index += 1) {
 
         // Evaluate indentation
-        unsigned int indentation = 0;
+        int indentation = 0;
         while(true) {
-            if(index == text.size())
+            if(index == length)
                 break;
 
             if(text[index] == '\t')
@@ -45,16 +47,15 @@ static std::vector<std::pair<long, int>> evaluate_line_indices(
         }
 
         // Move to end-of-line
-        while(index < length && text[index] != '\n')
+        while(index <= length && text[index] != '\n')
             index += 1;
 
         // Store index, indentation
-        line_indices.push_back({index, indentation});
+        if(index)
+            line_indices.push_back({index - 1, indentation});
+        else 
+            line_indices.push_back({0, 0});
     }
-
-    // Add an empty line if the text is newline-terminated
-    if(text[length - 1] == '\n')
-        line_indices.push_back({length - 1, 0});
 
     return line_indices;
 }
