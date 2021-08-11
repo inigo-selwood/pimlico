@@ -2,34 +2,6 @@
 
 #include "term.hpp"
 
-/* Overloads the stream print operator for a term
-
-Arguments
----------
-stream
-    the stream to print to
-term
-    the term to print
-
-Returns
--------
-stream
-    the stream, having been printed to
-*/
-std::ostream &operator<<(std::ostream &stream, const Term &term) {
-    if(term.predicate == Term::Predicate::AND)
-        stream << '&';
-    else if(term.predicate == Term::Predicate::NOT)
-        stream << '!';
-
-    // Overloaded function, will delegate to inherited type
-    term.print(stream);
-
-    print_bounds(stream, term.bounds);
-
-    return stream;
-}
-
 /* Print term bounds
 
 Prints instance bounds, where the following formats are used:
@@ -79,4 +51,32 @@ static void print_bounds(std::ostream &stream, const Term::Bounds &bounds) {
         stream << "{" << lower << ":}";
     else
         stream << "{" << lower << " : " << upper << "}";
+}
+
+/* Overloads the stream print operator for a term
+
+Arguments
+---------
+stream
+    the stream to print to
+term
+    the term to print
+
+Returns
+-------
+stream
+    the stream, having been printed to
+*/
+std::ostream &operator<<(std::ostream &stream, const Term &term) {
+    if(term.predicate == Term::Predicate::AND)
+        stream << '&';
+    else if(term.predicate == Term::Predicate::NOT)
+        stream << '!';
+
+    // Overloaded function, will delegate to inherited type
+    term.print(stream);
+
+    print_bounds(stream, term.bounds);
+
+    return stream;
 }
