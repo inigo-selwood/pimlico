@@ -16,7 +16,9 @@ public:
             const Reference &error);
 
     Reference(const std::string &message, const ParseBuffer &buffer);
-    Reference(const std::string &message, const ParseBuffer &buffer, const TextPosition &position);
+    Reference(const std::string &message,
+            const ParseBuffer &buffer,
+            const TextPosition &position);
 
     void print(std::ostream &stream) const override;
 
