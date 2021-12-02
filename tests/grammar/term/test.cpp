@@ -5,16 +5,15 @@
 #include <vector>
 
 #include "pimlico.hpp"
-using namespace Pimlico;
 
-enum Error {
+enum ErrorCode {
     NONE = 0,
 
-    WRONG_ARGUMENT_COUNT,
-    INVALID_FILENAME,
-    PARSE_SYNTAX_ERROR,
-    PARSE_LOGIC_ERROR,
-    INCOMPLETE_PARSE,
+    WRONG_ARGUMENT_COUNT    = 1,
+    INVALID_FILENAME        = 2,
+    PARSE_SYNTAX_ERROR      = 3,
+    PARSE_LOGIC_ERROR       = 4,
+    INCOMPLETE_PARSE        = 5,
 };
 
 int main(int argument_count, char *argument_values[]) {
@@ -22,14 +21,14 @@ int main(int argument_count, char *argument_values[]) {
     // Check there was a filename specified
     if(argument_count != 2) {
         std::cerr << "wrong number of arguments\n";
-        return Error::WRONG_ARGUMENT_COUNT;
+        return ErrorCode::WRONG_ARGUMENT_COUNT;
     }
     // Open the grammar stream
     std::string grammar_filename = argument_values[1];
     std::ifstream grammar_stream(grammar_filename);
     if(grammar_stream.is_open() == false) {
         std::cerr << "invalid filename\n";
-        return Error::INVALID_FILENAME;
+        return ErrorCode::INVALID_FILENAME;
     }
 
     // Place the stream's contents into a string
@@ -37,34 +36,42 @@ int main(int argument_count, char *argument_values[]) {
                  std::istreambuf_iterator<char>());
 
     // Parse the grammar term
-    std::vector<TextBuffer::SyntaxError> errors;
-    TextBuffer buffer(grammar_string);
+    ErrorBuffer errors;
+    ParseBuffer buffer(grammar_string);
     try {
         const auto term = Term::parse(buffer, errors, true);
         if(term == nullptr) {
-            for(const TextBuffer::SyntaxError &error : errors)
-                std::cerr << error << "\n";
-            return Error::PARSE_SYNTAX_ERROR;
+            std::cerr << errors << '\n';
+            delete term;
+            return ErrorCode::PARSE_SYNTAX_ERROR;
+        }
+
+        // Check the EOF was reached
+        else if(buffer.finished() == false) {
+            errors.add("incomplete parse");
+            std::cerr << errors << '\n';
+            delete term;
+            return ErrorCode::INCOMPLETE_PARSE;
         }
 
         // Print the term
         std::cout << *term << "\n";
 
-        // Check the EOF was reached
-        buffer.skip_whitespace();
-        if(buffer.end_reached() == false) {
-            std::cerr << "incomplete parse\n";
-            return Error::INCOMPLETE_PARSE;
-        }
-
+        delete term;
         return 0;
     }
 
-    // Handle exceptions
-    catch(ParseLogicError &exception) {
-        std::cerr << exception << "\n";
-        for(const TextBuffer::SyntaxError &error : errors)
-            std::cerr << error << "\n";
-        return Error::PARSE_LOGIC_ERROR;
+    catch(const char *exception) {
+        std::cerr << errors << '\n';
+        std::cout << "exception: " << exception << '\n';
+        return ErrorCode::PARSE_LOGIC_ERROR;
     }
+
+    // Handle exceptions
+    // catch(ParseLogicErrorCode &exception) {
+    //     std::cerr << exception << "\n";
+    //     // for(const TextBuffer::SyntaxErrorCode &error : errors)
+    //     //     std::cerr << error << "\n";
+    //     return ErrorCode::PARSE_LOGIC_ERROR;
+    // }
 }
