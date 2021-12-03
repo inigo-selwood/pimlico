@@ -8,12 +8,12 @@ set(CMAKE_BUILD_PARALLEL_LEVEL "4")
 file(GLOB_RECURSE SOURCE_FILES source/*.cpp)
 add_library(pimlico_library STATIC ${SOURCE_FILES})
 
-# Buffer test
-add_executable(test_buffer tests/buffer/buffer.cpp)
-target_link_libraries(test_buffer pimlico_library)
-target_include_directories(test_buffer PRIVATE "source/")
-target_include_directories(test_buffer PRIVATE "tests/include")
-set_target_properties(test_buffer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/buffer/)
+# # Buffer test
+# add_executable(test_buffer tests/buffer/buffer.cpp)
+# target_link_libraries(test_buffer pimlico_library)
+# target_include_directories(test_buffer PRIVATE "source/")
+# target_include_directories(test_buffer PRIVATE "tests/include")
+# set_target_properties(test_buffer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/buffer/)
 
 # # Grammar test
 # add_executable(test_terms tests/grammar/term/test.cpp)
