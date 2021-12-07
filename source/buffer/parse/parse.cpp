@@ -62,8 +62,10 @@ static std::vector<std::pair<long, char>>
 Parse::Parse(const std::string &text) {
     this->text = text;
     this->length = text.length();
-    this->line_index_indentations = read_index_indentations(text);
-    this->position = Buffer::Position();
+    this->indextations = read_index_indentations(text);
+
+    const bool empty = length == 0;
+    this->position = Buffer::Position(empty);
 }
 
 }; // Namespace Buffer

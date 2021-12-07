@@ -19,6 +19,7 @@ public:
             const Position &position);
 
     Position();
+    Position(const bool &empty);
 
     void print(std::ostream &stream) const;
 

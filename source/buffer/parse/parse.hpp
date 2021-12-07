@@ -14,7 +14,7 @@ class Parse {
 
 public:
 
-    std::vector<std::pair<long, char>> line_index_indentations;
+    std::vector<std::pair<long, char>> indextations;
 
     Buffer::Position position;
 
@@ -27,6 +27,7 @@ public:
     bool peek(const std::string &) const;
 
     void skip_space();
+    void skip_line();
 
     char read();
     bool read(const char &);
