@@ -2,14 +2,11 @@
 
 namespace Pimlico {
 
-Rule::Rule() {
-    this->value = nullptr;
-}
-
 Rule::~Rule() {
-    if(this->value) {
-        delete this->value;
-        this->value = nullptr;
+    while(this->productions.empty() == false) {
+        if(this->productions.back())
+            delete this->productions.back();
+        this->productions.pop_back();
     }
 }
 
