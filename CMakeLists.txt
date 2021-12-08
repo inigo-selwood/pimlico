@@ -9,7 +9,6 @@ file(GLOB_RECURSE LIBRARY_SOURCE_FILES source/*.cpp)
 add_library(pimlico_library STATIC ${LIBRARY_SOURCE_FILES})
 target_include_directories(pimlico_library PRIVATE "source/")
 
-
 # Buffer tests
 file(GLOB_RECURSE BUFFER_TERM_SOURCE_FILES tests/buffer/*.cpp)
 add_executable(test_buffer ${BUFFER_TERM_SOURCE_FILES})

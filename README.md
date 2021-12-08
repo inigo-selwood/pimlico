@@ -1,8 +1,8 @@
 # Pimlico
 
-**NOTE:** This repository is currently a work in progress
-
 A simple parser for parsing expression grammars (PEGs).
+
+## Overview
 
 Pimlico is written with the following goals in mind:
 + Simple and human readable syntax
@@ -12,17 +12,12 @@ Pimlico is written with the following goals in mind:
 
 The intent is to speed up the development of parsers and interpreters by reducing the amount of time the programmer has to spend on creating lexical and syntactical analysers, as well as catching and reporting errors as early as possible.
 
-## Sections
+### Sections
 
 - [Grammar](#grammar)
     - [Terms](#terms)
     - [Instance hints](#instance-hints)
     - [Predicates](#predicates)
-    - [Name extension](#name-extension)
-    - [Multi-line Statements](#multi-line-statements)
-    - [Simple JSON Example](#simple-json-example)
-- [Programming Interface](#programming-interface)
-    - [Token Printer Example](#token-printer-example)
 
 ## Grammar
 
@@ -84,33 +79,21 @@ Terms can be followed by instance hints, which tell the parser how many instance
 
 Hint    | Meaning
 --------|---
-?       | One, optional
-\*      | Zero or more
-\+      | One or more
+`?`     | One, optional
+`\*`    | Zero or more
+`\+`    | One or more
+`{n}`   | N instances
+`{:n}`  | Up to N instances
+`{n:}`  | N or more instances
+`{m:n}` | Between M and N instances, inclusive
 
 So for example, a production rule for scientific notation might look like this:
 
 `number: '-'? [0 - 9]+ ('.' [0 - 9]+)? ('E' | 'e') '-'? [0 - 9]+`
 
-Note that `term*` and `term?` will always succeed, because they are allowed to match zero times.
+**Note:** `term*` and `term?` will always succeed, because they are allowed to match zero times.
 
-Other numbers of repetitions can be indicated using curly brackets:
-
-```
-# Exactly n repetitions
-term{n}
-
-# Between m and n repetitions, inclusive
-term{m : n}
-
-# At most n repetitions
-term{:n}
-
-# At least m repetitions
-term{m:}
-```
-
-Note that `term*` and `term{0:}` are functionally equivalent, as are `term+` and `term{1:}`, and `term?` and `term{0 : 1}`
+**Note:** `term*` and `term{0:}` are functionally equivalent, as are `term+` and `term{1:}`, and `term?` and `term{0 : 1}`
 
 ---
 
@@ -121,14 +104,14 @@ Predicates aren't necessary for a language with a comprehensive specification, b
 - Speeding up parsing by implementing lookahead checks
 - Clarifying syntax with the "everything-but" idiom
 
-Predicated terms aren't consumed by the parser. That's to say, they're evaluated as either true or false, but the parser won't increment its position in the text.
+Predicated terms aren't consumed by the parser. They're evaluated as either true or false, but the parser won't increment its position in the text.
 
 There are two types of predicate:
 
-Name    | Symbol    | Function
---------|-----------|---
-And     | `&`       | Succeeds if the predicated term is matched
-Not     | `!`       | Succeeds if the predicated term is **not** matched
+Name | Symbol | Function
+-----|--------|---
+And  | `&`    | Succeeds if the predicated term is matched
+Not  | `!`    | Succeeds if the predicated term is **not** matched
 
 Terms prefixed with a predicate symbol will be evaluated as such.
 
@@ -146,154 +129,3 @@ The more complicated use of predicates is, as stated above, the speeding up of p
 By using predicates, the programmer can make their intent clearer in their grammar specification, and potentially save the parser time.
 
 Predicates can also be necessary if the parser is returning 'multiple candidate' errors, wherein more than one rule matches the string being parsed, with no way to distinguish between them. However, this is often due to ambiguity in the specification itself, and the programmer may wish to re-evaluate their approach.
-
----
-
-### Name Extension
-
-Name extension is a tool for clarity in your grammar specification. Grammars can be specified equivalently without; however, it helps keep line lengths short, and rule names readable and intuitive.
-
-```
-operator...
-    arithmetic...
-        binary: '+' | '-' | '*' | '/' | '%'
-        bitwise: '&' | '|' | '^'
-    assignment: arithmetic_operator? '='
-```
-
-Notice how in this example, we've used the reference `arithmetic_operator`, which is equivalent to `binary_arithmetic_operator | bitwise_arithmetic_operator`. Similarly, you could use the reference `operator` to mean any of the rules nested underneath it.
-
-The scope of extended names is determined by indentation.
-
----
-
-### Multi-line Statements
-
-Sometimes a rule might exceed the programmer's arbitrary line length preference, in which case a two-tab increase in indentation can be used to split the rule over multiple lines. In this example, the strings are defined as enclosed in either single or double quotes -- where in a single-quote-enclosed string, double quotes needn't be escaped, and vice versa. An implementation like this might be divided for clarity.
-
-```
-string: ('\'' ((!'\' [' ' - 'z']) | escape_code | '\\\'')* '\'') |
-        ('\"' ((!'\' [' ' - 'z']) | escape_code | '\\\'')* '\")
-escape_code: ('\\' | 'b' | 'n' | 'r' | 't') '\''
-```
-
----
-
-### Simple JSON Example
-
-```
-pair: '\"' [' ' - '~'] '\"' ':' term
-term...
-    object: '{' pair (',' pair)* '}'
-    array: '[' term (',' term)* ']'
-    string: '\"' [' ' - '~'] '\"'
-    number: ['0' - '9']
-    boolean: 'true' | 'false'
-    null: 'null'
-```
-
-## Programming interface
-
-The programming interface is intended to be C++ idiomatic. The main classes in the Pimlico namespace which the programmer will interact with are:
-
-Class           | Purpose
-----------------|---
-`Specification` | Parsing and holding a grammar specification
-`SyntaxError`   | Reporting syntax errors either in the specification or text parsed using it
-`SyntaxTree`    | Holding tokens that've been parsed per the specification
-`Token`         | Instances of grammar rules, populated with either text or other tokens
-
-### Token Printer Example
-
-``` c++
-#include <fstream>
-#include <iostream>
-#include <streambuf>
-#include <string>
-
-#include "pimlico.hpp"
-using namespace Pimlico;
-
-// Basic token printer
-void print_token(const Token &token) {
-    std::cout << token.name << "(";
-
-    // Print terminal tokens
-    if(token.terminal)
-        std::cout << terminal.value();
-
-    // Recursively print non-terminal tokens' sub-tokens
-    else {
-        std::vector<Token> &tokens = token.values();
-        const unsigned int token_count = tokens.size();
-        for(unsigned int index = 0;  index < token_count; index += 1) {
-            print_token(tokens[index]);
-            if(index + 1 < token_count)
-                std::cout << ", ";
-        }
-    }
-
-    std::cout << ")"
-}
-
-int main(int argument_count, char *argument_values[]) {
-
-    // Check the program has the right number of arguments
-    if(argument_count != 3) {
-        std::cerr << "wrong number of arguments\n";
-        return 1;
-    }
-
-    // Open the grammar stream
-    std::string grammar_filename = argument_values[1];
-    std::ifstream grammar_stream(grammar_filename);
-    if(grammar_stream.is_open() == false) {
-        std::cerr << "couldn't open grammar file\n";
-        return 2;
-    }
-
-    // Create a specification
-    std::string grammar_string((std::istreambuf_iterator<char>(grammar_stream)),
-                 std::istreambuf_iterator<char>());
-
-    std::vector<SyntaxError> syntax_errors;
-    const Specification specification =
-            Specification::parse(grammar_string, syntax_errors);
-    if(specification == nullptr) {
-        std::cerr << "error parsing grammar specification\n";
-        for(const SyntaxError &syntax_error : syntax_errors)
-            std::cerr << syntax_error << "\n";
-        return 3;
-    }
-
-    // Open the source stream
-    std::string source_filename = argument_values[2];
-    std::ifstream source_stream(source_filename);
-    if(source_stream.is_open() == false) {
-        std::cerr << "couldn't open source file\n";
-        return 4;
-    }
-
-    // Create a syntax tree
-    std::string grammar_string((std::istreambuf_iterator<char>(source_stream)),
-                 std::istreambuf_iterator<char>());
-
-    const SyntaxTree tree =
-            SyntaxTree::parse(specification, source_string, syntax_errors);
-    if(tree.valid == false) {
-        std::cerr << "error parsing source\n";
-        for(const auto &syntax_error : syntax_errors)
-            std::cerr << syntax_error << "\n";
-        return 5;
-    }
-
-    // Recursively print the tree's tokens
-    print_token(tree.root);
-
-    return 0;
-}
-```
-
-This boilerplate snippet shows how a text file can be split into tokens using a custom grammar, as well as how the programmer can leverage the flexible error handling system to report syntax errors in their own custom format.
-
-The function `print_token` shows how terminal and non-terminal tokens can be differentiated between, and cast as such. It also shows how the interface exposes the name of the rule corresponding to the token, and its value(s).

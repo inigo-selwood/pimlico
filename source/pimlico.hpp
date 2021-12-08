@@ -10,6 +10,6 @@
 
 #include "buffer/buffer.hpp"
 
-#include "term/term.hpp"
-#include "rule/rule.hpp"
-#include "program/program.hpp"
+#include "grammar/term/term.hpp"
+#include "grammar/rule/rule.hpp"
+#include "grammar/program/program.hpp"
