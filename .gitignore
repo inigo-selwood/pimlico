@@ -1,0 +1,9 @@
+# CMake files
+CMakeFiles
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+*.a
+
+# Test binaries
+tests/binaries/
