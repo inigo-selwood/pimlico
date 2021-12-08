@@ -1,6 +1,6 @@
 # Pimlico
 
-![Build](https://github.com/inigo-selwood/Pimlico/actions/workflows/build/badge.svg)
+![Build](https://github.com/inigo-selwood/Pimlico/actions/workflows/build.yaml/badge.svg)
 
 A simple parser for parsing expression grammars (PEGs).
 
