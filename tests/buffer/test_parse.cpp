@@ -24,3 +24,17 @@ TEST_CASE("finished") {
         REQUIRE(buffer.finished() == false);
     }
 }
+
+TEST_CASE("skip") {
+    SECTION("space") {
+        Buffer::Parse buffer(" \t\v\r");
+        buffer.skip_space();
+        REQUIRE(buffer.finished());
+    }
+
+    SECTION("line") {
+        Buffer::Parse buffer(" \n");
+        buffer.skip_line();
+        REQUIRE(buffer.finished());
+    }
+}
