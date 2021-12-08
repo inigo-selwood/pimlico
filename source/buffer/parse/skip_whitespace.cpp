@@ -4,7 +4,7 @@ namespace Pimlico {
 
 namespace Buffer {
 
-void Parse::skip_space() {
+void Parse::skip_whitespace() {
     while(true) {
         if(this->position.index == this->length)
             return;
@@ -13,7 +13,8 @@ void Parse::skip_space() {
         if(character == ' '
                 || character == '\t'
                 || character == '\r'
-                || character == '\v')
+                || character == '\v'
+                || character == '\n')
             this->increment();
         else
             break;

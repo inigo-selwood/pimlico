@@ -26,8 +26,9 @@ public:
     bool peek(const char &) const;
     bool peek(const std::string &) const;
 
-    void skip_space();
     void skip_line();
+    void skip_space();
+    void skip_whitespace();
 
     char read();
     bool read(const char &);
