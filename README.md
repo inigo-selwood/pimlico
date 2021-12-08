@@ -18,7 +18,6 @@ The intent is to speed up the development of parsers and interpreters by reducin
     - [Terms](#terms)
     - [Instance hints](#instance-hints)
     - [Predicates](#predicates)
-    - [Inlining](#inlining)
     - [Name extension](#name-extension)
     - [Multi-line Statements](#multi-line-statements)
     - [Simple JSON Example](#simple-json-example)
@@ -149,45 +148,6 @@ By using predicates, the programmer can make their intent clearer in their gramm
 Predicates can also be necessary if the parser is returning 'multiple candidate' errors, wherein more than one rule matches the string being parsed, with no way to distinguish between them. However, this is often due to ambiguity in the specification itself, and the programmer may wish to re-evaluate their approach.
 
 ---
-
-### Inlining
-
-References can be inlined to stop them appearing as seperate sub-tokens in the parser's output.
-
-Consider the following extension of a previous example:
-
-```
-digit: ['0' - '9']
-number: '-'? digit+ ('.' digit+)? ('E' | 'e') '-'? digit+
-```
-
-For the string `3.141E0`, the parser would generate the following output:
-
-`number(digit(3), '.', digit('1'), digit('4'), 'E', digit('0'))`
-
-This might be the desired behaviour -- but equally we might not want a distinct digit term instance for each digit character parsed.
-
-```
-digit: ['0' - '9']
-number: '-'? @digit+ ('.' @digit+)? ('E' | 'e') '-'? @digit+
-```
-
-Now the parsed result would look like this:
-
-`number(3.14E0)`
-
----
-
-### Silencing
-
-Terms can be silenced to stop them appearing in the parser's output.
-
-For instance, if we wanted to strip periods out of a string of period-separated-tokens, we could use the silencing operator (`$`) to ignore them:
-
-```
-path: token ($'.' token)*
-token: ['a' - 'z'] | ['A' - 'Z']
-```
 
 ### Name Extension
 
