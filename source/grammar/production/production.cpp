@@ -2,6 +2,10 @@
 
 namespace Pimlico {
 
+Production::Production() {
+    this->value = nullptr;
+}
+
 Production::~Production() {
     if(this->value) {
         delete this->value;
