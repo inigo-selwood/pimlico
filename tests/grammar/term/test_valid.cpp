@@ -37,3 +37,10 @@ TEST_CASE("sequence-within-choice") {
     const Term *term = Term::parse(buffer, errors);
     REQUIRE(term);
 }
+
+TEST_CASE("bindings") {
+    Buffer::Parse buffer("a: 'a' b: b c: ['a' - 'z'] d: 'a' | 'b'");
+    Buffer::Error errors;
+    const Term *term = Term::parse(buffer, errors);
+    REQUIRE(term);
+}

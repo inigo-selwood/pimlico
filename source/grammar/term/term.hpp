@@ -30,6 +30,8 @@ public:
 
     Buffer::Position position;
 
+    std::string binding;
+
     Bounds bounds;
 
     Type type;

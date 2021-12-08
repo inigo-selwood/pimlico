@@ -50,6 +50,22 @@ static int parse_bound_value(Buffer::Parse &buffer, Buffer::Error &errors) {
     }
 }
 
+static std::string parse_binding(Buffer::Parse &buffer) {
+    std::string result;
+    while(true) {
+        if(buffer.finished())
+            break;
+
+        const char character = buffer.peek();
+        if(character >= 'a' && character <= 'z' || character == '_')
+            result += buffer.read();
+        else
+            break;
+    }
+
+    return result;
+}
+
 /* Parse a specific bound
 Specific bounds, unlike single-character type-hints, give the writer more
 flexibility in setting range counts. They can be formatted in the following
@@ -212,6 +228,20 @@ Term *Term::parse(Buffer::Parse &buffer,
     if(root)
         return Sequence::parse(buffer, errors);
 
+    // Check if there's a binding hint
+    std::string binding;
+    const char character = buffer.peek();
+    if((character >= 'a' && character <= 'z') || character == '_') {
+        Buffer::Position start_position = buffer.position;
+        const std::string identifier = parse_binding(buffer);
+
+        buffer.skip_space();
+        if(buffer.finished() == false) {
+            if(buffer.read(':'))
+                binding = identifier;
+        }
+    }
+
     // Check for predicates
     Term::Predicate predicate = Predicate::NONE;
     if(buffer.read('&'))
@@ -263,6 +293,7 @@ Term *Term::parse(Buffer::Parse &buffer,
         return nullptr;
 
     term->predicate = predicate;
+    term->binding = binding;
     return term;
 
 }
