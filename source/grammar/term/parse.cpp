@@ -197,9 +197,73 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
     else if(buffer.read('+'))
         return {1, -1};
 
-    // // Parse specific bounds
-    // else if(buffer.peek('{'))
-    //     return parse_specific_bounds(buffer, errors);
+    // Parse specific bounds
+    else if(buffer.peek('{')) {
+
+        // Copy the buffer's position to reset it later
+        const Buffer::Position start_position = buffer.position;
+
+        // Check if the bracket is followed by a newline -- that's almost
+        // certainly an embedded expression
+        buffer.read('{');
+        buffer.skip_space();
+        if(buffer.peek('\n')) {
+            buffer.position = start_position;
+            return {1, 1};
+        }
+
+        // Here we're trying to guess if the curly bracket is the start of a
+        // bounds specifier, or an embedded expression.
+        // In the former case, we'd see one or more digits, a semi-colon, and
+        // a closing bracket. We can even be a bit tolerant about having all
+        // three, to avoid misinterpreting typos
+
+        // This loop counts how many of those things are encountered in the
+        // next 12 characters of the buffer, and makes a weighted guess about
+        // what it needs to parse next.
+
+        // If it's an embedded expression, we just return the default bounds,
+        // and allow the production which invoked this function to handle
+        // whatever the embedded slice is.
+        char count = 0;
+        char digits = 0;
+        bool semi_colon = false;
+        bool terminated = false;
+        while(true) {
+            if(buffer.finished()) {
+                errors.add("expected '}'", buffer);
+                return {0, 0};
+            }
+
+            // Check whether the character at the current index is a digit,
+            // a semi-colon, or the closing bracket
+            const char character = buffer.peek();
+            if(character > '0' && character < '9')
+                digits += 1;
+            else if(character == ':')
+                semi_colon = true;
+            else if(buffer.peek('}')) {
+                terminated = true;
+                break;
+            }
+
+            // Increment the buffer and our little timeout counter
+            buffer.read();
+            count += 1;
+            if(count >= 12)
+                break;
+        }
+
+        // Reset the buffer's position for whatever comes next
+        buffer.position = start_position;
+
+        // If there's both opening and closing brackets, numbers inside them,
+        // and a semi-colon -- it's almost definitely a bound specifier
+        if(terminated && (digits | semi_colon))
+            return parse_specific_bounds(buffer, errors);
+
+        return {1, 1};
+    }
 
     // Otherwise, default to one instance
     else
