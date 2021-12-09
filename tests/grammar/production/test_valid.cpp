@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <catch.hpp>
 #include <pimlico.hpp>
 
@@ -7,6 +9,9 @@ TEST_CASE("no-expression") {
     Buffer::Parse buffer("a");
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
+
+    if(production == nullptr)
+        std::cerr << errors;
     REQUIRE(production);
 }
 
@@ -14,6 +19,9 @@ TEST_CASE("empty-expression") {
     Buffer::Parse buffer("a {}");
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
+
+    if(production == nullptr)
+        std::cerr << errors;
     REQUIRE(production);
 }
 
@@ -25,6 +33,9 @@ TEST_CASE("non-empty-expression") {
 
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
+
+    if(production == nullptr)
+        std::cout << errors << std::endl;
     REQUIRE(production);
 }
 
@@ -36,5 +47,8 @@ TEST_CASE("expression-with-binding") {
 
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
+
+    if(production == nullptr)
+        std::cerr << errors;
     REQUIRE(production);
 }

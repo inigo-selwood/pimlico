@@ -39,7 +39,10 @@ Term *Sequence::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         sequence->values.push_back(value);
 
         buffer.skip_space();
-        if(buffer.finished() || buffer.peek('\n') || buffer.peek(')'))
+        if(buffer.finished()
+                || buffer.peek('{')
+                || buffer.peek('\n')
+                || buffer.peek(')'))
             break;
     }
 

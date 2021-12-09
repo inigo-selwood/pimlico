@@ -197,9 +197,9 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
     else if(buffer.read('+'))
         return {1, -1};
 
-    // Parse specific bounds
-    else if(buffer.peek('{'))
-        return parse_specific_bounds(buffer, errors);
+    // // Parse specific bounds
+    // else if(buffer.peek('{'))
+    //     return parse_specific_bounds(buffer, errors);
 
     // Otherwise, default to one instance
     else
@@ -240,6 +240,9 @@ Term *Term::parse(Buffer::Parse &buffer,
             if(buffer.read(':'))
                 binding = identifier;
         }
+
+        if(binding == "")
+            buffer.position = start_position;
     }
 
     // Check for predicates

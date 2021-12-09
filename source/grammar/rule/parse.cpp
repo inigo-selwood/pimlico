@@ -41,9 +41,9 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
     // Parse the return type, if there is one
     buffer.skip_space();
-    if(buffer.peek('<')) {
+    if(buffer.read('<')) {
 
-        char stack = 0;
+        char stack = 1;
         while(true) {
             if(buffer.finished())
                 break;
@@ -64,7 +64,7 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         }
 
     }
-    
+
     return rule;
 }
 

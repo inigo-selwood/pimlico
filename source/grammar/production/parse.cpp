@@ -35,14 +35,14 @@ Production *Production::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
     buffer.skip_space();
     if(buffer.read('{')) {
-        char stack = 0;
+        char stack = 1;
         while(true) {
             if(buffer.finished())
                 break;
 
             if(buffer.peek('{'))
                 stack += 1;
-            else if(buffer.peek('{'))
+            else if(buffer.peek('}'))
                 stack -= 1;
 
             if(stack == 0)
