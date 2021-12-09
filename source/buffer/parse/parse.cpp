@@ -35,7 +35,7 @@ static std::vector<std::pair<long, char>>
                 break;
 
             if(text[index] == '\t')
-                indentation =  ((indentation + 3) & ~0x03) + 1;
+                indentation =  ((indentation + 4) & ~0x03);
             else if(text[index] == ' ')
                 indentation += 1;
             else
@@ -59,6 +59,7 @@ static std::vector<std::pair<long, char>>
     return index_indentations;
 }
 
+// Constructor
 Parse::Parse(const std::string &text) {
     this->text = text;
     this->length = text.length();

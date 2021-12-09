@@ -33,6 +33,7 @@ public:
     bool read(const std::string &);
 
     std::string line_text(long line_number = 0) const;
+    char line_indentation(long line_number = 0) const;
 
 private:
 
