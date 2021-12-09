@@ -3,7 +3,7 @@
 
 using namespace Pimlico;
 
-TEST_CASE("line-text") {
+TEST_CASE("buffer.line-text") {
     SECTION("empty") {
         Buffer::Parse buffer("");
         REQUIRE(buffer.line_text() == "");

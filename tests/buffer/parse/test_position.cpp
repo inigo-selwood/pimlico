@@ -3,7 +3,7 @@
 
 using namespace Pimlico;
 
-TEST_CASE("position") {
+TEST_CASE("buffer.position") {
     SECTION("empty") {
         Buffer::Parse buffer("");
         REQUIRE(buffer.position.column == 0);

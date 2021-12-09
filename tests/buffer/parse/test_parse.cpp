@@ -3,7 +3,7 @@
 
 using namespace Pimlico;
 
-TEST_CASE("create") {
+TEST_CASE("buffer.create") {
     SECTION("empty") {
         Buffer::Parse buffer("");
     }
@@ -13,7 +13,7 @@ TEST_CASE("create") {
     }
 }
 
-TEST_CASE("finished") {
+TEST_CASE("buffer.finished") {
     SECTION("empty") {
         Buffer::Parse buffer("");
         REQUIRE(buffer.finished());
@@ -25,7 +25,7 @@ TEST_CASE("finished") {
     }
 }
 
-TEST_CASE("skip") {
+TEST_CASE("buffer.skip") {
     SECTION("space") {
         Buffer::Parse buffer(" \t\v\r");
         buffer.skip_space();

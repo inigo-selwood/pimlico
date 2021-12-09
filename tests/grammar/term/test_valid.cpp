@@ -4,7 +4,7 @@
 
 using namespace Pimlico;
 
-TEST_CASE("basic-terms") {
+TEST_CASE("term.basic-terms") {
     Buffer::Parse buffer("'a' b ['a' - 'z']");
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors);
@@ -14,7 +14,7 @@ TEST_CASE("basic-terms") {
     REQUIRE(term);
 }
 
-TEST_CASE("choice-within-sequence") {
+TEST_CASE("term.choice-within-sequence") {
     Buffer::Parse buffer("'a' | 'b' 'c'");
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors);
@@ -24,7 +24,7 @@ TEST_CASE("choice-within-sequence") {
     REQUIRE(term);
 }
 
-TEST_CASE("instance-hints") {
+TEST_CASE("term.instance-hints") {
     Buffer::Parse buffer("'a'+ 'b'* 'c'? 'd'{1 : 1} 'e'{:1} 'f'{1:} 'g'{1}");
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors);
@@ -34,7 +34,7 @@ TEST_CASE("instance-hints") {
     REQUIRE(term);
 }
 
-TEST_CASE("predicates") {
+TEST_CASE("term.predicates") {
     Buffer::Parse buffer("&'a' !'b'");
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors);
@@ -44,7 +44,7 @@ TEST_CASE("predicates") {
     REQUIRE(term);
 }
 
-TEST_CASE("sequence-within-choice") {
+TEST_CASE("term.sequence-within-choice") {
     Buffer::Parse buffer("'a' | ('b' 'c')");
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors);
@@ -54,7 +54,7 @@ TEST_CASE("sequence-within-choice") {
     REQUIRE(term);
 }
 
-TEST_CASE("bindings") {
+TEST_CASE("term.bindings") {
     Buffer::Parse buffer("a: 'a' b: b c: ['a' - 'z'] d: 'a' | 'b'");
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors);
