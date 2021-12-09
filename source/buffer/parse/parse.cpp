@@ -59,6 +59,7 @@ static std::vector<std::pair<long, char>>
     return index_indentations;
 }
 
+// Constructor
 Parse::Parse(const std::string &text) {
     this->text = text;
     this->length = text.length();

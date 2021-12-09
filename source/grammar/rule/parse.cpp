@@ -24,9 +24,13 @@ parse_logic_exception
 */
 Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
+    // Create a new rule at the current position
     Rule *rule = new Rule();
+    if(rule == nullptr)
+        return nullptr;
     rule->position = buffer.position;
 
+    // Parse the rule's name (all lowercase/underscore)
     while(true) {
         char character = buffer.peek();
         if((character >= 'a' && character <= 'z') ||
@@ -36,13 +40,17 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
             break;
     }
 
-    if(rule->name.empty())
+    // Check a name was found where one was expected
+    if(rule->name.empty()) {
+        delete rule;
         throw "no rule found";
+    }
 
     // Parse the return type, if there is one
     buffer.skip_space();
     if(buffer.read('<')) {
 
+        // Keep reading until the end of the type embedding is reached
         char stack = 1;
         while(true) {
             if(buffer.finished())
@@ -59,10 +67,50 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
             rule->type += buffer.read();
         }
 
+        // Check there was a closing angle-bracket for the embedded type
         if(buffer.read('>') == false) {
             errors.add("no closing '>' for rule type", buffer);
         }
+    }
 
+    // Check for rule-production separator
+    buffer.skip_space();
+    if(buffer.read(":=") == false) {
+        errors.add("expected ':='", buffer);
+        delete rule;
+        return nullptr;
+    }
+
+    // Check for newline after ':='
+    buffer.skip_space();
+    if(buffer.read('\n') == false) {
+        errors.add("expected newline after ':='", buffer);
+        delete rule;
+        return nullptr;
+    }
+
+    // Parse productions
+    while(true) {
+
+        // Check the buffer isn't finished
+        buffer.skip_space();
+        if(buffer.finished())
+            break;
+
+        // Check we're still parsing a production (all productions below a rule
+        // have to be at an indentation level of 4)
+        if(buffer.line_indentation() != 4)
+            break;
+
+        // Parse a production at the current position
+        Production *production = Production::parse(buffer, errors);
+        if(production == nullptr) {
+            delete rule;
+            return nullptr;
+        }
+        rule->productions.push_back(production);
+
+        buffer.skip_space();
     }
 
     return rule;
