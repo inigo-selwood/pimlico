@@ -14,8 +14,6 @@ class Parse {
 
 public:
 
-    std::vector<std::pair<long, char>> indextations;
-
     Buffer::Position position;
 
     Parse(const std::string &text);
@@ -34,7 +32,11 @@ public:
     bool read(const char &);
     bool read(const std::string &);
 
+    std::string line_text(long line_number = 0) const;
+
 private:
+
+    std::vector<std::pair<long, char>> indextations;
 
     std::string text;
 

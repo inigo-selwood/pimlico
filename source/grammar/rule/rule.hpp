@@ -4,7 +4,7 @@
 
 namespace Pimlico {
 
-class Term;
+class Production;
 
 class Rule {
 
@@ -12,9 +12,10 @@ public:
 
     Buffer::Position position;
 
-    Term *value;
+    std::vector<Production *> productions;
 
     std::string name;
+    std::string type;
 
     Rule();
 

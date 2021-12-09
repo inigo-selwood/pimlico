@@ -28,3 +28,13 @@ target_include_directories(test_term PRIVATE "tests/include")
 set_target_properties(test_term
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY
         ${CMAKE_SOURCE_DIR}/tests/binaries)
+
+# Production tests
+file(GLOB_RECURSE TEST_PRODUCTION_SOURCE_FILES tests/grammar/production/*.cpp)
+add_executable(test_production ${TEST_PRODUCTION_SOURCE_FILES})
+target_link_libraries(test_production PRIVATE pimlico_library)
+target_include_directories(test_production PRIVATE "source/")
+target_include_directories(test_production PRIVATE "tests/include")
+set_target_properties(test_production
+        PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+        ${CMAKE_SOURCE_DIR}/tests/binaries)

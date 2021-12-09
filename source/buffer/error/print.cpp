@@ -30,14 +30,12 @@ stream
     the stream to print to
 */
 void Error::print(std::ostream &stream) const {
-    // int error_count = this->errors.size();
-    // for(int index = 0; index < error_count; index += 1) {
-    //     stream << this->errors[index];
-    //     if((index + 1) < error_count)
-    //         stream << '\n';
-    // }
-
-    stream << "error printing unimplemented\n";
+    int instance_count = this->instances.size();
+    for(int index = 0; index < instance_count; index += 1) {
+        this->instances[index]->print(stream);
+        if((index + 1) < instance_count)
+            stream << '\n';
+    }
 }
 
 }; // Namespace Buffer

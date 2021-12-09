@@ -30,8 +30,7 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     while(true) {
         char character = buffer.peek();
         if((character >= 'a' && character <= 'z') ||
-                character == '-' ||
-                character == '.')
+                character == '_')
             rule->name += character;
         else
             break;
@@ -40,18 +39,30 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     if(rule->name.empty())
         throw "no rule found";
 
+    // Parse the return type, if there is one
     buffer.skip_space();
-    if(buffer.read(':') == false) {
-        errors.add("expected ':'", buffer);
-        buffer.skip_line();
-        return nullptr;
-    }
+    if(buffer.read('<')) {
 
-    buffer.skip_space();
-    rule->value = Term::parse(buffer, errors, true);
-    if(rule->value == nullptr) {
-        buffer.skip_space();
-        return nullptr;
+        char stack = 1;
+        while(true) {
+            if(buffer.finished())
+                break;
+
+            if(buffer.peek('<'))
+                stack += 1;
+            else if(buffer.peek('>'))
+                stack -= 1;
+
+            if(stack == 0)
+                break;
+
+            rule->type += buffer.read();
+        }
+
+        if(buffer.read('>') == false) {
+            errors.add("no closing '>' for rule type", buffer);
+        }
+
     }
 
     return rule;
