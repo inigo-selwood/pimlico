@@ -9,32 +9,12 @@ file(GLOB_RECURSE LIBRARY_SOURCE_FILES source/*.cpp)
 add_library(pimlico_library STATIC ${LIBRARY_SOURCE_FILES})
 target_include_directories(pimlico_library PRIVATE "source/")
 
-# Buffer tests
-file(GLOB_RECURSE BUFFER_TERM_SOURCE_FILES tests/buffer/*.cpp)
-add_executable(test_buffer ${BUFFER_TERM_SOURCE_FILES})
-target_link_libraries(test_buffer PRIVATE pimlico_library)
-target_include_directories(test_buffer PRIVATE "source/")
-target_include_directories(test_buffer PRIVATE "tests/include")
-set_target_properties(test_buffer
-        PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-    ${CMAKE_SOURCE_DIR}/tests/binaries)
-
-# Term tests
-file(GLOB_RECURSE TEST_TERM_SOURCE_FILES tests/grammar/term/*.cpp)
-add_executable(test_term ${TEST_TERM_SOURCE_FILES})
-target_link_libraries(test_term PRIVATE pimlico_library)
-target_include_directories(test_term PRIVATE "source/")
-target_include_directories(test_term PRIVATE "tests/include")
-set_target_properties(test_term
-        PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-        ${CMAKE_SOURCE_DIR}/tests/binaries)
-
-# Production tests
-file(GLOB_RECURSE TEST_PRODUCTION_SOURCE_FILES tests/grammar/production/*.cpp)
-add_executable(test_production ${TEST_PRODUCTION_SOURCE_FILES})
-target_link_libraries(test_production PRIVATE pimlico_library)
-target_include_directories(test_production PRIVATE "source/")
-target_include_directories(test_production PRIVATE "tests/include")
-set_target_properties(test_production
+# Tests
+file(GLOB_RECURSE TEST_SOURCE_FILES tests/*.cpp)
+add_executable(test ${TEST_SOURCE_FILES})
+target_link_libraries(test PRIVATE pimlico_library)
+target_include_directories(test PRIVATE "source/")
+target_include_directories(test PRIVATE "tests/include")
+set_target_properties(test
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY
         ${CMAKE_SOURCE_DIR}/tests/binaries)

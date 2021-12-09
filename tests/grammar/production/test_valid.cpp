@@ -5,7 +5,7 @@
 
 using namespace Pimlico;
 
-TEST_CASE("no-expression") {
+TEST_CASE("production.no-expression") {
     Buffer::Parse buffer("a");
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
@@ -15,7 +15,7 @@ TEST_CASE("no-expression") {
     REQUIRE(production);
 }
 
-TEST_CASE("empty-expression") {
+TEST_CASE("production.empty-expression") {
     Buffer::Parse buffer("a {}");
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
@@ -25,7 +25,7 @@ TEST_CASE("empty-expression") {
     REQUIRE(production);
 }
 
-TEST_CASE("non-empty-expression") {
+TEST_CASE("production.non-empty-expression") {
     std::string production_string = "a {\n"
         "return nullptr;\n"
         "}\n";
@@ -39,7 +39,7 @@ TEST_CASE("non-empty-expression") {
     REQUIRE(production);
 }
 
-TEST_CASE("expression-with-binding") {
+TEST_CASE("production.expression-with-binding") {
     std::string production_string = "value: a {\n"
         "return @value;\n"
         "}\n";
