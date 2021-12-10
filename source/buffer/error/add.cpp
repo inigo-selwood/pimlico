@@ -18,7 +18,7 @@ void Error::add(const std::string &text, const Parse &buffer) {
 void Error::add(const std::string &text,
         const Parse &buffer,
         const Position &position) {
-    
+
     this->instances.push_back(new Reference(text, buffer, position));
 }
 

@@ -11,7 +11,7 @@ std::ostream &operator<<(std::ostream &stream, const Reference &reference) {
 
 void Reference::print(std::ostream &stream) const {
     stream << this->position << ' ' << this->message << '\n';
-    stream << this->text;
+    stream << "    " << this->text << '\n';
 }
 
 }; // Namespace Buffer
