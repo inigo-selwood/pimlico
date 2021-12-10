@@ -24,15 +24,18 @@ parse_logic_exception
 */
 Production *Production::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
+    // Create a production
     Production *production = new Production();
     production->position = buffer.position;
 
+    // Parse a term sequence
     production->value = Term::parse(buffer, errors, true);
     if(production->value == nullptr) {
         buffer.skip_space();
         return nullptr;
     }
 
+    // Check if there's an expression associated
     buffer.skip_space();
     if(buffer.read('{')) {
         char stack = 1;
