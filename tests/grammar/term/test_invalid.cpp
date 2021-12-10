@@ -32,6 +32,14 @@ TEST_CASE("term.illogical-instance-bounds") {
         const Term *term = Term::parse(buffer, errors);
         REQUIRE(term == nullptr);
     }
+
+
+    SECTION("zero-instance") {
+        Buffer::Parse buffer("'a'{0}");
+        Buffer::Error errors;
+        const Term *term = Term::parse(buffer, errors);
+        REQUIRE(term == nullptr);
+    }
 }
 
 TEST_CASE("term.illogical-range") {
