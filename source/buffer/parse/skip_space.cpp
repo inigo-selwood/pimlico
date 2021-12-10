@@ -4,11 +4,15 @@ namespace Pimlico {
 
 namespace Buffer {
 
+// Skip space (not including newlines)
 void Parse::skip_space() {
     while(true) {
+
+        // Stop iterating if the end of the buffer has been reached
         if(this->position.index == this->length)
             return;
 
+        // Skip spaces, tabs, and carriage returns
         char character = this->text[this->position.index];
         if(character == ' '
                 || character == '\t'

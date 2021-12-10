@@ -4,12 +4,14 @@ namespace Pimlico {
 
 namespace Buffer {
 
+// Constructor
 Position::Position() {
     this->index = 0;
     this->line = 0;
     this->column = 0;
 }
 
+// Constructor
 Position::Position(const bool &empty) {
     this->index = 0;
 

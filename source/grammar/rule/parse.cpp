@@ -24,11 +24,13 @@ parse_logic_exception
 */
 Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
-    // Create a rule
+    // Create a new rule at the current position
     Rule *rule = new Rule();
+    if(rule == nullptr)
+        return nullptr;
     rule->position = buffer.position;
 
-    // Parse the rule's name
+    // Parse the rule's name (all lowercase/underscore)
     while(true) {
         char character = buffer.peek();
         if((character >= 'a' && character <= 'z') ||
@@ -37,6 +39,8 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         else
             break;
     }
+
+    // Check a name was found where one was expected
     if(rule->name.empty()) {
         delete rule;
         throw "no rule found";
@@ -46,6 +50,7 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     buffer.skip_space();
     if(buffer.read('<')) {
 
+        // Keep reading until the end of the type embedding is reached
         char stack = 1;
         while(true) {
             if(buffer.finished())
@@ -62,15 +67,16 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
             rule->type += buffer.read();
         }
 
+        // Check there was a closing angle-bracket for the embedded type
         if(buffer.read('>') == false) {
             errors.add("no closing '>' for rule type", buffer);
         }
     }
 
-    // Check for ':='
+    // Check for rule-production separator
     buffer.skip_space();
     if(buffer.read(":=") == false) {
-        errors.add("expected ':=' between rule name and definition", buffer);
+        errors.add("expected ':='", buffer);
         delete rule;
         return nullptr;
     }
