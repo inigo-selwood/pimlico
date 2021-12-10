@@ -24,20 +24,23 @@ parse_logic_exception
 */
 Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
+    // Create a rule
     Rule *rule = new Rule();
     rule->position = buffer.position;
 
+    // Parse the rule's name
     while(true) {
         char character = buffer.peek();
         if((character >= 'a' && character <= 'z') ||
                 character == '_')
-            rule->name += character;
+            rule->name += buffer.read();
         else
             break;
     }
-
-    if(rule->name.empty())
+    if(rule->name.empty()) {
+        delete rule;
         throw "no rule found";
+    }
 
     // Parse the return type, if there is one
     buffer.skip_space();
@@ -62,7 +65,53 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         if(buffer.read('>') == false) {
             errors.add("no closing '>' for rule type", buffer);
         }
+    }
 
+    // Check for ':='
+    buffer.skip_space();
+    if(buffer.read(":=") == false) {
+        errors.add("expected ':=' between rule name and definition", buffer);
+        delete rule;
+        return nullptr;
+    }
+
+    bool parse_errors = false;
+    while(true) {
+
+        // Check the buffer isn't finished, that there's a newline, and that the
+        // next line is properly indented
+        buffer.skip_space();
+        if(buffer.finished())
+            break;
+
+        // If there's a newline break, make sure the next line is indented
+        // properly
+        if(buffer.peek('\n')
+                && buffer.line_indentation(buffer.position.line + 1) != 4)
+            break;
+
+        // Try to parse a production instance
+        buffer.skip_whitespace();
+        Production *production = Production::parse(buffer, errors);
+        if(production == nullptr) {
+            parse_errors = true;
+            buffer.skip_line();
+            continue;
+        }
+        rule->productions.push_back(production);
+    }
+
+    // Return any parse errors
+    if(parse_errors) {
+        delete rule;
+        return nullptr;
+    }
+
+    // Check for errors
+    if(rule->productions.empty()) {
+        errors.add("no productions specified for rule", buffer);
+        delete rule;
+        return nullptr;
     }
 
     return rule;

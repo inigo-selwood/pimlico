@@ -19,13 +19,10 @@ void Parse::increment() {
     switch(this->text[position.index]) {
 
         // Handle newlines, increment the line, column values
-        case '\n': {
-
-
+        case '\n':
             position.line += 1;
             position.column = 1;
             break;
-        }
 
         // Handle tabs, increase indentation up to the next multiple of 4
         case '\t':
@@ -35,8 +32,8 @@ void Parse::increment() {
         // Otherwise, (assuming the character is in the range [ -~], increment
         // the column
         default:
-            if(this->text[position.index] < ' '
-                    || this->text[position.index] > '~')
+            if(this->text[position.index] >= ' '
+                    && this->text[position.index] <= '~')
                 position.column += 1;
     }
 }

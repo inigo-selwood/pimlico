@@ -10,7 +10,7 @@ std::ostream &operator<<(std::ostream &stream, const Message &message) {
 }
 
 void Message::print(std::ostream &stream) const {
-    stream << this->text;
+    stream << this->text << '\n';
 }
 
 }; // Namespace Buffer

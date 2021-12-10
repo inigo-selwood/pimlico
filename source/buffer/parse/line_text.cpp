@@ -9,7 +9,7 @@ namespace Buffer {
 std::string Parse::line_text(long line_number) const {
     if(line_number <= 0)
         line_number = this->position.line;
-    else if(line_number < 1 || line_number > this->indextations.size())
+    if(line_number < 1 || line_number > this->indextations.size())
         return std::string();
 
     long start_index = 0;

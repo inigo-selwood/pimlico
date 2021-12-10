@@ -7,7 +7,7 @@ namespace Buffer {
 Reference::Reference(const std::string &message, const Parse &buffer) {
     this->message = message;
     this->text = buffer.line_text();
-    this->position = position;
+    this->position = buffer.position;
 }
 
 Reference::Reference(const std::string &message,
@@ -16,7 +16,7 @@ Reference::Reference(const std::string &message,
 
     this->message = message;
     this->text = buffer.line_text(position.line);
-    this->position = position;    
+    this->position = position;
 }
 
 }; // Namespace Buffer
