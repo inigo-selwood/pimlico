@@ -64,7 +64,7 @@ Parse::Parse(const std::string &text) {
     this->length = text.length();
     this->indextations = read_index_indentations(text);
 
-    const bool empty = length == 0;
+    const bool empty = this->length == 0;
     this->position = Buffer::Position(empty);
 }
 

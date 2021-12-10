@@ -49,7 +49,7 @@ bool Parse::read(const std::string &string) {
     if(this->position.index + string.length() >= this->length)
         return false;
 
-    if(this->text.substr(this->position.index, string.length()) == string)
+    if(this->text.substr(this->position.index, string.length()) != string)
         return false;
 
     this->increment(string.length());
