@@ -225,11 +225,10 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
         // If it's an embedded expression, we just return the default bounds,
         // and allow the production which invoked this function to handle
         // whatever the embedded slice is.
-        char count = 0;
         char digits = 0;
         bool semi_colon = false;
         bool terminated = false;
-        while(true) {
+        for(int index = 0; index < 12; index += 1) {
             if(buffer.finished()) {
                 errors.add("expected '}'", buffer);
                 return {0, 0};
@@ -238,8 +237,8 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
             // Check whether the character at the current index is a digit,
             // a semi-colon, or the closing bracket
             const char character = buffer.peek();
-            if(character > '0' && character < '9')
-                digits += 1;
+            if(character >= '0' && character <= '9')
+                digits = 1;
             else if(character == ':')
                 semi_colon = true;
             else if(buffer.peek('}')) {
@@ -247,19 +246,18 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
                 break;
             }
 
-            // Increment the buffer and our little timeout counter
+            // Increment the buffer
             buffer.read();
-            count += 1;
-            if(count >= 12)
-                break;
         }
 
         // Reset the buffer's position for whatever comes next
         buffer.position = start_position;
 
-        // If there's both opening and closing brackets, numbers inside them,
-        // and a semi-colon -- it's almost definitely a bound specifier
-        if(terminated && (digits | semi_colon))
+        // If there's any combination of two or more of the criteria, it's
+        // likely to be a specific bound value
+        if((terminated && semi_colon) ||
+                (digits && semi_colon) ||
+                (terminated && digits))
             return parse_specific_bounds(buffer, errors);
 
         return {1, 1};
@@ -350,19 +348,21 @@ Term *Term::parse(Buffer::Parse &buffer,
     buffer.skip_space();
     if(enclosed && buffer.read(')') == false) {
         errors.add("expected ')'", buffer);
+        delete term;
         return nullptr;
     }
 
     // Parse bounds
     buffer.skip_space();
     term->bounds = parse_bounds(buffer, errors);
-    if(std::get<0>(term->bounds) == 0 && std::get<1>(term->bounds) == 0)
+    if(std::get<0>(term->bounds) == 0 && std::get<1>(term->bounds) == 0) {
+        delete term;
         return nullptr;
+    }
 
     term->predicate = predicate;
     term->binding = binding;
     return term;
-
 }
 
 }; // Namespace Pimlico
