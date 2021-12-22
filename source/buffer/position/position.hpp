@@ -18,6 +18,8 @@ public:
     friend std::ostream &operator<<(std::ostream &stream,
             const Position &position);
 
+    bool operator==(const Position &other) const;
+
     Position();
     Position(const bool &empty);
 
