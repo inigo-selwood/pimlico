@@ -86,32 +86,39 @@ Range *Range::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     // Parse the start value
     buffer.skip_space();
     char start_value = parse_character(buffer, errors);
-    if(start_value == 0)
+    if(start_value == 0) {
+        delete range;
         return nullptr;
+    }
 
     // Check for the comma separator
     buffer.skip_space();
     if(buffer.read('-') == false) {
         errors.add("expected '-'", buffer);
+        delete range;
         return nullptr;
     }
 
     // Parse the end value
     buffer.skip_space();
     char end_value = parse_character(buffer, errors);
-    if(end_value == 0)
+    if(end_value == 0) {
+        delete range;
         return nullptr;
+    }
 
     // Check for a closing bracket
     buffer.skip_space();
     if(buffer.read(']') == false) {
         errors.add("expected ']'", buffer);
+        delete range;
         return nullptr;
     }
 
     // Verify the range is a valid one
     if(start_value >= end_value) {
         errors.add("illogical range values", buffer);
+        delete range;
         return nullptr;
     }
 

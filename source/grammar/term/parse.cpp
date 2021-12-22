@@ -286,10 +286,6 @@ Term *Term::parse(Buffer::Parse &buffer,
         Buffer::Error &errors,
         const bool root) {
 
-    // Treat the root term as a sequence
-    if(root)
-        return Sequence::parse(buffer, errors);
-
     // Check if there's a binding hint
     std::string binding;
     const char character = buffer.peek();
@@ -298,14 +294,15 @@ Term *Term::parse(Buffer::Parse &buffer,
         const std::string identifier = parse_binding(buffer);
 
         buffer.skip_space();
-        if(buffer.finished() == false) {
-            if(buffer.read(':'))
-                binding = identifier;
-        }
-
-        if(binding == "")
+        if(identifier.empty() == false && buffer.read(':'))
+            binding = identifier;
+        else
             buffer.position = start_position;
     }
+
+    // Treat the root term as a sequence
+    if(root)
+        return Sequence::parse(buffer, errors);
 
     // Check for predicates
     Term::Predicate predicate = Predicate::NONE;

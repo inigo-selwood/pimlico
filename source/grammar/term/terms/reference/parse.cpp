@@ -36,8 +36,10 @@ Reference *Reference::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
             break;
     }
 
-    if(reference->name.empty())
+    if(reference->name.empty()) {
+        delete reference;
         throw "no reference found";
+    }
 
     return reference;
 }

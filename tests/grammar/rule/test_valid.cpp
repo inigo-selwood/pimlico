@@ -8,10 +8,15 @@ TEST_CASE("rule.basic") {
     Buffer::Parse buffer("rule := a");
     Buffer::Error errors;
     const Rule *rule = Rule::parse(buffer, errors);
-
-    if(rule == nullptr)
+    
+    if(rule == nullptr) {
         std::cerr << errors;
+        return;
+    }
+    std::cout << *rule << '\n';
+
     REQUIRE(rule);
+    delete rule;
 }
 
 TEST_CASE("rule.basic-typed-inline") {
@@ -19,9 +24,14 @@ TEST_CASE("rule.basic-typed-inline") {
     Buffer::Error errors;
     const Rule *rule = Rule::parse(buffer, errors);
 
-    if(rule == nullptr)
+    if(rule == nullptr) {
         std::cerr << errors;
+        return;
+    }
+    std::cout << *rule << '\n';
+
     REQUIRE(rule);
+    delete rule;
 }
 
 TEST_CASE("rule.basic-multi-line") {
@@ -32,7 +42,12 @@ TEST_CASE("rule.basic-multi-line") {
     Buffer::Error errors;
     const Rule *rule = Rule::parse(buffer, errors);
 
-    if(rule == nullptr)
+    if(rule == nullptr) {
         std::cerr << errors;
+        return;
+    }
+    std::cout << *rule << '\n';
+
     REQUIRE(rule);
+    delete rule;
 }

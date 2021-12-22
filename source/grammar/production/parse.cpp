@@ -26,14 +26,18 @@ Production *Production::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
     // Create a production
     Production *production = new Production();
+    if(production == nullptr)
+        return nullptr;
     production->position = buffer.position;
 
     // Parse a term sequence
-    production->value = Term::parse(buffer, errors, true);
-    if(production->value == nullptr) {
+    Term *term = Term::parse(buffer, errors, true);
+    if(term == nullptr) {
         buffer.skip_space();
+        delete production;
         return nullptr;
     }
+    production->value = term;
 
     // Check if there's an expression associated
     buffer.skip_space();
@@ -54,8 +58,10 @@ Production *Production::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
             production->expression += buffer.read();
         }
 
-        if(buffer.read('}') == false)
+        if(buffer.read('}') == false) {
             errors.add("no closing '}' for production expression");
+            return nullptr;
+        }
     }
 
     return production;

@@ -84,6 +84,8 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     bool parse_errors = false;
     while(true) {
 
+        const Buffer::Position start_position = buffer.position;
+
         // Check the buffer isn't finished, that there's a newline, and that the
         // next line is properly indented
         buffer.skip_space();
@@ -101,9 +103,15 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         Production *production = Production::parse(buffer, errors);
         if(production == nullptr) {
             parse_errors = true;
-            buffer.skip_line();
-            continue;
+
+            if(buffer.position == start_position)
+                break;
+            else {
+                buffer.skip_line();
+                continue;
+            }
         }
+
         rule->productions.push_back(production);
     }
 

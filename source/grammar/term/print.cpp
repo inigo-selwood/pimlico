@@ -62,6 +62,9 @@ stream
     the stream, having been printed to
 */
 std::ostream &operator<<(std::ostream &stream, const Term &term) {
+    if(term.binding.empty() == false)
+        stream << term.binding << ": ";
+    
     if(term.predicate == Term::Predicate::AND)
         stream << '&';
     else if(term.predicate == Term::Predicate::NOT)

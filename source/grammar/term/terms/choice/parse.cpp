@@ -26,13 +26,16 @@ Term *Choice::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     Choice *choice = new Choice();
     choice->position = buffer.position;
 
+    std::vector<Term *> values;
     while(true) {
 
         // Parse option
         Term *value = Term::parse(buffer, errors, false);
-        if(value == nullptr)
+        if(value == nullptr) {
+            delete choice;
             return nullptr;
-        choice->values.push_back(value);
+        }
+        values.push_back(value);
 
         // Stop parsing terms if the end-of-file or end-of-line have been
         // reached, or if there's no pipe character
@@ -45,22 +48,26 @@ Term *Choice::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         buffer.skip_space();
         if(buffer.finished()) {
             errors.add("unexpected end-of-file in choice", buffer);
+            delete choice;
             return nullptr;
         }
         else if(buffer.peek('\n')) {
             errors.add("unexpected end-of-line in choice", buffer);
+            delete choice;
             return nullptr;
         }
         else if(buffer.peek(')')) {
             errors.add("unexpected ')' in choice", buffer);
+            delete choice;
             return nullptr;
         }
     }
 
     // If the choice only has one option, return that instead
-    if(choice->values.size() == 1)
-        return choice->values.back();
+    if(values.size() == 1)
+        return values.back();
 
+    choice->values = values;
     return choice;
 }
 

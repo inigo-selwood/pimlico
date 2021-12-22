@@ -5,61 +5,97 @@
 using namespace Pimlico;
 
 TEST_CASE("term.basic-terms") {
+    std::string text = "'a' b ['a' - 'z']";
     Buffer::Parse buffer("'a' b ['a' - 'z']");
     Buffer::Error errors;
-    const Term *term = Term::parse(buffer, errors);
+    const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr)
+    if(term == nullptr) {
         std::cerr << errors;
+        return;
+    }
+    std::cout << text << " -> " << *term << '\n';
+
     REQUIRE(term);
+    delete term;
 }
 
 TEST_CASE("term.choice-within-sequence") {
-    Buffer::Parse buffer("'a' | 'b' 'c'");
+    std::string text = "'a' | 'b' 'c'";
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
-    const Term *term = Term::parse(buffer, errors);
+    const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr)
+    if(term == nullptr) {
         std::cerr << errors;
+        return;
+    }
+    std::cout << text << " -> " << *term << '\n';
+
     REQUIRE(term);
+    delete term;
 }
 
 TEST_CASE("term.instance-hints") {
-    Buffer::Parse buffer("'a'+ 'b'* 'c'? 'd'{1 : 1} 'e'{:1} 'f'{1:} 'g'{1}");
+    std::string text = "'a'+ 'b'* 'c'? 'd'{1 : 1} 'e'{:1} 'f'{1:} 'g'{1}";
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
-    const Term *term = Term::parse(buffer, errors);
+    const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr)
+    if(term == nullptr) {
         std::cerr << errors;
+        return;
+    }
+    std::cout << text << " -> " << *term << '\n';
+
     REQUIRE(term);
+    delete term;
 }
 
 TEST_CASE("term.predicates") {
-    Buffer::Parse buffer("&'a' !'b'");
+    std::string text = "&'a' !'b'";
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
-    const Term *term = Term::parse(buffer, errors);
+    const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr)
+    if(term == nullptr) {
         std::cerr << errors;
+        return;
+    }
+    std::cout << text << " -> " << *term << '\n';
+
     REQUIRE(term);
+    delete term;
 }
 
 TEST_CASE("term.sequence-within-choice") {
-    Buffer::Parse buffer("'a' | ('b' 'c')");
+    std::string text = "'a' | ('b' 'c')";
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
-    const Term *term = Term::parse(buffer, errors);
+    const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr)
+    if(term == nullptr) {
         std::cerr << errors;
+        return;
+    }
+    std::cout << text << " -> " << *term << '\n';
+
     REQUIRE(term);
+    delete term;
 }
 
 TEST_CASE("term.bindings") {
-    Buffer::Parse buffer("a: 'a' b: b c: ['a' - 'z'] d: 'a' | 'b'");
+    std::string text = "a: 'a' b: b c: ['a' - 'z'] d: 'a' | 'b'";
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
-    const Term *term = Term::parse(buffer, errors);
+    const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr)
+    if(term == nullptr) {
         std::cerr << errors;
+        return;
+    }
+    std::cout << text << " -> " << *term << '\n';
+
     REQUIRE(term);
+    delete term;
 }

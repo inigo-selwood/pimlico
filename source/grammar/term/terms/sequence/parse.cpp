@@ -31,12 +31,15 @@ Term *Sequence::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     Sequence *sequence = new Sequence();
     sequence->position = buffer.position;
 
+    std::vector<Term *> values;
     while(true) {
 
         Term *value = Choice::parse(buffer, errors);
-        if(value == nullptr)
+        if(value == nullptr) {
+            delete sequence;
             return nullptr;
-        sequence->values.push_back(value);
+        }
+        values.push_back(value);
 
         buffer.skip_space();
         if(buffer.finished()
@@ -46,9 +49,12 @@ Term *Sequence::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
             break;
     }
 
-    if(sequence->values.size() == 1)
-        return sequence->values.back();
+    if(values.size() == 1) {
+        delete sequence;
+        return values.back();
+    }
 
+    sequence->values = values;
     return sequence;
 }
 

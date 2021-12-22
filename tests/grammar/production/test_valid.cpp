@@ -6,49 +6,59 @@
 using namespace Pimlico;
 
 TEST_CASE("production.no-expression") {
-    Buffer::Parse buffer("a");
+    std::string text = "a";
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
 
-    if(production == nullptr)
-        std::cerr << errors;
+    std::cerr << errors;
     REQUIRE(production);
+    std::cout << text << " -> " << *production << '\n';
+
+    delete production;
 }
 
 TEST_CASE("production.empty-expression") {
-    Buffer::Parse buffer("a {}");
+    std::string text = "a {}";
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
 
-    if(production == nullptr)
-        std::cerr << errors;
+    std::cerr << errors;
     REQUIRE(production);
+    std::cout << text << " -> " << *production << '\n';
+
+    delete production;
 }
 
 TEST_CASE("production.non-empty-expression") {
-    std::string production_string = "a {\n"
-        "return nullptr;\n"
+    std::string text = "a {\n"
+        "    return nullptr;\n"
         "}\n";
-    Buffer::Parse buffer(production_string);
+    Buffer::Parse buffer(text);
 
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
 
-    if(production == nullptr)
-        std::cout << errors << std::endl;
+    std::cerr << errors;
     REQUIRE(production);
+    std::cout << text << "\n->\n" << *production << '\n';
+
+    delete production;
 }
 
 TEST_CASE("production.expression-with-binding") {
-    std::string production_string = "value: a {\n"
-        "return @value;\n"
+    std::string text = "value: a {\n"
+        "    return @value;\n"
         "}\n";
-    Buffer::Parse buffer(production_string);
+    Buffer::Parse buffer(text);
 
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
 
-    if(production == nullptr)
-        std::cerr << errors;
+    std::cerr << errors;
     REQUIRE(production);
+    std::cout << text << "\n->\n" << *production << '\n';
+
+    delete production;
 }

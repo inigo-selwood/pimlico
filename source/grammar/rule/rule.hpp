@@ -17,6 +17,8 @@ public:
     std::string name;
     std::string type;
 
+    friend std::ostream &operator<<(std::ostream &stream, const Rule &rule);
+
     Rule();
 
     static Rule *parse(Buffer::Parse &buffer, Buffer::Error &errors);
