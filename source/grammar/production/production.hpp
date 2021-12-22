@@ -16,6 +16,9 @@ public:
 
     std::string expression;
 
+    friend std::ostream &operator<<(std::ostream &stream,
+            const Production &production);
+
     Production();
 
     static Production *parse(Buffer::Parse &buffer, Buffer::Error &errors);
