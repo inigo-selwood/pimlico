@@ -19,7 +19,9 @@ public:
 
     friend std::ostream &operator<<(std::ostream &stream,
             const Error &position);
-    
+
+    operator bool() const;
+
     void add(const std::string &text);
     void add(const std::string &text, const Parse &buffer);
     void add(const std::string &text,
