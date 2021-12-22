@@ -10,13 +10,14 @@ TEST_CASE("term.basic-terms") {
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr) {
-        std::cerr << errors;
-        return;
-    }
-    std::cout << text << " -> " << *term << '\n';
-
+    if(errors)
+        WARN(errors);
     REQUIRE(term);
+
+    INFO("text: " << text);
+    INFO("result: " << *term);
+    REQUIRE(buffer.finished());
+
     delete term;
 }
 
@@ -26,13 +27,14 @@ TEST_CASE("term.choice-within-sequence") {
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr) {
-        std::cerr << errors;
-        return;
-    }
-    std::cout << text << " -> " << *term << '\n';
-
+    if(errors)
+        WARN(errors);
     REQUIRE(term);
+
+    INFO("text: " << text);
+    INFO("result: " << *term);
+    REQUIRE(buffer.finished());
+
     delete term;
 }
 
@@ -42,13 +44,14 @@ TEST_CASE("term.instance-hints") {
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr) {
-        std::cerr << errors;
-        return;
-    }
-    std::cout << text << " -> " << *term << '\n';
-
+    if(errors)
+        WARN(errors);
     REQUIRE(term);
+
+    INFO("text: " << text);
+    INFO("result: " << *term);
+    REQUIRE(buffer.finished());
+
     delete term;
 }
 
@@ -58,13 +61,14 @@ TEST_CASE("term.predicates") {
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr) {
-        std::cerr << errors;
-        return;
-    }
-    std::cout << text << " -> " << *term << '\n';
-
+    if(errors)
+        WARN(errors);
     REQUIRE(term);
+
+    INFO("text: " << text);
+    INFO("result: " << *term);
+    REQUIRE(buffer.finished());
+
     delete term;
 }
 
@@ -74,13 +78,14 @@ TEST_CASE("term.sequence-within-choice") {
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr) {
-        std::cerr << errors;
-        return;
-    }
-    std::cout << text << " -> " << *term << '\n';
-
+    if(errors)
+        WARN(errors);
     REQUIRE(term);
+
+    INFO("text: " << text);
+    INFO("result: " << *term);
+    REQUIRE(buffer.finished());
+
     delete term;
 }
 
@@ -90,12 +95,13 @@ TEST_CASE("term.bindings") {
     Buffer::Error errors;
     const Term *term = Term::parse(buffer, errors, true);
 
-    if(term == nullptr) {
-        std::cerr << errors;
-        return;
-    }
-    std::cout << text << " -> " << *term << '\n';
-
+    if(errors)
+        WARN(errors);
     REQUIRE(term);
+
+    INFO("text: " << text);
+    INFO("result: " << *term);
+    REQUIRE(buffer.finished());
+
     delete term;
 }

@@ -5,49 +5,54 @@
 using namespace Pimlico;
 
 TEST_CASE("rule.basic") {
-    Buffer::Parse buffer("rule := a");
+    std::string text = "rule := a";
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
     const Rule *rule = Rule::parse(buffer, errors);
-    
-    if(rule == nullptr) {
-        std::cerr << errors;
-        return;
-    }
-    std::cout << *rule << '\n';
 
+    if(errors)
+        WARN(errors);
     REQUIRE(rule);
+
+    INFO("text: " << text);
+    INFO("result: " << *rule);
+    REQUIRE(buffer.finished());
+
     delete rule;
 }
 
 TEST_CASE("rule.basic-typed-inline") {
-    Buffer::Parse buffer("rule <std::string> := a");
+    std::string text = "rule <std::string> := a";
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
     const Rule *rule = Rule::parse(buffer, errors);
 
-    if(rule == nullptr) {
-        std::cerr << errors;
-        return;
-    }
-    std::cout << *rule << '\n';
-
+    if(errors)
+        WARN(errors);
     REQUIRE(rule);
+
+    INFO("text: " << text);
+    INFO("result: " << *rule);
+    REQUIRE(buffer.finished());
+
     delete rule;
 }
 
 TEST_CASE("rule.basic-multi-line") {
-    std::string program = "rule :=\n"
+    std::string text = "rule :=\n"
             "\ta\n"
             "\tb\n";
-    Buffer::Parse buffer(program);
+    Buffer::Parse buffer(text);
     Buffer::Error errors;
     const Rule *rule = Rule::parse(buffer, errors);
 
-    if(rule == nullptr) {
-        std::cerr << errors;
-        return;
-    }
-    std::cout << *rule << '\n';
-
+    if(errors)
+        WARN(errors);
     REQUIRE(rule);
+
+    INFO("text: " << text);
+    INFO("result: " << *rule);
+    REQUIRE(buffer.finished());
+
     delete rule;
 }

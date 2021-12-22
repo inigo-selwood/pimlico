@@ -11,9 +11,13 @@ TEST_CASE("production.no-expression") {
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
 
-    std::cerr << errors;
+    if(errors)
+        WARN(errors);
     REQUIRE(production);
-    std::cout << text << " -> " << *production << '\n';
+
+    INFO("text: " << text);
+    INFO("result: " << *production);
+    REQUIRE(buffer.finished());
 
     delete production;
 }
@@ -24,9 +28,13 @@ TEST_CASE("production.empty-expression") {
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
 
-    std::cerr << errors;
+    if(errors)
+        WARN(errors);
     REQUIRE(production);
-    std::cout << text << " -> " << *production << '\n';
+
+    INFO("text: " << text);
+    INFO("result: " << *production);
+    REQUIRE(buffer.finished());
 
     delete production;
 }
@@ -40,9 +48,13 @@ TEST_CASE("production.non-empty-expression") {
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
 
-    std::cerr << errors;
+    if(errors)
+        WARN(errors);
     REQUIRE(production);
-    std::cout << text << "\n->\n" << *production << '\n';
+
+    INFO("text: " << text);
+    INFO("result: " << *production);
+    REQUIRE(buffer.finished());
 
     delete production;
 }
@@ -56,9 +68,13 @@ TEST_CASE("production.expression-with-binding") {
     Buffer::Error errors;
     const Production *production = Production::parse(buffer, errors);
 
-    std::cerr << errors;
+    if(errors)
+        WARN(errors);
     REQUIRE(production);
-    std::cout << text << "\n->\n" << *production << '\n';
+
+    INFO("text: " << text);
+    INFO("result: " << *production);
+    REQUIRE(buffer.finished());
 
     delete production;
 }
