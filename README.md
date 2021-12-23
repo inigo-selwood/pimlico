@@ -1,6 +1,7 @@
 # Pimlico
 
 ![Build](https://github.com/inigo-selwood/Pimlico/actions/workflows/build.yaml/badge.svg)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.github.com/2dda5da8e52e2be176c1df0f520d06c5.json)
 
 A simple lexer and parser toolchain
 
