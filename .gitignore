@@ -7,3 +7,10 @@ Makefile
 
 # Test binaries
 tests/binaries/
+
+# Coverage report files
+coverage/
+coverage.base
+coverage.capture
+coverage.info
+coverage.total

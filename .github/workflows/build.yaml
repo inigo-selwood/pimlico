@@ -16,5 +16,6 @@ jobs:
 
     - name: Compile
       run: |
+        sudo apt-get install lcov
         cmake .
         make pimlico_library -j4

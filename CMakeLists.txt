@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.14)
 project(pimlico CXX)
 
+# Link CMake gcov module
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
+include(coverage)
+append_coverage_compiler_flags()
+set(COVERAGE_EXCLUDES
+        "${CMAKE_SOURCE_DIR}/tests*"
+        "/usr*")
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3")
 set(CMAKE_BUILD_PARALLEL_LEVEL "4")
@@ -19,3 +27,11 @@ target_include_directories(test PRIVATE "tests/include")
 set_target_properties(test
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY
         ${CMAKE_SOURCE_DIR}/tests/binaries)
+
+APPEND_COVERAGE_COMPILER_FLAGS()
+SETUP_TARGET_FOR_COVERAGE_LCOV(
+        NAME coverage
+        EXECUTABLE tests/binaries/test || /bin/true
+        DEPENDENCIES
+            pimlico_library
+            test)
