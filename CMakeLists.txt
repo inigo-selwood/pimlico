@@ -6,8 +6,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
 include(coverage)
 append_coverage_compiler_flags()
 set(COVERAGE_EXCLUDES
-        "${CMAKE_SOURCE_DIR}/tests*"
-        "/usr*")
+        "${CMAKE_SOURCE_DIR}/test*"
+        "/usr*"
+        "/Library*")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3")
