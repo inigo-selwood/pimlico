@@ -7,7 +7,8 @@ include(coverage)
 append_coverage_compiler_flags()
 set(COVERAGE_EXCLUDES
         "${CMAKE_SOURCE_DIR}/test*"
-        "/usr*")
+        "/usr*"
+        "/Library*")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3")
@@ -26,12 +27,12 @@ target_include_directories(test PRIVATE "source/")
 target_include_directories(test PRIVATE "test/include")
 set_target_properties(test
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-        ${CMAKE_SOURCE_DIR}//binaries)
+        ${CMAKE_SOURCE_DIR}/test/binaries)
 
 APPEND_COVERAGE_COMPILER_FLAGS()
 SETUP_TARGET_FOR_COVERAGE_LCOV(
         NAME coverage
-        EXECUTABLE test/binaries/test || /bin/true
+        EXECUTABLE test/binaries/test || true
         DEPENDENCIES
             pimlico_library
             test)
