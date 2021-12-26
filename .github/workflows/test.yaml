@@ -21,7 +21,10 @@ jobs:
 
     - name: Run Tests
       run: |
+        sudo apt-get install gcovr
+
         ./tests/binaries/test
+        
         gcovr \
             --root source/ \
             --object-directory CMakeFiles/ \
