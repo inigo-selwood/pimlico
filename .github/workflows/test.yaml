@@ -20,4 +20,16 @@ jobs:
         make test -j4
 
     - name: Run Tests
-      run: ./tests/binaries/test
+      run: |
+        sudo apt-get install gcovr
+
+        ./tests/binaries/test
+        
+        gcovr \
+            --root source/ \
+            --object-directory CMakeFiles/ \
+            --exclude "/usr*" \
+            --exclude "test*" \
+            --exclude "/Library*" \
+            -j4 \
+            --delete
