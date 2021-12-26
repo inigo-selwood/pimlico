@@ -33,17 +33,19 @@ endif()
 # Cleanup lcov
 set(RESET
     lcov
+        --gcov-tool gcov
         --directory .
-        --base-directory ${CMAKE_SOURCE_DIR}
-    --zerocounters > /dev/null)
+        --base-directory ${PROJECT_SOURCE_DIR}
+        --zerocounters > /dev/null)
 
 # Create baseline to make sure untouched files show up in the report
 set(GET_BASELINE
     lcov
+        --gcov-tool gcov
         --capture
         --initial
         --directory .
-        --base-directory ${CMAKE_SOURCE_DIR}
+        --base-directory ${PROJECT_SOURCE_DIR}
         --output-file coverage/coverage.base > /dev/null)
 
 # Run tests
@@ -54,14 +56,17 @@ set(RUN_TEST
 # Capturing lcov counters and generating report
 set(CAPTURE_TEST
     lcov
+        --gcov-tool gcov
         --directory .
-        --base-directory ${CMAKE_SOURCE_DIR}
+        --base-directory ${PROJECT_SOURCE_DIR}
         --capture
         --output-file coverage/coverage.capture > /dev/null)
 
 # add baseline counters
 set(COMBINE_BASELINE
     lcov
+        --gcov-tool gcov
+        --directory .
         --add-tracefile coverage/coverage.base
         --add-tracefile coverage/coverage.capture
         --output-file coverage/coverage.total > /dev/null)
@@ -69,6 +74,7 @@ set(COMBINE_BASELINE
 # filter collected data to final coverage report
 set(FILTER_RESULTS
     lcov
+        --gcov-tool gcov
         --remove coverage/coverage.total
         "${CMAKE_SOURCE_DIR}/test*" "/usr*" "/Library*"
         --output-file coverage/coverage.info > /dev/null)
@@ -77,7 +83,8 @@ set(FILTER_RESULTS
 set(GENERATE_HTML
     genhtml
         --demangle-cpp
-        -o coverage/coverage coverage/coverage.info > /dev/null)
+        --output-directory coverage
+        coverage/coverage.info > /dev/null)
 
 # Create coverage target
 add_custom_target(coverage
