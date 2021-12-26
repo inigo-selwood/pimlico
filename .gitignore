@@ -6,7 +6,7 @@ Makefile
 *.a
 
 # Test binaries
-tests/binaries/
+test/binaries/
 
 # Coverage report files
 coverage/
