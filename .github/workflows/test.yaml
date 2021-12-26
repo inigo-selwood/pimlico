@@ -14,17 +14,19 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
+    - name: Configure
+      run: sudo apt-get install gcovr
+
     - name: Compile
       run: |
         cmake .
         make test -j4
 
-    - name: Run Tests
-      run: |
-        sudo apt-get install gcovr
+    - name: Run Test
+      run: ./tests/binaries/test
 
-        ./tests/binaries/test
-        
+    - name: Evaluate coverage
+      run: |
         gcovr \
             --root source/ \
             --object-directory CMakeFiles/ \
@@ -32,4 +34,9 @@ jobs:
             --exclude "test*" \
             --exclude "/Library*" \
             -j4 \
-            --delete
+            --delete \
+            --print-summary > out.txt
+
+        cat out.txt | \
+            grep -o 'lines: .*%' | \
+            grep -o '[0-9]\+\(\.[0-9]\+\)\?' > coverage.txt
