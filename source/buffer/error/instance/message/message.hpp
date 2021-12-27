@@ -10,9 +10,6 @@ class Message : public Instance {
 
 public:
 
-    friend std::ostream &operator<<(std::ostream &stream,
-            const Message &message);
-
     Message(const std::string &text);
 
     void print(std::ostream &stream) const override;
