@@ -16,25 +16,31 @@ void Parse::increment() {
 
     position.index += 1;
 
-    switch(this->text[position.index]) {
+    if(position.index < this->length) {
+        switch(this->text[position.index]) {
 
-        // Handle newlines, increment the line, column values
-        case '\n':
-            position.line += 1;
-            position.column = 1;
-            break;
+            // Handle newlines, increment the line, column values
+            case '\n':
+                position.line += 1;
+                position.column = 1;
+                break;
 
-        // Handle tabs, increase indentation up to the next multiple of 4
-        case '\t':
-            position.column = ((3 - position.column) & ~0x03) + 1;
-            break;
+            // Handle tabs, increase indentation up to the next multiple of 4
+            case '\t':
+                position.column = ((3 - position.column) & ~0x03) + 1;
+                break;
 
-        // Otherwise, (assuming the character is in the range [ -~], increment
-        // the column
-        default:
-            if(this->text[position.index] >= ' '
-                    && this->text[position.index] <= '~')
-                position.column += 1;
+            // Otherwise, (assuming the character is in the range [ -~],
+            // increment the column
+            default:
+                if(this->text[position.index] >= ' '
+                        && this->text[position.index] <= '~')
+                    position.column += 1;
+        }
+    }
+    else {
+        position.column = 0;
+        position.line = 0;
     }
 }
 
