@@ -10,9 +10,6 @@ class Reference : public Instance {
 
 public:
 
-    friend std::ostream &operator<<(std::ostream &stream,
-            const Reference &reference);
-
     Reference(const std::string &message, const Parse &buffer);
     Reference(const std::string &message,
             const Parse &buffer,

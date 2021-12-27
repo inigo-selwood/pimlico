@@ -46,7 +46,7 @@ present
     if the string is present at the buffer's current position
 */
 bool Parse::read(const std::string &string) {
-    if(this->position.index + string.length() >= this->length)
+    if(this->position.index + string.length() > this->length)
         return false;
 
     if(this->text.substr(this->position.index, string.length()) != string)

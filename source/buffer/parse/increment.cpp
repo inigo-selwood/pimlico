@@ -11,10 +11,8 @@ indentation, and whether the line is broken
 */
 void Parse::increment() {
     Buffer::Position &position = this->position;
-    if(position.index == this->length)
+    if(position.index >= this->length)
         return;
-
-    position.index += 1;
 
     switch(this->text[position.index]) {
 
@@ -26,16 +24,18 @@ void Parse::increment() {
 
         // Handle tabs, increase indentation up to the next multiple of 4
         case '\t':
-            position.column = ((3 - position.column) & ~0x03) + 1;
+            position.column = ((position.column + 3) / 4) * 4 + 1;
             break;
 
-        // Otherwise, (assuming the character is in the range [ -~], increment
-        // the column
+        // Otherwise, (assuming the character is in the range [ -~],
+        // increment the column
         default:
             if(this->text[position.index] >= ' '
                     && this->text[position.index] <= '~')
                 position.column += 1;
     }
+
+    position.index += 1;
 }
 
 /* Increment the buffer's position
