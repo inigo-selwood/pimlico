@@ -36,24 +36,24 @@ Constant *Constant::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         if(buffer.read('\''))
             break;
 
-        // Check the character is valid
-        const char character = buffer.peek();
-        if(character < ' ' || character > '~') {
-            errors.add("invalid character in constant", buffer);
-            delete constant;
-            return nullptr;
-        }
-
         // Handle unexpected EOFs
-        else if(buffer.finished()) {
+        if(buffer.finished()) {
             errors.add("unexpected end-of-file in constant", buffer);
             delete constant;
             return nullptr;
         }
 
         // Handle unexpected EOLs
-        else if(character == '\n' || character == '\r') {
+        const char character = buffer.peek();
+        if(character == '\n' || character == '\r') {
             errors.add("unexpected end-of-line in constant", buffer);
+            delete constant;
+            return nullptr;
+        }
+
+        // Check the character is valid
+        else if(character < ' ' || character > '~') {
+            errors.add("invalid character in constant", buffer);
             delete constant;
             return nullptr;
         }
