@@ -5,8 +5,11 @@ namespace Pimlico {
 namespace Buffer {
 
 void Reference::print(std::ostream &stream) const {
-    stream << this->position << ' ' << this->message << '\n';
-    stream << "    " << this->text;
+    if(this->text.empty() == false) {
+        stream << this->position << ' ' << this->message << '\n';
+        stream << "    " << this->text;
+    } else
+        stream << this->message;
 }
 
 }; // Namespace Buffer
