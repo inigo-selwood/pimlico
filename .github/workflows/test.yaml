@@ -24,6 +24,7 @@ jobs:
         make test -j4
 
     - name: Run Test
+      continue-on-error: true
       run: ./test/binaries/test
 
     - name: Evaluate coverage
@@ -37,6 +38,7 @@ jobs:
             -j4 \
             --delete \
             --print-summary > out.txt
+        cat out.txt
 
         cat out.txt | \
             grep -o 'lines: .*%' | \
