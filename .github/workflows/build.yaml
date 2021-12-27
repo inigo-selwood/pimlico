@@ -3,6 +3,7 @@ name: Build
 on:
   push:
     paths:
+      - '**.yaml'
       - '**.cpp'
       - '**.hpp'
 
@@ -18,3 +19,14 @@ jobs:
       run: |
         cmake .
         make pimlico_library -j4
+        echo $? > passing.txt
+
+    - name: Update badge
+      with:
+        GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+      run: |
+        PASSING=`cat passing.txt`
+        python3 .github/badges/update_build_badge.py \
+            ${PASSING} \
+            2dda5da8e52e2be176c1df0f520d06c5 \
+            'pimlico-build-badge.json'
