@@ -43,3 +43,13 @@ jobs:
         cat out.txt | \
             grep -o 'lines: .*%' | \
             grep -o '[0-9]\+\(\.[0-9]\+\)\?' > coverage.txt
+
+    - name: Update badge
+      with:
+        GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+      run: |
+        COVERAGE=`cat coverage.txt`
+        python3 .github/badges/update_coverage_badge.py \
+            ${COVERAGE} \
+            2dda5da8e52e2be176c1df0f520d06c5 \
+            'pimlico-coverage-badge.json'
