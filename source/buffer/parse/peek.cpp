@@ -39,7 +39,7 @@ present
     if the string is present at the buffer's current position
 */
 bool Parse::peek(const std::string &string) const {
-    if(this->position.index + string.length() >= this->length)
+    if(this->position.index + string.length() > this->length)
         return false;
 
     return this->text.substr(this->position.index, string.length()) == string;
