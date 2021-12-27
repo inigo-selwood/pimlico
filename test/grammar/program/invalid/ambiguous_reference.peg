@@ -1,5 +1,0 @@
-parent...
-    rule: 'a'
-    other_rule: rule
-
-rule: 'b'
