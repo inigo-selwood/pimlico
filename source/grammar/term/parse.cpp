@@ -18,8 +18,7 @@ errors
 Returns
 -------
 bound
-    the instance bound, or -1 if no bound was found, or -2 if the bound found
-    was an invalid integer
+    the instance bound, or -1 if no bound was found
 */
 static int parse_bound_value(Buffer::Parse &buffer, Buffer::Error &errors) {
 
@@ -41,13 +40,7 @@ static int parse_bound_value(Buffer::Parse &buffer, Buffer::Error &errors) {
         return -1;
 
     // Parse and return integer
-    try {
-        return std::stoi(text);
-    }
-    catch(...) {
-        errors.add("invalid number in instance bound", buffer);
-        return -2;
-    }
+    return std::stoi(text);
 }
 
 static std::string parse_binding(Buffer::Parse &buffer) {
@@ -96,8 +89,6 @@ static Term::Bounds parse_specific_bounds(Buffer::Parse &buffer,
 
     // Parse the range-start value
     int start_value = parse_bound_value(buffer, errors);
-    if(start_value == -2)
-        return {0, 0};
 
     // Check to see if a colon is present
     buffer.skip_space();
@@ -109,8 +100,6 @@ static Term::Bounds parse_specific_bounds(Buffer::Parse &buffer,
     buffer.skip_space();
 
     int end_value = parse_bound_value(buffer, errors);
-    if(end_value == -2)
-        return {0, 0};
 
     if(buffer.read('}') == false) {
         errors.add("expected '}'", buffer);
