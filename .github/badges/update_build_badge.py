@@ -36,13 +36,13 @@ if __name__ == '__main__':
 
     # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('passing', type=int)
+    parser.add_argument('return_code', type=int)
     parser.add_argument('uri', type=str)
     parser.add_argument('file_name', type=str)
     arguments = parser.parse_args()
 
     # Create a badge packet from the coverage percentage
-    packet = _create_packet(bool(arguments.passing))
+    packet = _create_packet(arguments.return_code == 0)
 
     # Update a gist file with the packet, authorizing with a token
     token = os.environ.get('GIST_TOKEN')
