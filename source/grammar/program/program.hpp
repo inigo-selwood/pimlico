@@ -12,6 +12,9 @@ public:
 
     std::map<int, Rule *> rules;
 
+    friend std::ostream &operator<<(std::ostream &stream,
+            const Program &program);
+
     static Program *parse(const std::string &grammar, Buffer::Error &errors);
 
     ~Program();
