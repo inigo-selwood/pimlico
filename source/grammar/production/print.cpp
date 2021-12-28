@@ -17,13 +17,14 @@ stream
 std::ostream &operator<<(std::ostream &stream,
         const Production &production) {
 
+    // Note: Can't use a neater ternary operator here, since type-mismatch
     if(production.value == nullptr)
-        stream << "null ";
+        stream << "null";
     else
-        stream << *(production.value) << ' ';
+        stream << *(production.value);
 
     if(production.expression != "")
-        stream << '{' << production.expression << '}';
+        stream << " {" << production.expression << '}';
 
     return stream;
 }

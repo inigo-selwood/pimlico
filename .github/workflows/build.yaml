@@ -22,9 +22,8 @@ jobs:
         echo $? > passing.txt
 
     - name: Update badge
-      with:
-        GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
       run: |
+        export GIST_TOKEN=${{ secrets.GIST_TOKEN }}
         PASSING=`cat passing.txt`
         python3 .github/badges/update_build_badge.py \
             ${PASSING} \
