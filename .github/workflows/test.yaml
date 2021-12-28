@@ -46,7 +46,7 @@ jobs:
 
     - name: Update badge
       run: |
-        GIST_TOKEN=${{ secrets.GIST_TOKEN }}
+        export GIST_TOKEN=${{ secrets.GIST_TOKEN }}
         COVERAGE=`cat coverage.txt`
         python3 .github/badges/update_coverage_badge.py \
             ${COVERAGE} \

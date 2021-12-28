@@ -23,7 +23,7 @@ jobs:
 
     - name: Update badge
       run: |
-        GIST_TOKEN=${{ secrets.GIST_TOKEN }}
+        export GIST_TOKEN=${{ secrets.GIST_TOKEN }}
         PASSING=`cat passing.txt`
         python3 .github/badges/update_build_badge.py \
             ${PASSING} \
