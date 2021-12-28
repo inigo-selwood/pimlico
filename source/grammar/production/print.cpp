@@ -2,13 +2,14 @@
 
 namespace Pimlico {
 
-/* Overloads the stream print operator for a rule
+/* Overloads the stream print operator for a production
 Arguments
 ---------
 stream
     the stream to print to
 rule
-    the rule to print
+    the production to print
+
 Returns
 -------
 stream
