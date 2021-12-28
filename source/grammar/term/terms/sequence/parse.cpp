@@ -7,6 +7,15 @@
 
 namespace Pimlico {
 
+static void delete_values(std::vector<Term *> &values) {
+    while(values.empty() == false) {
+        if(values.back())
+            delete values.back();
+
+        values.pop_back();
+    }
+}
+
 /* Parses a Sequence term
 
 Sequences have the following format:
@@ -36,6 +45,7 @@ Term *Sequence::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
         Term *value = Choice::parse(buffer, errors);
         if(value == nullptr) {
+            delete_values(values);
             delete sequence;
             return nullptr;
         }
