@@ -192,78 +192,57 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
         // Copy the buffer's position to reset it later
         const Buffer::Position start_position = buffer.position;
 
-        // Check if the bracket is followed by a newline -- that's almost
-        // certainly an embedded expression
+        // Read the newline
         buffer.read('{');
-        buffer.skip_space();
-        if(buffer.peek('\n')) {
-            buffer.position = start_position;
-            return {1, 1};
-        }
 
-        // Here we're trying to guess if the curly bracket is the start of a
-        // bounds specifier, or an embedded expression.
-        // In the former case, we'd see one or more digits, a semi-colon, and
-        // a closing bracket. We can even be a bit tolerant about having all
-        // three, to avoid misinterpreting typos
+        // Evaluate a probability heuristic for the likelihood of the next few
+        // characters being a specific bounds value. This is neccessary because
+        // the both bounds specifications and embedded expressions begin with
+        // a curly bracket
 
-        // This loop counts how many of those things are encountered in the
-        // next 12 characters of the buffer, and makes a weighted guess about
-        // what it needs to parse next.
-
-        // If it's an embedded expression, we just return the default bounds,
-        // and allow the production which invoked this function to handle
-        // whatever the embedded slice is.
-        bool digits = false;
-        bool semi_colon = false;
-        bool terminated = false;
-        bool newline = false;
-        bool tabs = false;
-        bool colon = false;
+        // This heuristic increases when characters associated with bounds
+        // values (ie: digits, ':', or '}') are encountered -- and is decreased
+        // by everything else
+        signed char probability = 0;
+        char stack = 1;
         for(int index = 0; index < 12; index += 1) {
-            if(buffer.finished()) {
-                errors.add("expected '}'", buffer);
-                return {0, 0};
-            }
+            if(buffer.finished())
+                break;
 
             // Check whether the character at the current index is a digit,
-            // a semi-colon, or the closing bracket
+            // a semi-colon, or the closing bracket (all things which would
+            // indicate a bounds value)
             const char character = buffer.peek();
-            if(character >= '0' && character <= '9')
-                digits = true;
-            else if(character == ':')
-                semi_colon = true;
-            else if(character == '\t')
-                tabs = true;
-            else if(character == ';')
-                colon = true;
-            else if(buffer.peek('}')) {
-                terminated = true;
+            if((character >= '0' && character <= '9') ||
+                    character == ':' ||
+                    character == '}')
+                probability += 1;
+
+            // Otherwise (presuming it isn't whitespace), decrease the
+            // probability
+            else if(character != ' ' && character != '\t')
+                probability -= 1;
+
+            if(character == '{')
+                stack += 1;
+            else if(character == '}')
+                stack -= 1;
+
+            if(stack == 0)
                 break;
-            }
 
             // Increment the buffer
             buffer.read();
         }
-
-        // Reset the buffer's position for whatever comes next
         buffer.position = start_position;
 
-        // Calculate some heuristic of the likelihood of this being a range
-        // value, as a weighted sum of the different characteristics of both
-        // bounds values and embedded expressions
-        const int probability = digits
-                + (semi_colon * 2)
-                + terminated
-                - colon
-                - tabs
-                - (newline * 2);
-
-        // If there's any combination of two or more of the criteria, it's
-        // likely to be a specific bound value
-        if(probability >= 2)
+        // If the probability heuristic is greater than zero, it's likely the
+        // value is a specific bound
+        if(probability > 0)
             return parse_specific_bounds(buffer, errors);
 
+        // Otherwise, just ignore it. If it's an embedded expression, it will
+        // get picked up by the surrounding production parse routine
         return {1, 1};
     }
 

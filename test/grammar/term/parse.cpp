@@ -1,8 +1,6 @@
 #include <catch.hpp>
 
 #include <pimlico.hpp>
-#include <grammar/term/terms/choice/choice.hpp>
-#include <grammar/term/terms/sequence/sequence.hpp>
 
 using namespace Pimlico;
 
