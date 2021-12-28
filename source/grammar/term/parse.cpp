@@ -214,9 +214,12 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
         // If it's an embedded expression, we just return the default bounds,
         // and allow the production which invoked this function to handle
         // whatever the embedded slice is.
-        char digits = 0;
+        bool digits = false;
         bool semi_colon = false;
         bool terminated = false;
+        bool newline = false;
+        bool tabs = false;
+        bool colon = false;
         for(int index = 0; index < 12; index += 1) {
             if(buffer.finished()) {
                 errors.add("expected '}'", buffer);
@@ -227,9 +230,13 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
             // a semi-colon, or the closing bracket
             const char character = buffer.peek();
             if(character >= '0' && character <= '9')
-                digits = 1;
+                digits = true;
             else if(character == ':')
                 semi_colon = true;
+            else if(character == '\t')
+                tabs = true;
+            else if(character == ';')
+                colon = true;
             else if(buffer.peek('}')) {
                 terminated = true;
                 break;
@@ -242,11 +249,19 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
         // Reset the buffer's position for whatever comes next
         buffer.position = start_position;
 
+        // Calculate some heuristic of the likelihood of this being a range
+        // value, as a weighted sum of the different characteristics of both
+        // bounds values and embedded expressions
+        const int probability = digits
+                + (semi_colon * 2)
+                + terminated
+                - colon
+                - tabs
+                - (newline * 2);
+
         // If there's any combination of two or more of the criteria, it's
         // likely to be a specific bound value
-        if((terminated && semi_colon) ||
-                (digits && semi_colon) ||
-                (terminated && digits))
+        if(probability >= 2)
             return parse_specific_bounds(buffer, errors);
 
         return {1, 1};
