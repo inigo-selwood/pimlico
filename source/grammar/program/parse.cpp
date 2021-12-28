@@ -14,19 +14,30 @@ Program *Program::parse(const std::string &grammar, Buffer::Error &errors) {
             break;
 
         Rule *rule = Rule::parse(buffer, errors);
-        if(buffer.finished() == false )
+        if(buffer.finished() == false && buffer.peek('\n') == false)
             throw "incomplete rule parse";
-        else if(rule == nullptr) {
+
+        if(rule == nullptr) {
+            while(true) {
+                if(buffer.finished() || buffer.line_indentation() == 0)
+                    break;
+
+                buffer.skip_line();
+            }
+
             errors_found = true;
             continue;
         }
 
         int name_hash = std::hash<std::string>{}(rule->name);
-        if(program->rules.find(name_hash) == program->rules.end()) {
+        if(program->rules.find(name_hash) != program->rules.end()) {
             errors.add("rule redefinition", buffer);
             errors_found = true;
+            delete rule;
             continue;
         }
+
+        program->rules[name_hash] = rule;
     }
 
     if(errors_found)
