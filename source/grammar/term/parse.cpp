@@ -307,7 +307,8 @@ Term *Term::parse(Buffer::Parse &buffer,
     // Treat the root term as a sequence
     if(root) {
         Term *sequence = Sequence::parse(buffer, errors);
-        sequence->binding = binding;
+        if(sequence)
+            sequence->binding = binding;
         return sequence;
     }
 
