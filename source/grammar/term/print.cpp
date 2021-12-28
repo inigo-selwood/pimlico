@@ -46,7 +46,7 @@ static void print_bounds(std::ostream &stream, const Term::Bounds &bounds) {
     else if(upper == -1)
         stream << "{" << lower << ":}";
     else
-        stream << "{" << lower << " : " << upper << "}";
+        stream << "{" << lower << ":" << upper << "}";
 }
 
 /* Overloads the stream print operator for a term
@@ -64,7 +64,7 @@ stream
 std::ostream &operator<<(std::ostream &stream, const Term &term) {
     if(term.binding.empty() == false)
         stream << term.binding << ": ";
-    
+
     if(term.predicate == Term::Predicate::AND)
         stream << '&';
     else if(term.predicate == Term::Predicate::NOT)

@@ -113,7 +113,7 @@ static Term::Bounds parse_specific_bounds(Buffer::Parse &buffer,
             return {0, 0};
         }
 
-        return {-1, end_value};
+        return {start_value, start_value};
     }
 
     // N or more instances
