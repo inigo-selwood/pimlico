@@ -305,8 +305,11 @@ Term *Term::parse(Buffer::Parse &buffer,
     }
 
     // Treat the root term as a sequence
-    if(root)
-        return Sequence::parse(buffer, errors);
+    if(root) {
+        Term *sequence = Sequence::parse(buffer, errors);
+        sequence->binding = binding;
+        return sequence;
+    }
 
     // Check for predicates
     Term::Predicate predicate = Predicate::NONE;
