@@ -44,7 +44,14 @@ std::string Parse::line_text(long line_number) const {
 
     // Get the length (end - start), and return the substring
     long length = end_index - start_index;
-    return this->text.substr(start_index, length);
+    std::string line = this->text.substr(start_index, length);
+
+    const auto trimmed_start = line.find_first_not_of(" \t\r\v");
+    if(trimmed_start == std::string::npos)
+        return "";
+    
+    return line.substr(trimmed_start, std::string::npos);
+
 }
 
 }; // Namespace Buffer
