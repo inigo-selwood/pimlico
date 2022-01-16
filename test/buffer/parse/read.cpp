@@ -19,6 +19,7 @@ TEST_CASE("buffer.parse:read") {
         REQUIRE(buffer.finished());
     }
 
+    // Test newlines -- should update the line and column counters
     SECTION("check-character-newline") {
         Buffer::Parse buffer("\n");
 
@@ -28,6 +29,7 @@ TEST_CASE("buffer.parse:read") {
         REQUIRE(buffer.finished());
     }
 
+    // Test tabs -- should update the column counter
     SECTION("check-character-tab") {
         Buffer::Parse buffer("\t");
 

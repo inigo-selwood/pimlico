@@ -5,31 +5,30 @@ using namespace Pimlico;
 
 TEST_CASE("buffer.parse:line-text") {
 
+    // Text for an empty buffer should be empty
     SECTION("empty") {
         Buffer::Parse buffer("");
         REQUIRE(buffer.line_text() == "");
     }
 
-    SECTION("single-space") {
+    // Check line text works when the line is the entire buffer
+    SECTION("non-empty") {
         Buffer::Parse buffer("hello world");
         REQUIRE(buffer.line_text() == "hello world");
     }
 
+    // Check the line text for a line outside of the buffer's range is
+    // considered empty
     SECTION("out-of-range") {
         Buffer::Parse buffer("hello world");
         REQUIRE(buffer.line_text(2) == "");
     }
 
+    // Try providing the index of a specific line, the text of which to fetch
     SECTION("specific-line") {
         Buffer::Parse buffer("\nhello world");
         REQUIRE(buffer.line_text(1) == "");
         REQUIRE(buffer.line_text(2) == "hello world");
         REQUIRE(buffer.line_text(3) == "");
-    }
-
-    SECTION("specific-line") {
-        Buffer::Parse buffer("hello world\n");
-        REQUIRE(buffer.line_text(1) == "hello world");
-        REQUIRE(buffer.line_text(2) == "");
     }
 }

@@ -11,7 +11,7 @@ TEST_CASE("buffer.parse:skip-line") {
         Buffer::Position end_position;
         end_position.index = 1;
         end_position.column = 1;
-        end_position.line = 2;
+        end_position.line = 1;
 
         buffer.skip_line();
         REQUIRE(buffer.position == end_position);
