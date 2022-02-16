@@ -8,7 +8,7 @@ TEST_CASE("buffer.error:add") {
     // Adds instance of Message class
     SECTION("message") {
         Buffer::Error errors;
-        errors.add("message");
+        errors.add("test", "message");
     }
 
     // Adds instance of reference class, without specifying a buffer position
@@ -16,7 +16,7 @@ TEST_CASE("buffer.error:add") {
     SECTION("default-reference") {
         Buffer::Parse buffer("");
         Buffer::Error errors;
-        errors.add("message", buffer);
+        errors.add("test", "message", buffer);
     }
 
     // Adds instance of reference class, but specifies the position within
@@ -24,6 +24,6 @@ TEST_CASE("buffer.error:add") {
     SECTION("reference") {
         Buffer::Parse buffer("");
         Buffer::Error errors;
-        errors.add("message", buffer, buffer.position);
+        errors.add("test", "message", buffer, buffer.position);
     }
 }

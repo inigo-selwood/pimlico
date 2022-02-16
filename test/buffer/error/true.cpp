@@ -8,7 +8,7 @@ TEST_CASE("buffer.error:true") {
 
     SECTION("empty") {
         Buffer::Error errors;
-        errors.add("message");
+        errors.add("test.buffer.error", "message");
         REQUIRE(errors);
     }
 

@@ -69,14 +69,14 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
         // Check there was a closing angle-bracket for the embedded type
         if(buffer.read('>') == false) {
-            errors.add("no closing '>' for rule type", buffer);
+            errors.add("rule.parse", "no closing '>' for rule type", buffer);
         }
     }
 
     // Check for rule-production separator
     buffer.skip_space();
     if(buffer.read(":=") == false) {
-        errors.add("expected ':='", buffer);
+        errors.add("rule.parse", "expected ':='", buffer);
         delete rule;
         return nullptr;
     }
@@ -123,7 +123,7 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
     // Check for errors
     if(rule->productions.empty()) {
-        errors.add("no productions specified for rule", buffer);
+        errors.add("rule.parse", "no productions specified for rule", buffer);
         delete rule;
         return nullptr;
     }

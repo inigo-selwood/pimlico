@@ -58,15 +58,21 @@ Term *Choice::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         buffer.skip_space();
         bool error_encountered = false;
         if(buffer.finished()) {
-            errors.add("unexpected end-of-file in choice", buffer);
+            errors.add("choice.parse",
+                    "unexpected end-of-file in choice",
+                    buffer);
             error_encountered = true;
         }
         else if(buffer.peek('\n')) {
-            errors.add("unexpected end-of-line in choice", buffer);
+            errors.add("choice.parse",
+                    "unexpected end-of-line in choice",
+                    buffer);
             error_encountered = true;
         }
         else if(buffer.peek(')')) {
-            errors.add("unexpected ')' in choice", buffer);
+            errors.add("choice.parse",
+                    "unexpected ')' in choice",
+                    buffer);
             error_encountered = true;
         }
 

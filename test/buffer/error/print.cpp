@@ -10,12 +10,12 @@ TEST_CASE("buffer.error:print") {
     // Prints a message instance
     SECTION("message") {
         Buffer::Error errors;
-        errors.add("message");
+        errors.add("test.buffer.error", "message");
 
         std::stringstream stream;
         stream << errors;
 
-        REQUIRE(stream.str() == "message");
+        REQUIRE(stream.str() == "(test.buffer.error) message");
     }
 
     // Prints a reference -- but the buffer is empty, so it should be treated
@@ -23,12 +23,12 @@ TEST_CASE("buffer.error:print") {
     SECTION("reference-invalid") {
         Buffer::Parse buffer("");
         Buffer::Error errors;
-        errors.add("message", buffer);
+        errors.add("test.buffer.error", "message", buffer);
 
         std::stringstream stream;
         stream << errors;
 
-        REQUIRE(stream.str() == "message");
+        REQUIRE(stream.str() == "(test.buffer.error) message");
     }
 
     // Prints a reference (valid, this time)
@@ -37,23 +37,27 @@ TEST_CASE("buffer.error:print") {
     SECTION("reference-valid") {
         Buffer::Parse buffer("hello world");
         Buffer::Error errors;
-        errors.add("message", buffer);
+        errors.add("test.buffer.error", "message", buffer);
 
         std::stringstream stream;
         stream << errors;
 
-        REQUIRE(stream.str() == "[1:1] message\n    hello world");
+        REQUIRE(stream.str() ==
+                "[1:1] (test.buffer.error) message\n"
+                "    hello world");
     }
 
     // Print more than one error message
     SECTION("message-multiple") {
         Buffer::Error errors;
-        errors.add("message-one");
-        errors.add("message-two");
+        errors.add("test.buffer.error", "message-one");
+        errors.add("test.buffer.error", "message-two");
 
         std::stringstream stream;
         stream << errors;
 
-        REQUIRE(stream.str() == "message-one\nmessage-two");
+        REQUIRE(stream.str() ==
+                "(test.buffer.error) message-one\n"
+                "(test.buffer.error) message-two");
     }
 }

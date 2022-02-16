@@ -31,7 +31,7 @@ Program *Program::parse(const std::string &grammar, Buffer::Error &errors) {
 
         int name_hash = std::hash<std::string>{}(rule->name);
         if(program->rules.find(name_hash) != program->rules.end()) {
-            errors.add("rule redefinition", buffer);
+            errors.add("program.parse", "rule redefinition", buffer);
             errors_found = true;
             delete rule;
             continue;

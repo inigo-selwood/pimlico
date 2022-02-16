@@ -10,8 +10,11 @@ class Reference : public Instance {
 
 public:
 
-    Reference(const std::string &message, const Parse &buffer);
-    Reference(const std::string &message,
+    Reference(const std::string &source,
+            const std::string &message,
+            const Parse &buffer);
+    Reference(const std::string &source,
+            const std::string &message,
             const Parse &buffer,
             const Position &position);
 
@@ -19,6 +22,7 @@ public:
 
 private:
 
+    std::string source;
     std::string message;
     std::string text;
 

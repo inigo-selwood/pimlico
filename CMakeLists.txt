@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -fprofile-arcs -ftest-coverage")
 set(CMAKE_BUILD_PARALLEL_LEVEL "4")
 
+file(GLOB COVERAGE_FILES CMakeFiles/*.cpp.gcda)
+file(REMOVE "${COVERAGE_FILES}")
+
 # Pimlico library
 file(GLOB_RECURSE LIBRARY_SOURCE_FILES source/*.cpp)
 add_library(pimlico_library STATIC ${LIBRARY_SOURCE_FILES})

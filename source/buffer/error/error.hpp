@@ -22,9 +22,12 @@ public:
 
     operator bool() const;
 
-    void add(const std::string &text);
-    void add(const std::string &text, const Parse &buffer);
-    void add(const std::string &text,
+    void add(const std::string &source, const std::string &text);
+    void add(const std::string &source,
+            const std::string &text,
+            const Parse &buffer);
+    void add(const std::string &source,
+            const std::string &text,
             const Parse &buffer,
             const Position &position);
 

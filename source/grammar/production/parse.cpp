@@ -59,7 +59,8 @@ Production *Production::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         }
 
         if(buffer.read('}') == false) {
-            errors.add("no closing '}' for production expression");
+            errors.add("production.parse",
+                    "no closing '}' for production expression");
             return nullptr;
         }
     }

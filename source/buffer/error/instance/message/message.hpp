@@ -10,12 +10,13 @@ class Message : public Instance {
 
 public:
 
-    Message(const std::string &text);
+    Message(const std::string &source, const std::string &text);
 
     void print(std::ostream &stream) const override;
 
 private:
 
+    std::string source;
     std::string text;
 
 };

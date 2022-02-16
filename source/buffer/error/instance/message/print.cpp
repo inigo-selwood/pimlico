@@ -5,7 +5,7 @@ namespace Pimlico {
 namespace Buffer {
 
 void Message::print(std::ostream &stream) const {
-    stream << this->text;
+    stream << "(" << this->source << ") " << this->text;
 }
 
 }; // Namespace Buffer

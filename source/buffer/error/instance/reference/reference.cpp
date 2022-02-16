@@ -4,16 +4,22 @@ namespace Pimlico {
 
 namespace Buffer {
 
-Reference::Reference(const std::string &message, const Parse &buffer) {
+Reference::Reference(const std::string &source,
+        const std::string &message,
+        const Parse &buffer) {
+
+    this->source = source;
     this->message = message;
     this->text = buffer.line_text();
     this->position = buffer.position;
 }
 
-Reference::Reference(const std::string &message,
+Reference::Reference(const std::string &source,
+        const std::string &message,
         const Parse &buffer,
         const Position &position) {
 
+    this->source = source;
     this->message = message;
     this->text = buffer.line_text(position.line);
     this->position = position;

@@ -24,7 +24,7 @@ static char parse_character(Buffer::Parse &buffer, Buffer::Error &errors) {
 
     // Check for opening quote
     if(buffer.read('\'') == false) {
-        errors.add("expected '\\\''", buffer);
+        errors.add("range.parse", "expected '\\\''", buffer);
         return 0;
     }
 
@@ -35,7 +35,7 @@ static char parse_character(Buffer::Parse &buffer, Buffer::Error &errors) {
     //     if(code == -1)
     //         return 0;
     //     else if(code < ' ' || code > '~') {
-    //         errors.add("escape code invalid in range", buffer);
+    //         errors.add("range.parse", "escape code invalid in range", buffer);
     //         return 0;
     //     }
     //
@@ -50,7 +50,7 @@ static char parse_character(Buffer::Parse &buffer, Buffer::Error &errors) {
 
     // Check for closing quote
     if(buffer.read('\'') == false) {
-        errors.add("expected '\\\''", buffer);
+        errors.add("range.parse", "expected '\\\''", buffer);
         return 0;
     }
 
@@ -94,7 +94,7 @@ Range *Range::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     // Check for the comma separator
     buffer.skip_space();
     if(buffer.read('-') == false) {
-        errors.add("expected '-'", buffer);
+        errors.add("range.parse", "expected '-'", buffer);
         delete range;
         return nullptr;
     }
@@ -110,14 +110,14 @@ Range *Range::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     // Check for a closing bracket
     buffer.skip_space();
     if(buffer.read(']') == false) {
-        errors.add("expected ']'", buffer);
+        errors.add("range.parse", "expected ']'", buffer);
         delete range;
         return nullptr;
     }
 
     // Verify the range is a valid one
     if(start_value >= end_value) {
-        errors.add("illogical range values", buffer);
+        errors.add("range.parse", "illogical range values", buffer);
         delete range;
         return nullptr;
     }

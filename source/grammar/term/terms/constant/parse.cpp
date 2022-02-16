@@ -38,7 +38,9 @@ Constant *Constant::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
         // Handle unexpected EOFs
         if(buffer.finished()) {
-            errors.add("unexpected end-of-file in constant", buffer);
+            errors.add("constant.parse",
+                    "unexpected end-of-file in constant",
+                    buffer);
             delete constant;
             return nullptr;
         }
@@ -46,14 +48,18 @@ Constant *Constant::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
         // Handle unexpected EOLs
         const char character = buffer.peek();
         if(character == '\n' || character == '\r') {
-            errors.add("unexpected end-of-line in constant", buffer);
+            errors.add("constant.parse",
+                    "unexpected end-of-line in constant",
+                    buffer);
             delete constant;
             return nullptr;
         }
 
         // Check the character is valid
         else if(character < ' ' || character > '~') {
-            errors.add("invalid character in constant", buffer);
+            errors.add("constant.parse",
+                    "invalid character in constant",
+                    buffer);
             delete constant;
             return nullptr;
         }
@@ -74,7 +80,10 @@ Constant *Constant::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
     // Check the constant wasn't empty
     if(constant->value.empty()) {
-        errors.add("empty constant", buffer, constant->position);
+        errors.add("constant.parse",
+                "empty constant",
+                buffer,
+                constant->position);
         delete constant;
         return nullptr;
     }

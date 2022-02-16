@@ -102,14 +102,14 @@ static Term::Bounds parse_specific_bounds(Buffer::Parse &buffer,
     int end_value = parse_bound_value(buffer, errors);
 
     if(buffer.read('}') == false) {
-        errors.add("expected '}'", buffer);
+        errors.add("term.parse", "expected '}'", buffer);
         return {0, 0};
     }
 
     // N instances
     if(start_value != -1 && end_value == -1 && colon_present == false) {
         if(start_value == 0) {
-            errors.add("zero-valued instance bound", buffer);
+            errors.add("term.parse", "zero-valued instance bound", buffer);
             return {0, 0};
         }
 
@@ -123,7 +123,9 @@ static Term::Bounds parse_specific_bounds(Buffer::Parse &buffer,
     // Up to N instances
     else if(start_value == -1 && end_value != -1 && colon_present) {
         if(end_value == 0) {
-            errors.add("zero-valued upper instance bound", buffer);
+            errors.add("term.parse",
+                    "zero-valued upper instance bound",
+                    buffer);
             return {0, 0};
         }
 
@@ -133,11 +135,11 @@ static Term::Bounds parse_specific_bounds(Buffer::Parse &buffer,
     // Between N and M values
     else if(start_value != -1 && end_value != -1 && colon_present) {
         if(end_value < start_value) {
-            errors.add("illogical instance bound", buffer);
+            errors.add("term.parse", "illogical instance bound", buffer);
             return {0, 0};
         }
         else if(start_value == end_value && start_value == 0) {
-            errors.add("zero-instance bound", buffer);
+            errors.add("term.parse", "zero-instance bound", buffer);
             return {0, 0};
         }
 
@@ -146,7 +148,7 @@ static Term::Bounds parse_specific_bounds(Buffer::Parse &buffer,
 
     // Report an error if the bound was invalid
     else {
-        errors.add("invalid instance bound", buffer);
+        errors.add("term.parse", "invalid instance bound", buffer);
         return {0, 0};
     }
 }
@@ -176,7 +178,8 @@ bound
     the instance bounds, or {0, 0} if an error was encountered. Defaults to
     {1, 1} if no bounds were present
 */
-static Term::Bounds parse_bounds(Buffer::Parse &buffer, Buffer::Error &errors) {
+static Term::Bounds parse_bounds(Buffer::Parse &buffer,
+        Buffer::Error &errors) {
 
     // Handle single-character instance-hint values
     if(buffer.read('?'))
@@ -319,7 +322,7 @@ Term *Term::parse(Buffer::Parse &buffer,
             term = Reference::parse(buffer, errors);
 
         else {
-            errors.add("expected a term", buffer);
+            errors.add("term.parse", "expected a term", buffer);
             return nullptr;
         }
     }
@@ -331,7 +334,7 @@ Term *Term::parse(Buffer::Parse &buffer,
     // Ensure enclosed terms are closed
     buffer.skip_space();
     if(enclosed && buffer.read(')') == false) {
-        errors.add("expected ')'", buffer);
+        errors.add("term.parse", "expected ')'", buffer);
         delete term;
         return nullptr;
     }
