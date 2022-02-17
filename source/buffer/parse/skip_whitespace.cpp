@@ -14,7 +14,9 @@ void Parse::skip_whitespace() {
 
         // Continue if the character is non-whitespace
         char character = this->text[this->position.index];
-        if(character == ' '
+        if(character == '#')
+            this->skip_line();
+        else if(character == ' '
                 || character == '\t'
                 || character == '\r'
                 || character == '\v'
