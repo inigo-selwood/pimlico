@@ -49,8 +49,8 @@ TEST_CASE("grammar.production:print") {
     }
 
     SECTION("bound-parameter-embedded-expression") {
-        std::string text = "term <Namespace::Type> {\n"
-                "    throw Exception();\n"
+        std::string text = "exception_type: term {\n"
+                "    throw exceptionType;\n"
                 "}";
         Buffer::Parse buffer(text);
         Buffer::Error errors;
