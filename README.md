@@ -16,8 +16,10 @@ A simple lexer and parser toolchain
 
 - [Grammar](#grammar)
     - [Terms](#terms)
-    - [Instance hints](#instance-hints)
-    - [Predicates](#predicates)
+        - [Instance hints](#instance-hints)
+        - [Predicates](#predicates)
+        - [Bindings](#bindings)
+    - [Rules](#rules)
 
 ## Grammar
 
@@ -114,3 +116,33 @@ For example:
 vowel: 'a' | 'e' | 'i' | 'o' | 'u' | 'A' | 'E' | 'I' | 'O' | 'U'
 consonant: !vowel ['a' - 'z'] | ['A' - 'Z']
 ```
+
+---
+
+### Bindings
+
+Terms can be bound for use in a rule's expression. Like in a templating engine, the bound values are substituted in-place.
+
+```
+some_rule := term_name : term_type {
+    std::cout << @term_name
+}
+```
+
+Here, the term `term_name` is bound to an instance of `term_type`. In the embedded section, the bound term is emplaced with the `@` prefix.
+
+---
+
+### Rules
+
+A PEG program is made up of rules. In EBNF syntax, these would be called "production rules". Each rule consists of, at minimum: a name, and one or more terms.
+
+A more complicated rule can include one or more bound terms, and an embedded expression. This expression is evaluated at run-time when the term is matched.
+
+```
+rule_name <RuleType> := term_name : term_type {
+    return RuleType(@term_name);
+}
+```
+
+Here we see a rule called `rule_name`, which must evaluate to a type `RuleType`. It can be instantiated in other rules as a reference. Its production has one term of type `term_type`, bound to the identifier `term_name`. Lastly, in the embedded expression, we see the bound variable being used to return an instance of `RuleType`. Putting all these elements together, a program can be formed which handles the bulk of lexing and parsing duties, in combination with the rest of a code base.
