@@ -12,6 +12,9 @@ file(REMOVE "${COVERAGE_FILES}")
 file(GLOB_RECURSE LIBRARY_SOURCE_FILES source/*.cpp)
 add_library(pimlico_library STATIC ${LIBRARY_SOURCE_FILES})
 target_include_directories(pimlico_library PRIVATE "source/")
+add_custom_command(TARGET pimlico_library
+        PRE_BUILD
+    COMMAND find CMakeFiles -name "*.cpp.gcda" -type f -delete)
 
 # Tests
 file(GLOB_RECURSE TEST_SOURCE_FILES test/*.cpp)
