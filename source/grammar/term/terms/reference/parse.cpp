@@ -27,7 +27,9 @@ Reference *Reference::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
 
     while(true) {
         const char character = buffer.peek();
-        if((character >= 'a' && character <= 'z') || character == '_')
+        if((character >= 'a' && character <= 'z')
+                || (character >= 'A' && character <= 'Z')
+                || character == '_')
             reference->name += buffer.read();
         else
             break;

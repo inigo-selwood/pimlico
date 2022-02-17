@@ -11,12 +11,15 @@ TEST_CASE("grammar.term:parse") {
                 "a | b",
                 "'constant'",
                 "['a' - 'z']",
-                "reference",
+                "Reference_Here",
                 "a b");
         Buffer::Parse buffer(text);
         Buffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
+        if(errors)
+            INFO(errors);
+            
         REQUIRE(term);
         REQUIRE(buffer.finished());
 
@@ -53,10 +56,13 @@ TEST_CASE("grammar.term:parse") {
     }
 
     SECTION("simple-binding") {
-        Buffer::Parse buffer("binding: value");
+        Buffer::Parse buffer("Binding_Here: value");
         Buffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
+        if(errors)
+            INFO(errors);
+
         REQUIRE(term);
         REQUIRE(buffer.finished());
 

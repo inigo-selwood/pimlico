@@ -50,7 +50,9 @@ static std::string parse_binding(Buffer::Parse &buffer) {
             break;
 
         const char character = buffer.peek();
-        if(character >= 'a' && character <= 'z' || character == '_')
+        if((character >= 'a' && character <= 'z')
+                || (character >= 'A' && character <= 'Z')
+                || character == '_')
             result += buffer.read();
         else
             break;
@@ -275,7 +277,10 @@ Term *Term::parse(Buffer::Parse &buffer,
     // Check if there's a binding hint
     std::string binding;
     const char character = buffer.peek();
-    if((character >= 'a' && character <= 'z') || character == '_') {
+    if((character >= 'a' && character <= 'z')
+            || (character >= 'A' && character <= 'Z')
+            || character == '_') {
+
         Buffer::Position start_position = buffer.position;
         const std::string identifier = parse_binding(buffer);
 
@@ -318,7 +323,9 @@ Term *Term::parse(Buffer::Parse &buffer,
         else if(character == '[')
             term = Range::parse(buffer, errors);
 
-        else if((character >= 'a' && character <= 'z') || character == '_')
+        else if((character >= 'a' && character <= 'z')
+                || (character >= 'A' && character <= 'Z')
+                || character == '_')
             term = Reference::parse(buffer, errors);
 
         else {
