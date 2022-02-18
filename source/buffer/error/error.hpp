@@ -5,17 +5,23 @@
 #include "../parse/parse.hpp"
 #include "../position/position.hpp"
 
-#include "instance/instance.hpp"
-
 namespace Pimlico {
 
 namespace Buffer {
 
-class Instance;
-
 class Error {
 
 public:
+
+    class Instance  {
+
+    public:
+
+        virtual void print(std::ostream &stream) const = 0;
+
+        virtual ~Instance() = default;
+
+    };
 
     friend std::ostream &operator<<(std::ostream &stream,
             const Error &position);

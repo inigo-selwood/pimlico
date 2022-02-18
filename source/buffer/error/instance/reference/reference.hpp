@@ -6,7 +6,7 @@ namespace Pimlico {
 
 namespace Buffer {
 
-class Reference : public Instance {
+class Reference : public Error::Instance {
 
 public:
 
