@@ -22,7 +22,8 @@ parse_logic_exception
     if parse_rule was called at an invalid position, or any of its child terms
     are called in error
 */
-Production *Production::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
+Production *Production::parse(ParseBuffer &buffer,
+        ParseBuffer::Error &errors) {
 
     // Create a production
     Production *production = new Production();

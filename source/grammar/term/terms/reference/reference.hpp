@@ -14,7 +14,7 @@ public:
 
     Reference();
 
-    static Reference *parse(Buffer::Parse &buffer, Buffer::Error &errors);
+    static Reference *parse(ParseBuffer &buffer, ParseBuffer::Error &errors);
 
     void print(std::ostream &stream) const override;
 

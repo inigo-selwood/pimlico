@@ -36,7 +36,7 @@ Returns
 term
     a populated Sequence instance, or nullptr if an error is encountered
 */
-Term *Sequence::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
+Term *Sequence::parse(ParseBuffer &buffer, ParseBuffer::Error &errors) {
     Sequence *sequence = new Sequence();
     sequence->position = buffer.position;
 

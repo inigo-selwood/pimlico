@@ -9,8 +9,8 @@ using namespace Pimlico;
 TEST_CASE("grammar.term.reference:print") {
     std::string text = "this_is_a_reference";
 
-    Buffer::Parse buffer(text);
-    Buffer::Error errors;
+    ParseBuffer buffer(text);
+    ParseBuffer::Error errors;
 
     Term *reference = Reference::parse(buffer, errors);
 

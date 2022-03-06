@@ -7,19 +7,19 @@ using namespace Pimlico;
 TEST_CASE("grammar.term.choice:parse") {
 
     SECTION("simple") {
-        Buffer::Parse buffer("a | b");
-        Buffer::Error errors;
+        ParseBuffer buffer("a | b");
+        ParseBuffer::Error errors;
 
         Term *choice = Choice::parse(buffer, errors);
         REQUIRE(choice);
         REQUIRE(buffer.finished());
-        
+
         delete choice;
     }
 
     SECTION("single-term") {
-        Buffer::Parse buffer("a");
-        Buffer::Error errors;
+        ParseBuffer buffer("a");
+        ParseBuffer::Error errors;
 
         Term *choice = Choice::parse(buffer, errors);
         REQUIRE(choice);
@@ -29,8 +29,8 @@ TEST_CASE("grammar.term.choice:parse") {
     }
 
     SECTION("invalid-term") {
-        Buffer::Parse buffer("~");
-        Buffer::Error errors;
+        ParseBuffer buffer("~");
+        ParseBuffer::Error errors;
 
         Term *choice = Choice::parse(buffer, errors);
         REQUIRE(choice == nullptr);
@@ -39,8 +39,8 @@ TEST_CASE("grammar.term.choice:parse") {
     }
 
     SECTION("unexpected-end-of-file") {
-        Buffer::Parse buffer("a |");
-        Buffer::Error errors;
+        ParseBuffer buffer("a |");
+        ParseBuffer::Error errors;
 
         Term *choice = Choice::parse(buffer, errors);
         REQUIRE(choice == nullptr);
@@ -49,8 +49,8 @@ TEST_CASE("grammar.term.choice:parse") {
     }
 
     SECTION("unexpected-end-of-line") {
-        Buffer::Parse buffer("a |\n");
-        Buffer::Error errors;
+        ParseBuffer buffer("a |\n");
+        ParseBuffer::Error errors;
 
         Term *choice = Choice::parse(buffer, errors);
         REQUIRE(choice == nullptr);
@@ -59,8 +59,8 @@ TEST_CASE("grammar.term.choice:parse") {
     }
 
     SECTION("unexpected-end-of-file") {
-        Buffer::Parse buffer("a | )");
-        Buffer::Error errors;
+        ParseBuffer buffer("a | )");
+        ParseBuffer::Error errors;
 
         Term *choice = Choice::parse(buffer, errors);
         REQUIRE(choice == nullptr);

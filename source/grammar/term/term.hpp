@@ -28,7 +28,7 @@ public:
         NOT,
     };
 
-    Buffer::Position position;
+    ParseBuffer::Position position;
 
     std::string binding;
 
@@ -42,8 +42,8 @@ public:
 
     Term(const Term::Type &type);
 
-    static Term *parse(Buffer::Parse &buffer,
-            Buffer::Error &errors,
+    static Term *parse(ParseBuffer &buffer,
+            ParseBuffer::Error &errors,
             const bool root = false);
 
     virtual void print(std::ostream &stream) const = 0;

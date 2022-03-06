@@ -7,8 +7,8 @@ using namespace Pimlico;
 TEST_CASE("grammar.term.sequence:parse") {
 
     SECTION("simple") {
-        Buffer::Parse buffer("a b c");
-        Buffer::Error errors;
+        ParseBuffer buffer("a b c");
+        ParseBuffer::Error errors;
 
         Term *sequence = Sequence::parse(buffer, errors);
         REQUIRE(sequence);

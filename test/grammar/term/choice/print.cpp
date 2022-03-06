@@ -11,8 +11,8 @@ TEST_CASE("grammar.term.choice:print") {
     SECTION("simple") {
         std::string text = "a | b | c";
 
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *choice = Choice::parse(buffer, errors);
 
@@ -27,8 +27,8 @@ TEST_CASE("grammar.term.choice:print") {
     SECTION("enclosed") {
         std::string text = "(a | b)+";
 
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *choice = Choice::parse(buffer, errors);
 
@@ -43,8 +43,8 @@ TEST_CASE("grammar.term.choice:print") {
     SECTION("enclosed-child") {
         std::string text = "(a b) | c";
 
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *choice = Choice::parse(buffer, errors);
 

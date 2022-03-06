@@ -13,13 +13,13 @@ TEST_CASE("grammar.term:parse") {
                 "['a' - 'z']",
                 "Reference_Here",
                 "a b");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         if(errors)
             INFO(errors);
-            
+
         REQUIRE(term);
         REQUIRE(buffer.finished());
 
@@ -27,8 +27,8 @@ TEST_CASE("grammar.term:parse") {
     }
 
     SECTION("simple-enclosed") {
-        Buffer::Parse buffer("(value)");
-        Buffer::Error errors;
+        ParseBuffer buffer("(value)");
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         REQUIRE(term);
@@ -38,8 +38,8 @@ TEST_CASE("grammar.term:parse") {
     }
 
     SECTION("invalid-enclosed") {
-        Buffer::Parse buffer("(value");
-        Buffer::Error errors;
+        ParseBuffer buffer("(value");
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors);
         REQUIRE(term == nullptr);
@@ -47,8 +47,8 @@ TEST_CASE("grammar.term:parse") {
     }
 
     SECTION("invalid-term") {
-        Buffer::Parse buffer("[a-z]");
-        Buffer::Error errors;
+        ParseBuffer buffer("[a-z]");
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         REQUIRE(term == nullptr);
@@ -56,8 +56,8 @@ TEST_CASE("grammar.term:parse") {
     }
 
     SECTION("simple-binding") {
-        Buffer::Parse buffer("Binding_Here: value");
-        Buffer::Error errors;
+        ParseBuffer buffer("Binding_Here: value");
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         if(errors)
@@ -71,8 +71,8 @@ TEST_CASE("grammar.term:parse") {
 
     SECTION("simple-predicated") {
         std::string text = GENERATE(as<std::string>{}, "&term", "!term");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         REQUIRE(term);
@@ -86,8 +86,8 @@ TEST_CASE("grammar.term:parse") {
                 "term+",
                 "term*",
                 "term?");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         REQUIRE(term);
@@ -100,8 +100,8 @@ TEST_CASE("grammar.term:parse") {
         std::string text = "term {\n"
                 "    std::cout << \"hello world\\n\";"
                 "}";
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         REQUIRE(term);
@@ -115,8 +115,8 @@ TEST_CASE("grammar.term:parse") {
                 "term{1:}",
                 "term{:1}",
                 "term{1:2}");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         REQUIRE(term);
@@ -130,8 +130,8 @@ TEST_CASE("grammar.term:parse") {
                 "term{:}",
                 "term{1 2}",
                 "term{0");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         REQUIRE(term == nullptr);
@@ -144,8 +144,8 @@ TEST_CASE("grammar.term:parse") {
                 "term{:0}",
                 "term{0:0}",
                 "term{2:1}");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
         INFO(text)

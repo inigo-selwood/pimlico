@@ -29,7 +29,7 @@ Returns
 term
     a populated Choice instance, or nullptr if an error is encountered
 */
-Term *Choice::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
+Term *Choice::parse(ParseBuffer &buffer, ParseBuffer::Error &errors) {
 
     // Create a choice term
     Choice *choice = new Choice();

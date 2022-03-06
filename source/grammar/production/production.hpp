@@ -10,7 +10,7 @@ class Production {
 
 public:
 
-    Buffer::Position position;
+    ParseBuffer::Position position;
 
     Term *value;
 
@@ -21,7 +21,7 @@ public:
 
     Production();
 
-    static Production *parse(Buffer::Parse &buffer, Buffer::Error &errors);
+    static Production *parse(ParseBuffer &buffer, ParseBuffer::Error &errors);
 
     ~Production();
 

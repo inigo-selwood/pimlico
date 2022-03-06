@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "buffer/buffer.hpp"
+#include "parse_buffer/parse_buffer.hpp"
 
 #include "grammar/term/term.hpp"
 #include "grammar/production/production.hpp"

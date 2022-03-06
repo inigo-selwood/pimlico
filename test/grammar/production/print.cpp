@@ -10,8 +10,8 @@ TEST_CASE("grammar.production:print") {
 
     SECTION("simple") {
         std::string text = "term";
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Production *production = Production::parse(buffer, errors);
         if(errors)
@@ -31,8 +31,8 @@ TEST_CASE("grammar.production:print") {
         std::string text = "term {\n"
                 "    class Foo {};\n"
                 "}";
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Production *production = Production::parse(buffer, errors);
         if(errors)
@@ -52,8 +52,8 @@ TEST_CASE("grammar.production:print") {
         std::string text = "exception_type: term {\n"
                 "    throw exceptionType;\n"
                 "}";
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Production *production = Production::parse(buffer, errors);
         INFO(errors);

@@ -12,7 +12,7 @@ public:
 
     Constant();
 
-    static Constant *parse(Buffer::Parse &buffer, Buffer::Error &errors);
+    static Constant *parse(ParseBuffer &buffer, ParseBuffer::Error &errors);
 
     void print(std::ostream &stream) const override;
 

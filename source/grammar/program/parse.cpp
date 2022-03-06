@@ -2,8 +2,10 @@
 
 namespace Pimlico {
 
-Program *Program::parse(const std::string &grammar, Buffer::Error &errors) {
-    Buffer::Parse buffer(grammar);
+Program *Program::parse(const std::string &grammar,
+        ParseBuffer::Error &errors) {
+
+    ParseBuffer buffer(grammar);
 
     Program *program = new Program();
 

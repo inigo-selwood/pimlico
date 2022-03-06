@@ -22,7 +22,7 @@ parse_logic_exception
     if parse_rule was called at an invalid position, or any of its child terms
     are called in error
 */
-Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
+Rule *Rule::parse(ParseBuffer &buffer, ParseBuffer::Error &errors) {
 
     // Create a new rule at the current position
     Rule *rule = new Rule();
@@ -84,10 +84,10 @@ Rule *Rule::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
     bool parse_errors = false;
     while(true) {
 
-        const Buffer::Position start_position = buffer.position;
+        const ParseBuffer::Position start_position = buffer.position;
 
-        // Check the buffer isn't finished, that there's a newline, and that the
-        // next line is properly indented
+        // Check the buffer isn't finished, that there's a newline, and that
+        // the next line is properly indented
         buffer.skip_space();
         if(buffer.finished())
             break;

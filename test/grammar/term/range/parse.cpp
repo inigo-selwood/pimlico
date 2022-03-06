@@ -7,8 +7,8 @@ using namespace Pimlico;
 TEST_CASE("grammar.term.range:parse") {
 
     SECTION("simple") {
-        Buffer::Parse buffer("['a' - 'z']");
-        Buffer::Error errors;
+        ParseBuffer buffer("['a' - 'z']");
+        ParseBuffer::Error errors;
 
         Term *range = Range::parse(buffer, errors);
         REQUIRE(range);
@@ -18,8 +18,8 @@ TEST_CASE("grammar.term.range:parse") {
     }
 
     SECTION("invalid-range") {
-        Buffer::Parse buffer("['z' - 'a']");
-        Buffer::Error errors;
+        ParseBuffer buffer("['z' - 'a']");
+        ParseBuffer::Error errors;
 
         Term *range = Range::parse(buffer, errors);
         REQUIRE(range == nullptr);
@@ -33,8 +33,8 @@ TEST_CASE("grammar.term.range:parse") {
                 "['a'-z']",
                 "['a'-'z]");
 
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *range = Range::parse(buffer, errors);
         REQUIRE(range == nullptr);
@@ -42,8 +42,8 @@ TEST_CASE("grammar.term.range:parse") {
     }
 
     SECTION("no-seperator") {
-        Buffer::Parse buffer("['a''z']");
-        Buffer::Error errors;
+        ParseBuffer buffer("['a''z']");
+        ParseBuffer::Error errors;
 
         Term *range = Range::parse(buffer, errors);
         REQUIRE(range == nullptr);
@@ -54,8 +54,8 @@ TEST_CASE("grammar.term.range:parse") {
         std::string text = GENERATE(as<std::string>{},
                 "['a'-'z'",
                 "['a'-'z'\n]");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *range = Range::parse(buffer, errors);
         REQUIRE(range == nullptr);

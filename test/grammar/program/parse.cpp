@@ -21,7 +21,7 @@ TEST_CASE("grammar.program:parse") {
         buffer << file_stream.rdbuf();
         std::string grammar = buffer.str();
 
-        Buffer::Error errors;
+        ParseBuffer::Error errors;
 
         Program *program = Program::parse(grammar, errors);
 

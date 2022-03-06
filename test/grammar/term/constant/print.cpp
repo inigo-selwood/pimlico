@@ -9,8 +9,8 @@ using namespace Pimlico;
 TEST_CASE("grammar.term.constant:print") {
     std::string text = "'hello'";
 
-    Buffer::Parse buffer(text);
-    Buffer::Error errors;
+    ParseBuffer buffer(text);
+    ParseBuffer::Error errors;
 
     Term *constant = Constant::parse(buffer, errors);
 

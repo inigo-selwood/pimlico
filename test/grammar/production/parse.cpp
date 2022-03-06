@@ -7,8 +7,8 @@ using namespace Pimlico;
 TEST_CASE("grammar.production:parse") {
 
     SECTION("basic") {
-        Buffer::Parse buffer("term");
-        Buffer::Error errors;
+        ParseBuffer buffer("term");
+        ParseBuffer::Error errors;
 
         Production *production = Production::parse(buffer, errors);
         REQUIRE(production);
@@ -18,8 +18,8 @@ TEST_CASE("grammar.production:parse") {
     }
 
     SECTION("invalid term") {
-        Buffer::Parse buffer("a |");
-        Buffer::Error errors;
+        ParseBuffer buffer("a |");
+        ParseBuffer::Error errors;
 
         Production *production = Production::parse(buffer, errors);
         REQUIRE(production == nullptr);
@@ -27,8 +27,8 @@ TEST_CASE("grammar.production:parse") {
     }
 
     SECTION("unterminated-embedded-expression") {
-        Buffer::Parse buffer("a {");
-        Buffer::Error errors;
+        ParseBuffer buffer("a {");
+        ParseBuffer::Error errors;
 
         Production *production = Production::parse(buffer, errors);
         REQUIRE(production == nullptr);
@@ -39,8 +39,8 @@ TEST_CASE("grammar.production:parse") {
         std::string text = "term {\n"
                 "    class Foo {};\n"
                 "}";
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Production *production = Production::parse(buffer, errors);
         REQUIRE(production);
@@ -53,8 +53,8 @@ TEST_CASE("grammar.production:parse") {
         std::string text = "term {\n"
                 "    std::cout << \"hello\\n\"\n"
                 "}";
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Production *production = Production::parse(buffer, errors);
         REQUIRE(production);

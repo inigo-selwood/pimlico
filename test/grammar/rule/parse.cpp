@@ -7,8 +7,8 @@ using namespace Pimlico;
 TEST_CASE("grammar.rule:parse") {
 
     SECTION("basic") {
-        Buffer::Parse buffer("rule := term");
-        Buffer::Error errors;
+        ParseBuffer buffer("rule := term");
+        ParseBuffer::Error errors;
 
         Rule *rule = Rule::parse(buffer, errors);
         REQUIRE(rule);
@@ -21,8 +21,8 @@ TEST_CASE("grammar.rule:parse") {
         std::string text = "rule :=\n"
             "    'production 1'\n"
             "    'production 2'\n";
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Rule *rule = Rule::parse(buffer, errors);
         INFO(errors);
@@ -32,8 +32,8 @@ TEST_CASE("grammar.rule:parse") {
     }
 
     SECTION("typed-rule") {
-        Buffer::Parse buffer("rule <Type> := term");
-        Buffer::Error errors;
+        ParseBuffer buffer("rule <Type> := term");
+        ParseBuffer::Error errors;
 
         Rule *rule = Rule::parse(buffer, errors);
         REQUIRE(rule);
@@ -43,8 +43,8 @@ TEST_CASE("grammar.rule:parse") {
     }
 
     SECTION("nested-typed-rule") {
-        Buffer::Parse buffer("rule <std::vector<Type>> := term");
-        Buffer::Error errors;
+        ParseBuffer buffer("rule <std::vector<Type>> := term");
+        ParseBuffer::Error errors;
 
         Rule *rule = Rule::parse(buffer, errors);
         REQUIRE(rule);
@@ -54,8 +54,8 @@ TEST_CASE("grammar.rule:parse") {
     }
 
     SECTION("invalid-type") {
-        Buffer::Parse buffer("rule <Type := term");
-        Buffer::Error errors;
+        ParseBuffer buffer("rule <Type := term");
+        ParseBuffer::Error errors;
 
         Rule *rule = Rule::parse(buffer, errors);
         REQUIRE(rule == nullptr);
@@ -63,8 +63,8 @@ TEST_CASE("grammar.rule:parse") {
     }
 
     SECTION("no-assignment-symbol") {
-        Buffer::Parse buffer("rule term");
-        Buffer::Error errors;
+        ParseBuffer buffer("rule term");
+        ParseBuffer::Error errors;
 
         Rule *rule = Rule::parse(buffer, errors);
         REQUIRE(rule == nullptr);
@@ -72,8 +72,8 @@ TEST_CASE("grammar.rule:parse") {
     }
 
     SECTION("invalid-term") {
-        Buffer::Parse buffer("rule := ~");
-        Buffer::Error errors;
+        ParseBuffer buffer("rule := ~");
+        ParseBuffer::Error errors;
 
         Rule *rule = Rule::parse(buffer, errors);
         REQUIRE(rule == nullptr);
@@ -81,8 +81,8 @@ TEST_CASE("grammar.rule:parse") {
     }
 
     SECTION("no-productions") {
-        Buffer::Parse buffer("rule :=");
-        Buffer::Error errors;
+        ParseBuffer buffer("rule :=");
+        ParseBuffer::Error errors;
 
         Rule *rule = Rule::parse(buffer, errors);
         REQUIRE(rule == nullptr);

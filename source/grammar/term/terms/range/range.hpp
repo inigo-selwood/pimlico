@@ -12,7 +12,7 @@ public:
 
     Range();
 
-    static Range *parse(Buffer::Parse &buffer, Buffer::Error &errors);
+    static Range *parse(ParseBuffer &buffer, ParseBuffer::Error &errors);
 
     void print(std::ostream &stream) const override;
 

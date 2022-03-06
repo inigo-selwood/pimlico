@@ -20,7 +20,7 @@ Returns
 character
     the character found, or 0 if an error was encountered
 */
-static char parse_character(Buffer::Parse &buffer, Buffer::Error &errors) {
+static char parse_character(ParseBuffer &buffer, ParseBuffer::Error &errors) {
 
     // Check for opening quote
     if(buffer.read('\'') == false) {
@@ -75,7 +75,7 @@ Returns
 term
     a populated Range instance, or nullptr if an error is encountered
 */
-Range *Range::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
+Range *Range::parse(ParseBuffer &buffer, ParseBuffer::Error &errors) {
     if(buffer.read('[') == false)
         throw "no range found";
 

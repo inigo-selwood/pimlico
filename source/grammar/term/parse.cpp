@@ -20,7 +20,7 @@ Returns
 bound
     the instance bound, or -1 if no bound was found
 */
-static int parse_bound_value(Buffer::Parse &buffer, Buffer::Error &errors) {
+static int parse_bound_value(ParseBuffer &buffer, ParseBuffer::Error &errors) {
 
     // Extract digits
     std::string text;
@@ -43,7 +43,7 @@ static int parse_bound_value(Buffer::Parse &buffer, Buffer::Error &errors) {
     return std::stoi(text);
 }
 
-static std::string parse_binding(Buffer::Parse &buffer) {
+static std::string parse_binding(ParseBuffer &buffer) {
     std::string result;
     while(true) {
         if(buffer.finished())
@@ -83,8 +83,8 @@ bound
     the instance bound, or {0, 0} if the bound was badly formatted. `errors`
     will have been set as appropriate
 */
-static Term::Bounds parse_specific_bounds(Buffer::Parse &buffer,
-        Buffer::Error &errors) {
+static Term::Bounds parse_specific_bounds(ParseBuffer &buffer,
+        ParseBuffer::Error &errors) {
 
     if(buffer.read('{') == false)
         throw "expected '{'";
@@ -180,8 +180,8 @@ bound
     the instance bounds, or {0, 0} if an error was encountered. Defaults to
     {1, 1} if no bounds were present
 */
-static Term::Bounds parse_bounds(Buffer::Parse &buffer,
-        Buffer::Error &errors) {
+static Term::Bounds parse_bounds(ParseBuffer &buffer,
+        ParseBuffer::Error &errors) {
 
     // Handle single-character instance-hint values
     if(buffer.read('?'))
@@ -195,7 +195,7 @@ static Term::Bounds parse_bounds(Buffer::Parse &buffer,
     else if(buffer.peek('{')) {
 
         // Copy the buffer's position to reset it later
-        const Buffer::Position start_position = buffer.position;
+        const ParseBuffer::Position start_position = buffer.position;
 
         // Read the newline
         buffer.read('{');
@@ -270,8 +270,8 @@ Returns
 term
     the parsed term, or nullptr if an error was encountered
 */
-Term *Term::parse(Buffer::Parse &buffer,
-        Buffer::Error &errors,
+Term *Term::parse(ParseBuffer &buffer,
+        ParseBuffer::Error &errors,
         const bool root) {
 
     // Check if there's a binding hint
@@ -281,7 +281,7 @@ Term *Term::parse(Buffer::Parse &buffer,
             || (character >= 'A' && character <= 'Z')
             || character == '_') {
 
-        Buffer::Position start_position = buffer.position;
+        ParseBuffer::Position start_position = buffer.position;
         const std::string identifier = parse_binding(buffer);
 
         buffer.skip_space();

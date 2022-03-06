@@ -6,8 +6,8 @@ using namespace Pimlico;
 
 TEST_CASE("grammar.term.reference:parse") {
 
-    Buffer::Parse buffer("some_reference");
-    Buffer::Error errors;
+    ParseBuffer buffer("some_reference");
+    ParseBuffer::Error errors;
 
     Term *reference = Reference::parse(buffer, errors);
     REQUIRE(reference);

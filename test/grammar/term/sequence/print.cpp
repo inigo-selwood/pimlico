@@ -11,8 +11,8 @@ TEST_CASE("grammar.term.sequence:print") {
     SECTION("simple") {
         std::string text = "a b c";
 
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *sequence = Sequence::parse(buffer, errors);
 
@@ -27,8 +27,8 @@ TEST_CASE("grammar.term.sequence:print") {
     SECTION("bounded") {
         std::string text = "(a b)+";
 
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *sequence = Sequence::parse(buffer, errors);
 

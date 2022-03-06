@@ -12,7 +12,7 @@ public:
 
     Choice();
 
-    static Term *parse(Buffer::Parse &buffer, Buffer::Error &errors);
+    static Term *parse(ParseBuffer &buffer, ParseBuffer::Error &errors);
 
     void print(std::ostream &stream) const override;
 

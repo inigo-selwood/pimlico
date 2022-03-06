@@ -10,7 +10,7 @@ class Rule {
 
 public:
 
-    Buffer::Position position;
+    ParseBuffer::Position position;
 
     std::vector<Production *> productions;
 
@@ -21,7 +21,7 @@ public:
 
     Rule();
 
-    static Rule *parse(Buffer::Parse &buffer, Buffer::Error &errors);
+    static Rule *parse(ParseBuffer &buffer, ParseBuffer::Error &errors);
 
     ~Rule();
 

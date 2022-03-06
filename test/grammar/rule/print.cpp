@@ -12,8 +12,8 @@ TEST_CASE("grammar.rule:print") {
         "        std::cout << \"something\";\n"
         "    }\n"
         "    'a_constant'\n";
-    Buffer::Parse buffer(text);
-    Buffer::Error errors;
+    ParseBuffer buffer(text);
+    ParseBuffer::Error errors;
 
     Rule *rule = Rule::parse(buffer, errors);
 

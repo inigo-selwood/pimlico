@@ -20,7 +20,7 @@ Returns
 term
     a populated Reference instance, or nullptr if an error is encountered
 */
-Reference *Reference::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
+Reference *Reference::parse(ParseBuffer &buffer, ParseBuffer::Error &errors) {
 
     Reference *reference = new Reference();
     reference->position = buffer.position;

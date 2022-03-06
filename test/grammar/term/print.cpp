@@ -10,8 +10,8 @@ TEST_CASE("grammar.term:print") {
 
     SECTION("simple-binding") {
         std::string text = "binding: term";
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
 
@@ -30,8 +30,8 @@ TEST_CASE("grammar.term:print") {
                 "term+",
                 "term*",
                 "term?");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
 
@@ -51,8 +51,8 @@ TEST_CASE("grammar.term:print") {
                 "term{2:}",
                 "term{:2}",
                 "term{1:2}");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
 
@@ -68,8 +68,8 @@ TEST_CASE("grammar.term:print") {
 
     SECTION("predicates") {
         std::string text = GENERATE(as<std::string>{}, "&term", "!term");
-        Buffer::Parse buffer(text);
-        Buffer::Error errors;
+        ParseBuffer buffer(text);
+        ParseBuffer::Error errors;
 
         Term *term = Term::parse(buffer, errors, true);
 

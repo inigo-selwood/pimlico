@@ -15,7 +15,8 @@ public:
     friend std::ostream &operator<<(std::ostream &stream,
             const Program &program);
 
-    static Program *parse(const std::string &grammar, Buffer::Error &errors);
+    static Program *parse(const std::string &grammar,
+            ParseBuffer::Error &errors);
 
     ~Program();
 

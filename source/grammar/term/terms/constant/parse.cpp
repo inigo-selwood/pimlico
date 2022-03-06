@@ -20,7 +20,7 @@ Returns
 term
     a populated Constant instance, or nullptr if an error is encountered
 */
-Constant *Constant::parse(Buffer::Parse &buffer, Buffer::Error &errors) {
+Constant *Constant::parse(ParseBuffer &buffer, ParseBuffer::Error &errors) {
     if(buffer.read('\'') == false)
         throw "no constant found";
 
