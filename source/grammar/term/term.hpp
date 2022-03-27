@@ -1,8 +1,12 @@
 #pragma once
 
+#include <map>
+
 #include <pimlico.hpp>
 
 namespace Pimlico {
+
+class Rule;
 
 class Term {
 
@@ -47,6 +51,9 @@ public:
             const bool root = false);
 
     virtual void print(std::ostream &stream) const = 0;
+
+    virtual bool emplaceRules(std::map<std::string, Rule *> &rules,
+            ParseBuffer::Error &errors);
 
     virtual ~Term() = default;
 

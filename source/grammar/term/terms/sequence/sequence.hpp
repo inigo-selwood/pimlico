@@ -16,6 +16,9 @@ public:
 
     void print(std::ostream &stream) const override;
 
+    bool emplaceRules(std::map<std::string, Rule *> &rules,
+           ParseBuffer::Error &errors) override;
+
     virtual ~Sequence();
 
 };

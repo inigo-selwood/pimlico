@@ -10,7 +10,7 @@ class Program {
 
 public:
 
-    std::map<int, Rule *> rules;
+    std::map<std::string, Rule *> rules;
 
     friend std::ostream &operator<<(std::ostream &stream,
             const Program &program);

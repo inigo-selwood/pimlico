@@ -18,7 +18,7 @@ stream
 std::ostream &operator<<(std::ostream &stream,
         const Program &program) {
 
-    for(const std::pair<int, Rule *> &pair : program.rules) {
+    for(const std::pair<std::string, Rule *> &pair : program.rules) {
         stream << *(pair.second) << '\n';
     }
 
