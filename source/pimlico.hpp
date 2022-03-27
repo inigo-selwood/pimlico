@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "parse_buffer/parse_buffer.hpp"
+#include "print_engine/print_engine.hpp"
 
 #include "grammar/term/term.hpp"
 #include "grammar/production/production.hpp"
