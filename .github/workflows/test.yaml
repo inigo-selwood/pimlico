@@ -35,7 +35,6 @@ jobs:
             --exclude "/usr*" \
             --exclude "test*" \
             --exclude "/Library*" \
-            -j4 \
             --delete \
             --print-summary > out.txt
         cat out.txt

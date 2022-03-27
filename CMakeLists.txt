@@ -19,12 +19,12 @@ add_custom_command(TARGET coverage_reset
 file(GLOB_RECURSE LIBRARY_SOURCE_FILES source/*.cpp)
 add_library(pimlico_library
         STATIC ${LIBRARY_SOURCE_FILES})
-add_dependencies(pimlico_library coverage_reset)
 target_include_directories(pimlico_library PRIVATE "source/")
 
 # Library Tests
 file(GLOB_RECURSE TEST_SOURCE_FILES test/*.cpp)
 add_executable(test ${TEST_SOURCE_FILES})
+add_dependencies(test coverage_reset)
 target_link_libraries(test PRIVATE pimlico_library)
 target_include_directories(test PRIVATE "source/")
 target_include_directories(test PRIVATE "test/include")
