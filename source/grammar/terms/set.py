@@ -1,3 +1,5 @@
+from copy import copy 
+
 from grammar import Term
 
 
@@ -11,7 +13,7 @@ class Set(Term):
     def parse(buffer, errors):
         assert buffer.match('`', True)
 
-        position = buffer.position
+        position = copy(buffer.position)
 
         characters = ''
         errors_found = False

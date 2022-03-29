@@ -1,15 +1,18 @@
+from copy import copy
+
 from grammar import Term
 from grammar.terms import Choice
 
 
 class Sequence(Term):
 
-    def __init__(self):
-        self.terms = []
+    def __init__(self, values, position):
+        self.values = values
+        self.position = position
 
     @staticmethod
     def parse(buffer, errors):
-        position = buffer.position
+        position = copy(buffer.position)
 
         values = []
         while True:
@@ -23,8 +26,8 @@ class Sequence(Term):
             if (buffer.finished()
                     or buffer.match('{')
                     or buffer.match('`')
-                    or buffer.peek('\n')
-                    or buffer.peek(')')):
+                    or buffer.match('\n')
+                    or buffer.match(')')):
                 break
 
         if len(values) == 1:

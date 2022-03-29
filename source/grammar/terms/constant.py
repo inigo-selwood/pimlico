@@ -1,3 +1,5 @@
+from copy import copy
+
 from grammar import Term
 
 
@@ -10,7 +12,7 @@ class Constant(Term):
     def parse(buffer, errors):
         assert buffer.match('\'', True)
 
-        position = buffer.position
+        position = copy(buffer.position)
 
         value = ''
         while True:

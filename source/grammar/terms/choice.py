@@ -1,3 +1,5 @@
+from copy import copy 
+
 from grammar import Term
 
 
@@ -9,7 +11,7 @@ class Choice(Term):
 
     @staticmethod
     def parse(buffer, errors):
-        position = buffer.position
+        position = copy(buffer.position)
 
         values = []
         while True:
@@ -20,7 +22,7 @@ class Choice(Term):
             values.append(term)
 
             buffer.skip_space()
-            if buffer.finished() or not buffer.read('|'):
+            if buffer.finished() or not buffer.match('|', True):
                 break
 
             buffer.skip_space()

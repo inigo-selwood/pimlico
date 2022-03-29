@@ -124,6 +124,15 @@ class Term:
                 return parse_specific_bounds(buffer, errors)
             else:
                 return (1, 1)
+        
+        if root and not buffer.match('('):
+            return grammar.terms.Sequence.parse(buffer, errors)
+
+        predicate = ''
+        if buffer.match('&', True):
+            predicate = 'and'
+        elif buffer.match('!', True):
+            predicate = 'not'
 
         binding = ''
         character = buffer.peek()
@@ -136,27 +145,12 @@ class Term:
                 binding = identifier
             else:
                 buffer.position = start_position
-                print(f'{start_position.column, start_position.line}')
-
-        if root:
-            sequence = grammar.terms.Sequence.parse(buffer, errors)
-            if sequence:
-                sequence.binding = binding
-            return sequence
-
-        predicate = ''
-        if buffer.match('&', True):
-            predicate = 'and'
-        elif buffer.match('!', True):
-                predicate = 'not'
 
         buffer.skip_space()
-
         term = None
         enclosed = buffer.match('(', True)
         if enclosed:
-            term = grammar.Sequence.parse(buffer, errors)
-
+            term = grammar.terms.Sequence.parse(buffer, errors)
         else:
             character = buffer.peek()
 

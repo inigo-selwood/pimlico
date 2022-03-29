@@ -1,3 +1,5 @@
+from copy import copy 
+
 from grammar import Term
 
 
@@ -31,7 +33,7 @@ class Range(Term):
 
         assert buffer.match('[', True)
 
-        position = buffer.position
+        position = copy(buffer.position)
 
         # Parse lower bound
         buffer.skip_space()

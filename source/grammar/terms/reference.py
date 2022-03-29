@@ -1,3 +1,5 @@
+from copy import copy 
+
 from grammar import Term
 
 
@@ -18,12 +20,18 @@ class Reference(Term):
 
         assert is_identifier_character(buffer.peek())
 
-        position = buffer.position
+        position = copy(buffer.position)
 
         value = ''
         invalid_characters = []
         while True:
-            if buffer.finished() or buffer.match(' '):
+            if (buffer.finished() 
+                    or buffer.match('|')
+                    or buffer.match(')') 
+                    or buffer.match('\'')
+                    or buffer.match('[')
+                    or buffer.match('`')
+                    or buffer.match(' ')):
                 break
 
             character = buffer.read()
