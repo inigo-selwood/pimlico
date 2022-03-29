@@ -14,6 +14,7 @@ class Term:
         self.predicate = None
         self.position = None
         self.binding = None
+        self.type = ''
 
     @staticmethod
     def parse(buffer, errors, root=False):

@@ -7,16 +7,19 @@ class ErrorBuffer:
     def add(self, section, message, position):
         self.instances.append((section, message, position))
 
-    def print(self, buffer):
+    def serialize(self, buffer):
         for instance in self.instances:
 
             section, message, position = instance
-            column, line = position
+            column = position.column
+            line = position.line
 
             excerpt = buffer.line_text(line)
 
             pointer = ' ' * (column - buffer.line_indentation(line)) + '^'
 
-            print(f'[{column}:{line}] ({section}) {message}')
-            print(f'    {excerpt}')
-            print(f'    {pointer}')
+            print(
+                f'[{column}:{line}] ({section}) {message}\n'
+                f'    {excerpt}\n'
+                f'    {pointer}\n'
+            )

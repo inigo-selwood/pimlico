@@ -8,11 +8,12 @@ class Constant(Term):
     def __init__(self, value, position):
         self.value = value
         self.position = position
+        self.type = 'constant'
 
     def parse(buffer, errors):
-        assert buffer.match('\'', True)
-
         position = copy(buffer.position)
+
+        assert buffer.match('\'', True)
 
         value = ''
         while True:
@@ -33,7 +34,7 @@ class Constant(Term):
             errors.add('constant.parse', 'expected \'\\\'\'', buffer.position)
             return None
         elif not value:
-            errors.add('constant.parse', 'empty constant', buffer.position)
+            errors.add('constant.parse', 'empty constant', position)
             return None
 
         return Constant(value, position)

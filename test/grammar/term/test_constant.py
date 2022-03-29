@@ -7,7 +7,11 @@ from grammar.terms import Constant
 class TestConstant:
 
     def test_normal(self):
-        assert Constant.parse(ParseBuffer('\'test\''), ErrorBuffer())
+        buffer = ParseBuffer('\'test\'')
+        constant = Constant.parse(buffer, ErrorBuffer())
+        assert constant 
+        assert constant.type == 'constant'
+        assert constant.value == 'test'
 
     def test_empty(self):
         assert not Constant.parse(ParseBuffer('\'\''), ErrorBuffer())

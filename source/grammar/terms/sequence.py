@@ -9,6 +9,7 @@ class Sequence(Term):
     def __init__(self, values, position):
         self.values = values
         self.position = position
+        self.type = 'sequence'
 
     @staticmethod
     def parse(buffer, errors):

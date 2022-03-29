@@ -8,6 +8,7 @@ class Set(Term):
     def __init__(self, characters, position):
         self.characters = characters
         self.position = position
+        self.type = 'set'
 
     @staticmethod
     def parse(buffer, errors):

@@ -8,6 +8,7 @@ class Choice(Term):
     def __init__(self, values, position):
         self.values = values
         self.position = position
+        self.type = 'choice'
 
     @staticmethod
     def parse(buffer, errors):
@@ -29,15 +30,15 @@ class Choice(Term):
             error_encountered = True
             if buffer.finished():
                 errors.add('choice.parse',
-                        'unexpected end-of-file in choice',
+                        'unexpected end-of-file',
                         buffer.position)
             elif buffer.match('\n'):
                 errors.add('choice.parse',
-                        'unexpeted end-of-line in choice',
+                        'unexpected end-of-line',
                         buffer.position)
             elif buffer.match(')'):
                 errors.add('choice.parse',
-                        'unexpected \')\' in choice',
+                        'unexpected \')\'',
                         buffer.position)
             else:
                 error_encountered = False

@@ -8,6 +8,7 @@ class Reference(Term):
     def __init__(self, value, position):
         self.value = value
         self.position = position
+        self.type = 'reference'
 
     @staticmethod
     def parse(buffer, errors):

@@ -161,7 +161,7 @@ class ParseBuffer:
             if character == '#':
                 self.skip_line()
 
-            elif character in [' ', '\t', '\n', '\r', '\v']:
+            elif character in [' ', '\t', '\r', '\v']:
                 self.increment()
 
             else:
