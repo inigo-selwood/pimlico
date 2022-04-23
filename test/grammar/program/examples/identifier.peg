@@ -1,4 +1,0 @@
-identifier <std::string> :=
-    ['a' - 'z'] | ['A' - 'Z'] | ['0' - '9'] | '_' {
-        return __text__;
-    }
