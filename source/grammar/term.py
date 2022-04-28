@@ -62,3 +62,28 @@ class Term:
             term.bounds = (0, 1)
         
         return term
+    
+    @staticmethod
+    def present(buffer: ParseBuffer) -> bool:
+        ''' Checks for a term at the buffer's current position
+
+        Arguments
+        ---------
+        buffer: ParseBuffer
+            buffer in which to check for a term
+        
+        Returns
+        -------
+        term_present: bool
+            true if there's a term at the buffer's current index which (could)
+            be a term
+        '''
+
+        character = buffer.read()
+        return (character == '\'' 
+                or character == '[' 
+                or in_range(character, 'a', 'z') 
+                or in_range(character, 'A', 'Z') 
+                or in_range(character, '0', '9') 
+                or character == '('
+                or character == '`')

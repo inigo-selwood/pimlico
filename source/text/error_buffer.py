@@ -53,10 +53,14 @@ class ErrorBuffer:
 
             excerpt = buffer.line_text(line)
 
-            pointer = ' ' * (column - buffer.line_indentation(line)) + '^'
+            pointer = ''
+            if column == -1:
+                pointer = ' ' * len(excerpt)
+            else:
+                pointer = ' ' * (column - buffer.line_indentation(line) - 1)
 
             print(
-                f'[{column}:{line}] ({section}) {message}\n'
+                f'[{line}:{column}] ({section}) {message}\n'
                 f'    {excerpt}\n'
-                f'    {pointer}\n'
+                f'    {pointer}^\n'
             )

@@ -57,20 +57,31 @@ class Choice:
             else:
                 options[term.hash] = term
 
+            # Check for a pipe character, stop parsing if we don't find one
             buffer.skip_space()
             pipe_position = copy(buffer.position)
             if not buffer.match('|', True):
                 break
+
+            # Look ahead to see if there are more pipe characters; report each
+            # one as an empty option  
+            while True:
+                buffer.skip_space()
+                new_pipe_position = copy(buffer.position)
+                if buffer.match('|', True):
+                    errors.add(domain, 'empty option', pipe_position)
+                    valid = False
+                else:
+                    break
             
-            buffer.skip_space()
+                pipe_position = new_pipe_position
+
             if buffer.finished():
                 errors.add(domain, 'unexpected end-of-file', buffer.position)
                 return None
             elif buffer.match('\n'):
                 errors.add(domain, 'unexpected end-of-line', buffer.position)
                 return None
-            elif buffer.match('|'):
-                errors.add(domain, 'empty option', pipe_position)
 
         if not valid:
             return None
