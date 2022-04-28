@@ -15,6 +15,7 @@ class Choice:
         self.values = values
         self.position = position
         self.type = 'choice'
+        self.bounds = (1, 1)
 
         context = sha256()
         for hash in sorted(values.keys()):

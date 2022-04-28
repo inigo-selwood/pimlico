@@ -12,7 +12,7 @@ class Term:
         pass
 
     @staticmethod
-    def parse(buffer: ParseBuffer, errors: ErrorBuffer, root: bool = False):
+    def parse(buffer: ParseBuffer, errors: ErrorBuffer):
         ''' Parses a term of any type
 
         Arguments
@@ -21,8 +21,6 @@ class Term:
             buffer at a term
         errors: ErrorBuffer
             buffer for reporting errors
-        root: bool
-            whether to treat this term like a sequence (false by default)
         
         Returns
         -------
@@ -33,20 +31,34 @@ class Term:
         domain = f'{Term.domain}:parse'
         
         character = buffer.read()
-        if root or character == '(':
-            return grammar.terms.Sequence.parse(buffer, errors)
-        if character == '\'':
-            return grammar.terms.Constant.parse(buffer, errors)
-        if character == '[':
-            return grammar.terms.Range.parse(buffer, errors)
-        if (character == '_'
+        term = None
+        if character == '(':
+            term = grammar.terms.Sequence.parse(buffer, errors)
+        elif character == '\'':
+            term = grammar.terms.Constant.parse(buffer, errors)
+        elif character == '[':
+            term = grammar.terms.Range.parse(buffer, errors)
+        elif (character == '_'
                 or in_range(character, 'a', 'z')
                 or in_range(character, 'A', 'Z')
                 or in_range(character, '0', '9')):
-            return grammar.terms.Reference.parse(buffer, errors)
+            term = grammar.terms.Reference.parse(buffer, errors)
         elif character == '`':
-            return grammar.terms.Set.parse(buffer, errors)
+            term = grammar.terms.Set.parse(buffer, errors)
         
         else:
             errors.add(domain, 'expected a term', buffer.position)
             return None
+        
+        if not term:
+            return None
+        
+        buffer.skip_space()
+        if buffer.match('*', True):
+            term.bounds = (0, -1)
+        elif buffer.match('+', True):
+            term.bounds = (1, -1)
+        elif buffer.match('?', True):
+            term.bounds = (0, 1)
+        
+        return term

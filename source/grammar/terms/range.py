@@ -15,6 +15,7 @@ class Range:
         self.position = position
         self.type = 'range'
         self.hash = hash(values)
+        self.bounds = (1, 1)
 
         context = sha256()
         for value in values:
@@ -77,7 +78,6 @@ class Range:
         assert buffer.match('[', True)
         
         lower = read_bound()
-        print(lower)
         if not lower:
             return None
 

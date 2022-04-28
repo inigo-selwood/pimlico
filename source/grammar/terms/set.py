@@ -14,6 +14,7 @@ class Set:
         self.values = values
         self.position = position
         self.type = 'set'
+        self.bounds = (1, 1)
 
         context = sha256()
         ordered_characters = ''.join(sorted(values))

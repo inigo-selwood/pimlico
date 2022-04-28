@@ -16,6 +16,7 @@ class Sequence:
         self.values = values
         self.position = position
         self.type = 'sequence'
+        self.bounds = (1, 1)
 
         context = sha256()
         value_hashes = [value.hash for value in values]
@@ -24,7 +25,7 @@ class Sequence:
         self.hash = context.hexdigest()
     
     @staticmethod
-    def parse(buffer: ParseBuffer, errors: ErrorBuffer):
+    def parse(buffer: ParseBuffer, errors: ErrorBuffer, root: bool = False):
         ''' Parses a sequence
 
         Where a sequence has the format: `term0 term1 ... termN`
@@ -37,6 +38,8 @@ class Sequence:
             buffer at a sequence term
         errors: ErrorBuffer
             buffer for reporting errors
+        root: bool
+            whether this sequence is the top-level of an expression
         
         Returns
         -------
@@ -57,7 +60,7 @@ class Sequence:
         start_position = copy(buffer.position)
 
         enclosed = False
-        if buffer.match('(', True):
+        if not root and buffer.match('(', True):
             enclosed = True
 
             buffer.skip_space()
@@ -68,7 +71,9 @@ class Sequence:
         values = []
         valid = True
         while True:
+
             term = Choice.parse(buffer, errors)
+            
             if not term:
                 return None
             elif values and term.hash == values[-1].hash:

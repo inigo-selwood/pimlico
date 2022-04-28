@@ -19,18 +19,21 @@ def test_term():
         assert buffer.finished(), grammar
 
 
+def test_instance_bounds():
+    grammars = {
+        'a+': (1, -1),
+        'a*': (0, -1),
+        'a?': (0, 1)
+    }
+
+    for grammar, bounds in grammars.items():
+        buffer = ParseBuffer(grammar)
+        term = Term.parse(buffer, ErrorBuffer())
+        assert term
+        assert term.bounds == bounds, grammar
+        assert buffer.finished(), grammar
+
+
 def test_reduction():
     term = Term.parse(ParseBuffer('\'a\''), ErrorBuffer())
     assert term.type == 'constant'
-
-
-def test_root():
-    buffer = ParseBuffer('a | b \'c\' [de] f (g) `hj`')
-    assert Term.parse(buffer, ErrorBuffer(), root=True)
-    assert buffer.finished()
-
-
-def test_not_root():
-    buffer = ParseBuffer('a b')
-    Term.parse(buffer, ErrorBuffer())
-    assert not buffer.finished()

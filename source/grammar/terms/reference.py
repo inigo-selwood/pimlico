@@ -12,6 +12,7 @@ class Reference:
         self.value = value
         self.position = position
         self.type = 'reference'
+        self.bounds = (1, 1)
 
         context = sha256()
         context.update(value.encode('utf-8'))
