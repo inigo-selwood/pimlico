@@ -1,4 +1,4 @@
-from .is_identifier_letter import is_identifier_letter
+from .in_range import in_range
 
 
-__all__ = ['is_identifier_letter']
+__all__ = ['in_range']

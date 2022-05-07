@@ -1,50 +1,58 @@
-from copy import copy 
+from copy import copy
 
-from grammar import Term
+from hashlib import sha256
+
+from text import Position, ParseBuffer, ErrorBuffer
+from utilities import in_range
 
 
-class Reference(Term):
+class Reference:
 
-    def __init__(self, value, position):
+    def __init__(self, value: str, position: Position):
         self.value = value
         self.position = position
         self.type = 'reference'
+        self.bounds = (1, 1)
+
+        context = sha256()
+        context.update(value.encode('utf-8'))
+        self.hash = context.hexdigest()
 
     @staticmethod
-    def parse(buffer, errors):
+    def parse(buffer: ParseBuffer, errors: ErrorBuffer):
+        ''' Parses a reference
 
-        def is_identifier_character(letter):
-            index = ord(letter)
-            return ((index >= ord('a') and index <= ord('z'))
-                    or (index >= ord('A') and index <= ord('Z'))
-                    or letter == '_')
+        Where a reference has the format: `nameOfSomeRule`
 
-        assert is_identifier_character(buffer.peek())
+        Arguments
+        ---------
+        buffer: ParseBuffer
+            buffer at a reference term
+        errors: ErrorBuffer
+            buffer for reporting errors
 
-        position = copy(buffer.position)
+        Returns
+        -------
+        reference: Reference
+            the parsed term
+        '''
+
+        start_position = copy(buffer.position)
 
         value = ''
-        invalid_characters = []
         while True:
-            if (buffer.finished() 
-                    or buffer.match('|')
-                    or buffer.match(')') 
-                    or buffer.match('\'')
-                    or buffer.match('[')
-                    or buffer.match('`')
-                    or buffer.match(' ')):
+            if buffer.finished():
                 break
 
             character = buffer.read()
-            if is_identifier_character(character):
-                value = value + character
-            else:
-                invalid_characters.append(character)
+            if (character != '_'
+                    and not in_range(character, 'a', 'z')
+                    and not in_range(character, 'A', 'Z')
+                    and not in_range(character, '0', '9')):
+                break
 
-        if invalid_characters:
-            errors.add('reference.parse',
-                    f'invalid characters: {invalid_characters}',
-                    position)
-            return None
+            value += character
+            buffer.increment()
 
-        return Reference(value, position)
+        assert value
+        return Reference(value, start_position)

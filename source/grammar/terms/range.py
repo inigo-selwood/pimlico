@@ -1,100 +1,99 @@
-from copy import copy 
+from copy import copy
 
-from grammar import Term
+from hashlib import sha256
+
+from utilities import in_range
+from text import Position, ParseBuffer, ErrorBuffer
 
 
-class Range(Term):
+class Range:
 
-    def __init__(self, values, position):
+    domain = 'grammar.terms.range'
+
+    def __init__(self, values: tuple, position: Position):
         self.values = values
         self.position = position
         self.type = 'range'
+        self.hash = hash(values)
+        self.bounds = (1, 1)
+
+        context = sha256()
+        for value in values:
+            context.update(value.encode('utf-8'))
+        self.hash = context.hexdigest()
 
     @staticmethod
-    def parse(buffer, errors):
+    def parse(buffer: ParseBuffer, errors: ErrorBuffer):
+        ''' Parses a range
 
-        def search(character, limit=5):
+        Where a range has the format: `[az]`
 
-            steps = 0
-            while True:
-                if buffer.finished():
-                    return -1
-                elif buffer.read() == character:
-                    return steps
+        Arguments
+        ---------
+        buffer: ParseBuffer
+            buffer at a range term
+        errors: ErrorBuffer
+            buffer for reporting errors
 
-                steps += 1
-                if steps > limit:
-                    return -1
+        Returns
+        -------
+        range: Range
+            the parsed term
+        '''
 
-        def fail():
-            delta = search(']', 8)
-            if delta > 0:
-                buffer.increment(delta)
-            return None
+        domain = f'{Range.domain}:parse'
+        start_position = copy(buffer.position)
+
+        def read_bound() -> str:
+            ''' Extracts a single bound value
+
+            Returns
+            -------
+            bound: str
+                the parsed bound
+            '''
+
+            buffer.skip_space()
+            if buffer.finished():
+                errors.add(domain, 'unexpected end-of-file', buffer.position)
+                return None
+            elif buffer.match('\n'):
+                errors.add(domain, 'unexpected end-of-line', buffer.position)
+                return None
+            elif buffer.match(']', True):
+                errors.add(domain, 'too few characters', start_position)
+                return None
+            elif not in_range(buffer.read(), ' ', '~'):
+                errors.add(domain, 'invalid character', buffer.position)
+                buffer.increment()
+                return None
+
+            elif buffer.match('\' \'', True):
+                return ' '
+            elif buffer.match('\\]', True):
+                return ']'
+
+            return buffer.read(True)
 
         assert buffer.match('[', True)
 
-        position = copy(buffer.position)
-
-        # Parse lower bound
-        buffer.skip_space()
-        lower = ''
-        if buffer.match('-'):
-            errors.add('range.parse', 'missing lower bound', buffer.position)
-            return fail()
-        elif buffer.match(r'\-', True):
-            lower = '-'
-        else:
-            lower = buffer.read()
-
+        lower = read_bound()
         if not lower:
-            errors.add('range.parse',
-                    'unexpected end-of-file',
-                    buffer.position)
             return None
 
-        # Check for a cheeky seperator
-        buffer.skip_space()
-        if not buffer.match('-', True):
-            errors.add('range.parse', 'expected \'-\'', buffer.position)
-            return fail()
-
-        # Parse upper bound
-        buffer.skip_space()
-        upper = ''
-        if buffer.match(']'):
-            errors.add('range.parse', 'missing upper bound', buffer.position)
-        elif buffer.match(r'\]', True):
-            upper = ']'
-        else:
-            upper = buffer.read()
-
+        upper = read_bound()
         if not upper:
-            errors.add('range.parse',
-                    'unexpected end-of-file',
-                    buffer.position)
             return None
 
-        # Check for closing bracket
         buffer.skip_space()
-        if not buffer.match(']', True):
-            errors.add('range.parse', 'expected \']\'', buffer.position)
-            return fail()
-
-        # Check the range of characters actually makes sense
-        lowerIndex = ord(lower)
-        upperIndex = ord(upper)
-        if lowerIndex >= upperIndex:
-            errors.add('range.parse',
-                    'illogical character range',
-                    buffer.position)
+        if buffer.finished():
+            errors.add(domain, 'unexpected end-of-file', buffer.position)
+            return None
+        elif buffer.match('\n'):
+            errors.add(domain, 'unexpected end-of-line', buffer.position)
+            return None
+        elif not buffer.match(']', True):
+            errors.add(domain, 'expected \']\'', buffer.position)
             return None
 
-        # Check the range values given are strictly vanilla
-        for index in [lowerIndex, upperIndex]:
-            if index < ord(' ') or index > ord('~'):
-                errors.add('range.parse',
-                        'invalid character in range',
-                        position)
-
-        return Range((lower, upper), position)
+        return Range((lower, upper), start_position)
