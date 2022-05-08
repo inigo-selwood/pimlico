@@ -2,7 +2,7 @@ from copy import copy
 
 from hashlib import sha256
 
-from text import Position, ParseBuffer, ErrorBuffer
+from text import Position, ParseBuffer, ErrorBuffer, parse_identifier
 from utilities import in_range
 
 
@@ -39,20 +39,7 @@ class Reference:
 
         start_position = copy(buffer.position)
 
-        value = ''
-        while True:
-            if buffer.finished():
-                break
-
-            character = buffer.read()
-            if (character != '_'
-                    and not in_range(character, 'a', 'z')
-                    and not in_range(character, 'A', 'Z')
-                    and not in_range(character, '0', '9')):
-                break
-
-            value += character
-            buffer.increment()
-
+        value = parse_identifier(buffer)
         assert value
+        
         return Reference(value, start_position)
