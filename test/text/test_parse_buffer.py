@@ -88,6 +88,10 @@ class TestParseBuffer:
         buffer.skip_space()
         assert buffer.finished()
 
+        buffer = ParseBuffer('\n ')
+        buffer.skip_space(True)
+        assert buffer.finished()
+
     def test_skip_line(self):
         buffer = ParseBuffer('\n\n')
         buffer.skip_line()

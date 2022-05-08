@@ -5,7 +5,7 @@ import grammar
 
 class Production:
     
-    domain = 'production'
+    domain = 'grammar.production'
 
     def __init__(self, term, expression: str):
         self.term = term
