@@ -1,4 +1,6 @@
-from text import ParseBuffer, ErrorBuffer
+from copy import copy
+
+from text import ParseBuffer, ErrorBuffer, parse_identifier
 from utilities import in_range
 
 import grammar
@@ -30,6 +32,19 @@ class Term:
 
         domain = f'{Term.domain}:parse'
 
+        binding = ''
+        binding_position = copy(buffer.position)
+        character = buffer.read()
+        if (character == '_'
+                or in_range(character, 'a', 'z')
+                or in_range(character, 'A', 'Z')):
+            binding = parse_identifier(buffer)
+
+            buffer.skip_space()
+            if not buffer.match(':', True):
+                buffer.position = binding_position
+
+        buffer.skip_space()
         character = buffer.read()
         term = None
         if character == '(':
@@ -40,8 +55,7 @@ class Term:
             term = grammar.terms.Range.parse(buffer, errors)
         elif (character == '_'
                 or in_range(character, 'a', 'z')
-                or in_range(character, 'A', 'Z')
-                or in_range(character, '0', '9')):
+                or in_range(character, 'A', 'Z')):
             term = grammar.terms.Reference.parse(buffer, errors)
         elif character == '`':
             term = grammar.terms.Set.parse(buffer, errors)
@@ -61,6 +75,7 @@ class Term:
         elif buffer.match('?', True):
             term.bounds = (0, 1)
 
+        term.binding = binding
         return term
 
     @staticmethod

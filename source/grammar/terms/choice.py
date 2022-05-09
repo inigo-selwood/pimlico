@@ -12,6 +12,7 @@ class Choice:
     domain = 'grammar.terms.choice'
 
     def __init__(self, values: dict, position: Position):
+        self.binding = ''
         self.values = values
         self.position = position
         self.type = 'choice'

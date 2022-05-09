@@ -11,6 +11,7 @@ class Range:
     domain = 'grammar.terms.range'
 
     def __init__(self, values: tuple, position: Position):
+        self.binding = ''
         self.values = values
         self.position = position
         self.type = 'range'

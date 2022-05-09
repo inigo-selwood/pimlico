@@ -11,6 +11,7 @@ class Constant:
     domain = 'grammar.terms.constant'
 
     def __init__(self, value: str, position: Position):
+        self.binding = ''
         self.value = value
         self.position = position
         self.type = 'constant'

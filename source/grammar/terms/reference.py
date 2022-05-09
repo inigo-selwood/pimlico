@@ -9,6 +9,7 @@ from utilities import in_range
 class Reference:
 
     def __init__(self, value: str, position: Position):
+        self.binding = ''
         self.value = value
         self.position = position
         self.type = 'reference'

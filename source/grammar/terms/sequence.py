@@ -13,6 +13,7 @@ class Sequence:
     domain = 'grammar.terms.sequence'
 
     def __init__(self, values: list, position: Position):
+        self.binding = ''
         self.values = values
         self.position = position
         self.type = 'sequence'
