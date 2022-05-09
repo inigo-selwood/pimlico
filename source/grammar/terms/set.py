@@ -53,7 +53,7 @@ class Set:
                 errors.add(domain, 'unexpected end-of-file', buffer.position)
                 return None
             elif buffer.match('\n'):
-                errors.add(domain, 'unexpected end-of-line', buffer.position)
+                errors.add(domain, 'unexpected newline', buffer.position)
                 return None
             elif not in_range(buffer.read(), ' ', '~'):
                 errors.add(domain, 'invalid character', buffer.position)

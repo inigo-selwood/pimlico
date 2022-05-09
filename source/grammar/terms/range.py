@@ -58,7 +58,7 @@ class Range:
                 errors.add(domain, 'unexpected end-of-file', buffer.position)
                 return None
             elif buffer.match('\n'):
-                errors.add(domain, 'unexpected end-of-line', buffer.position)
+                errors.add(domain, 'unexpected newline', buffer.position)
                 return None
             elif buffer.match(']', True):
                 errors.add(domain, 'too few characters', start_position)
@@ -90,7 +90,7 @@ class Range:
             errors.add(domain, 'unexpected end-of-file', buffer.position)
             return None
         elif buffer.match('\n'):
-            errors.add(domain, 'unexpected end-of-line', buffer.position)
+            errors.add(domain, 'unexpected newline', buffer.position)
             return None
         elif not buffer.match(']', True):
             errors.add(domain, 'expected \']\'', buffer.position)

@@ -17,5 +17,5 @@ def test_unexpected_end_of_file():
     
 
 def test_unexpected_end_of_line():
-    errors = [('unexpected end-of-line', (1, -1))]
+    errors = [('unexpected newline', (1, -1))]
     run_invalid_test('\'\n', Constant.parse, errors)

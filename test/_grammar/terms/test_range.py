@@ -44,7 +44,7 @@ def test_end_of_line():
     ]
 
     for grammar in grammars:
-        errors = [('unexpected end-of-line', (1, -1))]
+        errors = [('unexpected newline', (1, -1))]
         run_invalid_test(grammar, Range.parse, errors)
 
 
