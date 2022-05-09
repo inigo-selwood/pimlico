@@ -22,6 +22,26 @@ class Range:
         for value in values:
             context.update(value.encode('utf-8'))
         self.hash = context.hexdigest()
+    
+    def __str__(self):
+
+        lower, upper = self.values
+        if lower == ']':
+            lower = '\\]'
+        elif lower == ' ':
+            lower = '\' \''
+        
+        if upper == ']':
+            upper = '\\]'
+        elif upper == ' ':
+            upper = '\' \''
+
+        result = f'[{lower}{upper}]'
+
+        if self.binding:
+            return f'{self.binding}: {result}'
+        else:
+            return result
 
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):

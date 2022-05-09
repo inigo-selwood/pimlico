@@ -20,6 +20,21 @@ class Constant:
         context = sha256()
         context.update(value.encode('utf-8'))
         self.hash = context.hexdigest()
+    
+    def __str__(self):
+        result = ''
+
+        value = ''
+        for letter in self.value:
+            if letter == '\'':
+                value += '\\\''
+            else:
+                value += letter
+        
+        if self.binding:
+            return f'{self.binding}: \'{value}\''
+        else:
+            return f'\'{value}\''
 
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):

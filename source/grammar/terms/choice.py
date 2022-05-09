@@ -26,17 +26,33 @@ class Choice:
     def __str__(self):
         result = ''
 
-        value_count = len(self.values)
-        for index in range(value_count):
+        enclosed = False
+        if self.binding:
+            result = f'{self.binding}: '
+            enclosed = True
+        
+        if enclosed:
+            result += '('
 
-            value = self.values[index]
-            if value.type == 'sequence':
+        value_count = len(self.values)
+        index = 0
+        for value in self.values.values():
+
+            # If the term is a sequence within a choice, it needs brackets. 
+            # However, sequences with bindings print their own brackets, in 
+            # which case we don't have to add them a second time
+            if value.type == 'sequence' and not value.binding:
                 result += f'({value.__str__()})'
             else:
                 result += value.__str__()
             
             if (index + 1) < value_count:
-                result += ' '
+                result += ' | '
+            
+            index += 1
+        
+        if enclosed:
+            result += ')'
         
         return result
 

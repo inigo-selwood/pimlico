@@ -21,6 +21,19 @@ class Set:
         ordered_characters = ''.join(sorted(values))
         context.update(ordered_characters.encode('utf-8'))
         self.hash = context.hexdigest()
+    
+    def __str__(self):
+        result = ''
+        for letter in self.values:
+            if letter == '`':
+                result += '\\`'
+            else:
+                result += letter
+            
+        if self.binding:
+            return f'{self.binding}: `{result}`'
+        else:
+            return f'`{result}`'
 
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):

@@ -24,6 +24,29 @@ class Sequence:
         for hash in value_hashes:
             context.update(hash.encode('utf-8'))
         self.hash = context.hexdigest()
+    
+    def __str__(self):
+        result = ''
+
+        enclosed = False
+        if self.binding:
+            result = f'{self.binding}: '
+            enclosed = True
+        
+        if enclosed:
+            result += '('
+
+        value_count = len(self.values)
+        for index in range(value_count):
+            result += self.values[index].__str__()
+            
+            if (index + 1) < value_count:
+                result += ' '
+        
+        if enclosed:
+            result += ')'
+        
+        return result
 
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer, root: bool = False):

@@ -10,7 +10,7 @@ class Production:
     def __init__(self, term, expression: str):
         self.term = term
         self.expression = expression
-
+    
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):
 

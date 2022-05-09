@@ -18,6 +18,12 @@ class Reference:
         context = sha256()
         context.update(value.encode('utf-8'))
         self.hash = context.hexdigest()
+    
+    def __str__(self):
+        if self.binding:
+            return f'{self.binding}: {self.value}'
+        else:
+            return self.value
 
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):

@@ -8,7 +8,8 @@ def test_simple():
 
 
 def test_terms():
-    run_valid_parse_test('\'a\' | [bc] | d | (e f) | `gh`', Choice.parse)
+    text = '\'a\' | [bc] | d | (e f) | `gh`'
+    run_valid_parse_test(text, Choice.parse)
 
 
 def test_end_of_file():

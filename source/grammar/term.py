@@ -43,6 +43,7 @@ class Term:
             buffer.skip_space()
             if not buffer.match(':', True):
                 buffer.position = binding_position
+                binding = ''
 
         buffer.skip_space()
         character = buffer.read()
