@@ -36,3 +36,14 @@ def test_bindings():
         assert term.__str__() == text
         assert term.binding == 'binding'
 
+
+def test_escape_codes():
+    texts = [
+        '\'\\\'\'',
+        '[\' \'~]',
+        r'[[\]]',
+        r'`\\``'
+    ]
+
+    for text in texts:
+        assert Term.parse(ParseBuffer(text), ErrorBuffer()).__str__() == text
