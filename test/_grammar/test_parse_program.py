@@ -9,6 +9,10 @@ def test_simple():
     run_valid_parse_test(text, Program.parse)
 
 
+def test_inclusion():
+    run_valid_parse_test('.include(string)', Program.parse)
+
+
 def test_multi_line():
     text = ('rule0 :='
             '\n    - term0 {}'

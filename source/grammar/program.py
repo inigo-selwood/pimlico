@@ -1,4 +1,5 @@
 import grammar
+from text.parse_bounded_text import parse_bounded_text
 from text import ParseBuffer, ErrorBuffer
 from utilities import in_range
 
@@ -7,7 +8,7 @@ class Program:
 
     domain = 'grammar.program'
 
-    def __init__(self, rules: dict):
+    def __init__(self, rules: dict, includes: list):
         self.rules = rules
 
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):
@@ -33,31 +34,53 @@ class Program:
             errors.add(domain, 'empty text', buffer.position)
             return None
 
+        includes = []
         rules = {}
         while True:
 
             if buffer.finished():
                 break
         
-            if buffer.line_indentation() != 0:
+            # Check the indentation is correct
+            elif buffer.line_indentation() != 0:
                 buffer.skip_space()
                 errors.add(domain, 
                         'unexpected indentation increase', 
                         buffer.position)
                 return None
 
+            # Handle inclusion macros
+            elif buffer.match('.include', True):
+
+                buffer.skip_space()
+                if not buffer.match('('):
+                    errors.add(domain, 'expected \'(\'', buffer.position)
+                
+                inclusion = parse_bounded_text(buffer, 
+                        errors, 
+                        '(', 
+                        ')', 
+                        permit_newlines=False)
+                if not inclusion:
+                    return None
+                
+                includes.append(inclusion)
+                buffer.skip_space(include_newlines=True)
+                continue
+
+            # Check there's a rule name present
             character = buffer.read()
             if (character != '_'
                     and not in_range(character, 'a', 'z')
-                    and not in_range(character, 'A', 'Z')
-                    and not in_range(character, '0', '9')):
+                    and not in_range(character, 'A', 'Z')):
                 errors.add(domain, 'expected a rule', buffer.position)
                 return None 
 
+            # Parse the rule
             rule = grammar.Rule.parse(buffer, errors)
             if not rule:
                 return None
-            if rule.name in rules:
+            elif rule.name in rules:
                 errors.add(domain, 
                         f'duplicate rule \'{rule.name}\'', 
                         rule.position)
@@ -67,6 +90,7 @@ class Program:
                 return None
             rules[rule.name] = rule
             
+            # Check for trailing garbage
             buffer.skip_space()
             if not buffer.finished() and not buffer.match('\n'):
                 errors.add(domain,
@@ -76,5 +100,5 @@ class Program:
             
             buffer.skip_space(include_newlines=True)
         
-        return Program(rules)
+        return Program(rules, includes)
 
