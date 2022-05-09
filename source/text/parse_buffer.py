@@ -292,8 +292,7 @@ class ParseBuffer:
 
         line_count = len(self.index_indentations)
         if self.position.line >= line_count:
-            column = self.length - self.index_indentations[-1][0]
-            self.position.column = column
+            self.position.column = -1
             self.position.index = self.length
 
         else:
@@ -301,7 +300,7 @@ class ParseBuffer:
             self.position.index = index
 
             self.position.line += 1
-            self.position.column = 0
+            self.position.column = -1
 
     def skip_space(self, include_newlines: bool = False):
         ''' Skips whitespace characters, optionally including newlines

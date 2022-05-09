@@ -18,7 +18,7 @@ def in_range(character: str, lower: str, upper: str) -> bool:
     in_range: bool
         true if the character is in range
     '''
-    
+
     if (len(character) != 1 
             or len(lower) != 1
             or len(upper) != 1):

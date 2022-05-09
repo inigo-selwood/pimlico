@@ -72,6 +72,7 @@ class Rule:
         buffer.skip_space()
         if not buffer.match(':=', True):
             errors.add(domain, 'expected \':=\'', buffer.position)
+            return None
         
         # There are 2 types of rule forms; one has a single production on the 
         # same line, and the other has a list of them on newlines, indented by
@@ -83,23 +84,26 @@ class Rule:
             production = grammar.Production.parse(buffer, errors)
             if not production:
                 return None
-            
-            buffer.skip_space()
-            if not buffer.finished() and not buffer.match('\n'):
-                errors.add(domain, 'expected newline', buffer.position)
-                return None
         
         # If there isn't an inline term, we presume there's multiple
         # bullet-point indented ones
         else:
             
             while True:
-
-                buffer.skip_space(True)
-                if (not buffer.line_indentation() == 4
-                        or not buffer.match('-', True)):
+                pre_production_position = copy(buffer.position)
+                buffer.skip_space(include_newlines=True)
+                if not buffer.match('-', True):
+                    buffer.position = pre_production_position
                     break
+
+                # Make sure productions are indented properly
+                elif buffer.line_indentation() != 4:
+                    errors.add(domain, 
+                            'invalid indentation', 
+                            buffer.position)
+                    return None
                 
+                # Check there's a term present
                 buffer.skip_space()
                 if not grammar.Term.present(buffer):
                     errors.add(domain, 'expected a term', buffer.position)
@@ -112,7 +116,9 @@ class Rule:
                 productions.append(production)
             
             if not productions:
-                errors.add(domain, 'expected a production', buffer.position)
+                errors.add(domain, 
+                        'expected one or more productions', 
+                        buffer.position)
                 return None
             
         return Rule(name, type, productions, start_position)

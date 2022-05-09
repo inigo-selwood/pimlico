@@ -20,7 +20,6 @@ def test_with_nesting_expression():
     run_valid_test('term { { // Some C++ } }', Production.parse)
 
 
-
 def test_no_term():
     run_invalid_test(' ', Production.parse, [('expected a term', (1, 1))])
 

@@ -35,3 +35,31 @@ def test_multi_line_with_embeddings():
             '\n        // Some more C++'
             '\n    }')
     run_valid_test(text, Rule.parse)
+
+
+def test_expected_assign():
+    text = 'rule # Missing \':=\''
+    errors = [('expected \':=\'', (1, -1))]
+    run_invalid_test(text, Rule.parse, errors)
+
+
+def test_expected_productions():
+    errors = [('expected one or more productions', (1, 9))]
+    run_invalid_test('rule := {}', Rule.parse, errors)
+
+
+def test_expected_term():
+    text = ('rule :='
+            '\n    - someTerm {}'
+            '\n    - {}')
+    errors = [('expected a term', (3, 7))]
+    run_invalid_test(text, Rule.parse, errors)
+
+
+def test_unexpected_indentation_increase():
+    text = ('rule :='
+            '\n    - term0'
+            '\n        - term1')
+    errors = [('invalid indentation', (3, 10))]
+    run_invalid_test(text, Rule.parse, errors)
+    
