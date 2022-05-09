@@ -100,6 +100,5 @@ class Term:
                 or character == '['
                 or in_range(character, 'a', 'z')
                 or in_range(character, 'A', 'Z')
-                or in_range(character, '0', '9')
                 or character == '('
                 or character == '`')
