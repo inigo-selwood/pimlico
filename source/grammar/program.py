@@ -28,7 +28,12 @@ class Program:
 
         domain = f'{Program.domain}:parse'
 
-        rules = []
+        buffer.skip_space(include_newlines=True)
+        if buffer.finished():
+            errors.add(domain, 'empty text', buffer.position)
+            return None
+
+        rules = {}
         while True:
 
             if buffer.finished():
@@ -47,6 +52,7 @@ class Program:
                     and not in_range(character, 'A', 'Z')
                     and not in_range(character, '0', '9')):
                 errors.add(domain, 'expected a rule', buffer.position)
+                return None 
 
             rule = grammar.Rule.parse(buffer, errors)
             if not rule:
@@ -54,12 +60,12 @@ class Program:
             if rule.name in rules:
                 errors.add(domain, 
                         f'duplicate rule \'{rule.name}\'', 
-                        buffer.position)
+                        rule.position)
                 errors.add(domain,
                         'first declared here',
                         rules[rule.name].position)
                 return None
-            rules.append(rule)
+            rules[rule.name] = rule
             
             buffer.skip_space()
             if not buffer.finished() and not buffer.match('\n'):
