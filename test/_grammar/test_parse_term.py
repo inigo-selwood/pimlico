@@ -1,11 +1,11 @@
 from grammar import Term
 
-from .helpers import run_invalid_test, run_valid_test
+from .helpers import run_invalid_parse_test, run_valid_parse_test
 
 
 def test_instance_bounds():
     for text in ['a+', 'a*', 'a?']:
-        run_valid_test(text, Term.parse)
+        run_valid_parse_test(text, Term.parse)
 
 
 def test_binding():
@@ -19,4 +19,4 @@ def test_binding():
     ]
 
     for text in texts:
-        run_valid_test(text, Term.parse)
+        run_valid_parse_test(text, Term.parse)

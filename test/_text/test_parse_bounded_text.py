@@ -1,7 +1,7 @@
 from pytest import raises
 
 from text import ParseBuffer, ErrorBuffer, parse_bounded_text
-from .._grammar.helpers import run_valid_test, run_invalid_test
+from .._grammar.helpers import run_valid_parse_test, run_invalid_parse_test
 
 
 def test_simple():
@@ -40,7 +40,7 @@ def test_permit_newlines():
         'end_sequence': '}',
         'permit_newlines': False
     }
-    run_invalid_test('{\n}', 
+    run_invalid_parse_test('{\n}', 
             parse_bounded_text, 
             [('unexpected newline', (1, -1))],
             arguments)
@@ -52,7 +52,7 @@ def test_unexpected_eof():
         'end_sequence': '}',
         'permit_newlines': False
     }
-    run_invalid_test('{ ', 
+    run_invalid_parse_test('{ ', 
             parse_bounded_text, 
             [('expected \'}\', got end-of-file', (1, -1))],
             arguments)
@@ -61,7 +61,7 @@ def test_unexpected_eof():
         'start_sequence': '###',
         'permit_newlines': False
     }
-    run_invalid_test('### ', 
+    run_invalid_parse_test('### ', 
             parse_bounded_text, 
             [('expected \'###\', got end-of-file', (1, -1))],
             arguments)

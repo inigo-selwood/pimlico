@@ -1,7 +1,7 @@
 from text import ParseBuffer, ErrorBuffer
 
 
-def run_valid_test(grammar: str, parser: callable, arguments: dict = {}):
+def run_valid_parse_test(grammar: str, parser: callable, arguments: dict = {}):
     ''' Runs a parse function, asserting success
 
     Arguments

@@ -22,6 +22,23 @@ class Choice:
         for hash in sorted(values.keys()):
             context.update(hash.encode('utf-8'))
         self.hash = context.hexdigest()
+    
+    def __str__(self):
+        result = ''
+
+        value_count = len(self.values)
+        for index in range(value_count):
+
+            value = self.values[index]
+            if value.type == 'sequence':
+                result += f'({value.__str__()})'
+            else:
+                result += value.__str__()
+            
+            if (index + 1) < value_count:
+                result += ' '
+        
+        return result
 
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):

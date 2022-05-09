@@ -1,6 +1,6 @@
 from grammar.terms import Range
 
-from ..helpers import run_invalid_test, run_valid_test
+from ..helpers import run_invalid_parse_test, run_valid_parse_test
 
 
 def test_simple():
@@ -12,15 +12,15 @@ def test_simple():
     ]
 
     for grammar in grammars:
-        run_valid_test(grammar, Range.parse)
+        run_valid_parse_test(grammar, Range.parse)
 
 
 def test_escaped_bracket():
-    run_valid_test(r'[[\]]', Range.parse)
+    run_valid_parse_test(r'[[\]]', Range.parse)
 
 
 def test_space():
-    range = run_valid_test('[\' \'~]', Range.parse)
+    range = run_valid_parse_test('[\' \'~]', Range.parse)
     assert range.values[0] == ' '
 
 
@@ -33,7 +33,7 @@ def test_end_of_file():
 
     for grammar in grammars:
         errors = [('unexpected end-of-file', (1, -1))]
-        run_invalid_test(grammar, Range.parse, errors)
+        run_invalid_parse_test(grammar, Range.parse, errors)
 
 
 def test_end_of_line():
@@ -45,7 +45,7 @@ def test_end_of_line():
 
     for grammar in grammars:
         errors = [('unexpected newline', (1, -1))]
-        run_invalid_test(grammar, Range.parse, errors)
+        run_invalid_parse_test(grammar, Range.parse, errors)
 
 
 def test_too_few_characters():
@@ -56,4 +56,4 @@ def test_too_few_characters():
 
     for grammar in grammars:
         errors = [('too few characters', (1, 1))]
-        run_invalid_test(grammar, Range.parse, errors)
+        run_invalid_parse_test(grammar, Range.parse, errors)
