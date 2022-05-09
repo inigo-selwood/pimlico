@@ -65,7 +65,7 @@ class Rule:
         buffer.skip_space()
         type = ''
         if buffer.match('<'):
-            type = parse_bounded_text(buffer, errors, '<', '>')
+            type = parse_bounded_text(buffer, errors, '<', '>', permit_newlines=False)
             if not type:
                 return None
 

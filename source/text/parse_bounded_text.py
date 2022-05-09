@@ -5,7 +5,8 @@ from .error_buffer import ErrorBuffer
 def parse_bounded_text(buffer: ParseBuffer, 
         errors: ErrorBuffer, 
         start_sequence: str, 
-        end_sequence: str = '') -> str:
+        end_sequence: str = '',
+        permit_newlines: bool = True) -> str:
     
     ''' Parses a length of text bounded by a start and end sequence
 
@@ -28,6 +29,8 @@ def parse_bounded_text(buffer: ParseBuffer,
     end_sequence: str = ''
         string marking the end of the section; omit if the start and end 
         sequences are the same
+    permit_newlines: bool = True
+        whether or not to report an error on encountering a newline
     
     Returns
     -------
@@ -36,6 +39,7 @@ def parse_bounded_text(buffer: ParseBuffer,
     '''
 
     assert buffer.match(start_sequence, True)
+    domain = 'text:parse_bounded_text'
 
     text = start_sequence
 
@@ -46,10 +50,13 @@ def parse_bounded_text(buffer: ParseBuffer,
 
         while True:
             if buffer.finished():
-                errors.add('text:parse_bounded_text', 
-                        f'expected \'{end_sequence}\', got end-of-file', 
+                errors.add(domain, 
+                        f'expected \'{start_sequence}\', got end-of-file', 
                         buffer.position)
-                    
+                return None
+            elif not permit_newlines and buffer.match('\n'):
+                errors.add(domain, 'unexpected newline', buffer.position)
+                return None
             elif buffer.match(start_sequence, True):
                 text += start_sequence
                 break
@@ -64,9 +71,12 @@ def parse_bounded_text(buffer: ParseBuffer,
         stack = 1
         while True:
             if buffer.finished():
-                errors.add('text:parse_bounded_text', 
+                errors.add(domain, 
                         f'expected \'{end_sequence}\', got end-of-file', 
                         buffer.position)
+                return None
+            elif not permit_newlines and buffer.match('\n'):
+                errors.add(domain, 'unexpected newline', buffer.position)
                 return None
             
             elif buffer.match(start_sequence):

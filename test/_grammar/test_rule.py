@@ -62,4 +62,9 @@ def test_unexpected_indentation_increase():
             '\n        - term1')
     errors = [('invalid indentation', (3, 10))]
     run_invalid_test(text, Rule.parse, errors)
+
+
+def test_unmatched_bracket():
+    errors = [('expected \'>\', got end-of-file', (1, -1))]
+    run_invalid_test('rule <', Rule.parse, errors)
     

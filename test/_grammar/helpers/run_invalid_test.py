@@ -1,7 +1,11 @@
 from text import ParseBuffer, ErrorBuffer
 
 
-def run_invalid_test(grammar: str, parser: callable, instances: list):
+def run_invalid_test(grammar: str, 
+        parser: callable, 
+        instances: list, 
+        arguments: dict = {}):
+    
     ''' Runs a parse function with a given grammar, asserts failure
 
     Arguments
@@ -15,12 +19,14 @@ def run_invalid_test(grammar: str, parser: callable, instances: list):
         form `str * (int * int)`
     must_finish: bool = False
         whether to check that the buffer has been fully consumed
+    arguments: dict = {}
+        an optional dictionary of arguments to forward to the parser
     '''
     
     buffer = ParseBuffer(grammar)
     errors = ErrorBuffer()
 
-    result = parser(buffer, errors)
+    result = parser(buffer, errors, **arguments)
     assert not result, grammar
 
     instance_count = len(instances)
