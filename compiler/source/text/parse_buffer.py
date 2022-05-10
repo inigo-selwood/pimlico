@@ -1,5 +1,7 @@
 from copy import copy
 
+from utilities import in_range
+
 
 class Position:
 
@@ -119,8 +121,7 @@ class ParseBuffer:
             # Failing the above, and if the character wasn't format-related,
             # increment the column
             else:
-                if (self.text[self.position.index] >= ' '
-                        and self.text[self.position.index] <= '~'):
+                if in_range(self.text[self.position.index], ' ', '~'):
                     self.position.column += 1
 
             self.position.index += 1
@@ -227,10 +228,10 @@ class ParseBuffer:
             whether the string matched
         '''
 
-        if self.position.index >= self.length:
+        length = len(text)
+        if self.position.index + length >= self.length:
             return False
 
-        length = len(text)
         result = False
         if length == 1:
             result = self.text[self.position.index] == text
