@@ -118,3 +118,6 @@ class Range:
             return None
 
         return Range((lower, upper), start_position)
+
+    def link_references(self, rules: dict, errors: ErrorBuffer):
+        return True

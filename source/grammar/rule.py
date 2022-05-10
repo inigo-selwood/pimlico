@@ -84,6 +84,7 @@ class Rule:
             production = grammar.Production.parse(buffer, errors)
             if not production:
                 return None
+            productions.append(production)
         
         # If there isn't an inline term, we presume there's multiple
         # bullet-point indented ones
@@ -120,7 +121,11 @@ class Rule:
                         'expected one or more productions', 
                         buffer.position)
                 return None
-            
+        
         return Rule(name, type, productions, start_position)
 
-
+    def link_references(self, rules: dict, errors: ErrorBuffer):
+        success = True
+        for production in self.productions:
+            success = success and production.link_references(rules, errors)
+        return success

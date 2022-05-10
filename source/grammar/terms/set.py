@@ -104,3 +104,6 @@ class Set:
             return None
 
         return Set(value, start_position)
+
+    def link_references(self, rules: dict, errors: ErrorBuffer):
+        return True

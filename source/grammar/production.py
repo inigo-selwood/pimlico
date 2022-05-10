@@ -32,3 +32,6 @@ class Production:
                 return None
         
         return Production(term, expression)
+    
+    def link_references(self, rules: dict, errors: ErrorBuffer):
+        return self.term.link_references(rules, errors)
