@@ -7,7 +7,7 @@ from text import Position, ParseBuffer, ErrorBuffer
 from grammar import Term
 
 
-class Choice:
+class Choice(Term):
 
     domain = 'grammar.terms.choice'
 
@@ -124,9 +124,23 @@ class Choice:
 
         return Choice(options, start_position)
 
-    def link_references(self, rules: dict, errors: ErrorBuffer):
+    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+        ''' Links rules to this term's children
+
+        Arguments
+        ---------
+        rules: dict
+            the full list of rules in the program
+        errors: ErrorBuffer
+            buffer for reporting errors
+        
+        Returns
+        -------
+        success: bool
+            whether or not the linking succeeded
+        '''
 
         success = True
-        for term in self.values:
+        for term in self.values.values():
             success = success and term.link_references(rules, errors)
         return success

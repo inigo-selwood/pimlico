@@ -124,7 +124,22 @@ class Rule:
         
         return Rule(name, type, productions, start_position)
 
-    def link_references(self, rules: dict, errors: ErrorBuffer):
+    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+        ''' Links other rules to this rule's production references
+
+        Arguments
+        ---------
+        rules: dict
+            the full list of rules in the program
+        errors: ErrorBuffer
+            buffer for reporting errors
+        
+        Returns
+        -------
+        success: bool
+            whether or not the linking succeeded
+        '''
+        
         success = True
         for production in self.productions:
             success = success and production.link_references(rules, errors)

@@ -4,9 +4,10 @@ from hashlib import sha256
 
 from utilities import in_range
 from text import Position, ParseBuffer, ErrorBuffer
+from grammar import Term
 
 
-class Constant:
+class Constant(Term):
 
     domain = 'grammar.terms.constant'
 
@@ -90,6 +91,3 @@ class Constant:
             return None
 
         return Constant(value, start_position)
-
-    def link_references(self, rules: dict, errors: ErrorBuffer):
-        return True

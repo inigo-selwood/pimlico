@@ -93,10 +93,9 @@ class TestParseBuffer:
         assert buffer.finished()
 
     def test_skip_line(self):
-        buffer = ParseBuffer('\n\n')
-        buffer.skip_line()
-        assert buffer.position.line == 2
 
-        buffer = ParseBuffer('\n')
-        buffer.skip_line()
-        assert buffer.finished()
+        for text in ['\n', ' \n']:
+            buffer = ParseBuffer(text)
+            buffer.skip_line()
+            assert buffer.position.line == 1
+            assert buffer.position.column == -1

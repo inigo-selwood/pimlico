@@ -4,9 +4,10 @@ from hashlib import sha256
 
 from text import Position, ParseBuffer, ErrorBuffer, parse_identifier
 from utilities import in_range
+from grammar import Term
 
 
-class Reference:
+class Reference(Term):
 
     domain = 'grammar.reference'
 
@@ -54,7 +55,22 @@ class Reference:
         
         return Reference(value, start_position)
 
-    def link_references(self, rules: dict, errors: ErrorBuffer):
+    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+        ''' Links this reference's value to a rule
+
+        Arguments
+        ---------
+        rules: dict
+            the full list of rules in the program
+        errors: ErrorBuffer
+            buffer for reporting errors
+        
+        Returns
+        -------
+        success: bool
+            whether or not the linking succeeded
+        '''
+
         domain = f'{Reference.domain}:link'
 
         if self.value not in rules:

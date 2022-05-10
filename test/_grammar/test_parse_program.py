@@ -19,7 +19,16 @@ def test_multi_line():
             '\n    - \'term1\' {}'
             '\n'
             '\nrule1 := \'term2\' {}')
-    run_valid_parse_test(text, Program.parse)
+    run_valid_parse_test(text, Program.parse)   
+
+
+def test_multiple_references():
+    text = ('\nrule1 := \'a\' | \'b\' # Choice'
+            '\nrule2 := \'a\' # Constant'
+            '\nrule3 := rule1 # Reference'
+            '\nrule4 := \'a\' \'b\' # Sequence'
+            '\nrule5 := `az` # Set')
+    run_valid_parse_test(text, Program.parse)   
 
 
 def test_empty_text():
@@ -53,4 +62,4 @@ def test_trailing_garbage():
 
 def test_undefined_reference():
     errors = [('undefined reference to rule \'reference\'', (1, 9))]
-    run_invalid_parse_test('rule := reference', Program.parse, errors)    
+    run_invalid_parse_test('rule := reference', Program.parse, errors) 

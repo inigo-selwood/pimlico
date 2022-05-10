@@ -13,6 +13,26 @@ class Production:
     
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):
+        ''' Parse a production expression
+
+        Productions consist of a sequence of terms, and an optional expression:
+
+        ```
+        term0 term1 ... termN [{ // Expression }]
+        ```
+
+        Arguments
+        ---------
+        buffer: ParseBuffer
+            buffer at an expected production
+        errors: ErrorBuffer
+            buffer for reporting errors
+        
+        Returns
+        -------
+        production: Production
+            the parsed production, or None if the parsing failed
+        '''
 
         domain = f'{Production.domain}:parse'
 
@@ -33,5 +53,20 @@ class Production:
         
         return Production(term, expression)
     
-    def link_references(self, rules: dict, errors: ErrorBuffer):
+    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+        ''' Links rules to references in this production's terms
+
+        Arguments
+        ---------
+        rules: dict
+            the full list of rules in the program
+        errors: ErrorBuffer
+            buffer for reporting errors
+        
+        Returns
+        -------
+        success: bool
+            whether or not the linking succeeded
+        '''
+
         return self.term.link_references(rules, errors)

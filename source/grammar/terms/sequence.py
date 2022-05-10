@@ -5,10 +5,11 @@ from hashlib import sha256
 from utilities import in_range
 from text import Position, ParseBuffer, ErrorBuffer
 
+from grammar import Term
 from grammar.terms import Choice
 
 
-class Sequence:
+class Sequence(Term):
 
     domain = 'grammar.terms.sequence'
 
@@ -122,7 +123,21 @@ class Sequence:
 
         return Sequence(values, start_position)
 
-    def link_references(self, rules: dict, errors: ErrorBuffer):
+    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+        ''' Links rules to this term's children
+
+        Arguments
+        ---------
+        rules: dict
+            the full list of rules in the program
+        errors: ErrorBuffer
+            buffer for reporting errors
+        
+        Returns
+        -------
+        success: bool
+            whether or not the linking succeeded
+        '''
 
         success = True
         for term in self.values:

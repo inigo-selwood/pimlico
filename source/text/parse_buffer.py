@@ -290,17 +290,15 @@ class ParseBuffer:
         ''' Skips to the next newline (or EOF)
         '''
 
+        self.position.column = -1
+
         line_count = len(self.index_indentations)
         if self.position.line >= line_count:
-            self.position.column = -1
             self.position.index = self.length
 
         else:
             index = self.index_indentations[self.position.line][0]
-            self.position.index = index
-
-            self.position.line += 1
-            self.position.column = -1
+            self.position.index = index - 1
 
     def skip_space(self, include_newlines: bool = False):
         ''' Skips whitespace characters, optionally including newlines

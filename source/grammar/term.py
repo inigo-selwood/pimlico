@@ -102,3 +102,21 @@ class Term:
                 or in_range(character, 'A', 'Z')
                 or character == '('
                 or character == '`')
+
+    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+        ''' Links references (redundant override)
+
+        Arguments
+        ---------
+        rules: dict
+            the full list of rules in the program
+        errors: ErrorBuffer
+            buffer for reporting errors
+        
+        Returns
+        -------
+        success: bool
+            whether or not the linking succeeded
+        '''
+
+        return True

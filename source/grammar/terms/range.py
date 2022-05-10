@@ -4,9 +4,10 @@ from hashlib import sha256
 
 from utilities import in_range
 from text import Position, ParseBuffer, ErrorBuffer
+from grammar import Term
 
 
-class Range:
+class Range(Term):
 
     domain = 'grammar.terms.range'
 
@@ -118,6 +119,3 @@ class Range:
             return None
 
         return Range((lower, upper), start_position)
-
-    def link_references(self, rules: dict, errors: ErrorBuffer):
-        return True
