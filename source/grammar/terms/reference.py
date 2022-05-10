@@ -8,9 +8,12 @@ from utilities import in_range
 
 class Reference:
 
+    domain = 'grammar.reference'
+
     def __init__(self, value: str, position: Position):
         self.binding = ''
         self.value = value
+        self.term = None
         self.position = position
         self.type = 'reference'
         self.bounds = (1, 1)
@@ -50,3 +53,15 @@ class Reference:
         assert value
         
         return Reference(value, start_position)
+
+    def link_references(self, rules: dict, errors: ErrorBuffer):
+        domain = f'{Reference.domain}:link'
+
+        if self.value not in rules:
+            errors.add(domain, 
+                    f'undefined reference to rule \'{self.value}\'', 
+                    self.position)
+            return False
+        
+        self.term = rules[self.value]
+        return True

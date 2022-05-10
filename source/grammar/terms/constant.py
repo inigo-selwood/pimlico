@@ -90,3 +90,6 @@ class Constant:
             return None
 
         return Constant(value, start_position)
+
+    def link_references(self, rules: dict, errors: ErrorBuffer):
+        return True

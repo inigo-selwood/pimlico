@@ -123,3 +123,10 @@ class Choice:
             return list(options.values())[0]
 
         return Choice(options, start_position)
+
+    def link_references(self, rules: dict, errors: ErrorBuffer):
+
+        success = True
+        for term in self.values:
+            success = success and term.link_references(rules, errors)
+        return success

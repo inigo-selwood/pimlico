@@ -100,5 +100,11 @@ class Program:
             
             buffer.skip_space(include_newlines=True)
         
+        # Emplace rule references
+        link_success = True
+        for rule in rules.values():
+            link_success = link_success and rule.link_references(rules, errors)
+        if not link_success:
+            return None
+        
         return Program(rules, includes)
-

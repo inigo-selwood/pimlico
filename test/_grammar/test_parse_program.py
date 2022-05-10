@@ -4,8 +4,8 @@ from .helpers import run_invalid_parse_test, run_valid_parse_test
 
 
 def test_simple():
-    text = ('rule0 := term0'
-            '\nrule1 := term1')
+    text = ('rule0 := \'term0\''
+            '\nrule1 := \'term1\'')
     run_valid_parse_test(text, Program.parse)
 
 
@@ -15,10 +15,10 @@ def test_inclusion():
 
 def test_multi_line():
     text = ('rule0 :='
-            '\n    - term0 {}'
-            '\n    - term1 {}'
+            '\n    - \'term0\' {}'
+            '\n    - \'term1\' {}'
             '\n'
-            '\nrule1 := term2 {}')
+            '\nrule1 := \'term2\' {}')
     run_valid_parse_test(text, Program.parse)
 
 
@@ -28,7 +28,7 @@ def test_empty_text():
 
 def test_unexpected_indentation_increase():
     errors = [('unexpected indentation increase', (1, 5))]
-    run_invalid_parse_test('    rule := term', Program.parse, errors)
+    run_invalid_parse_test('    rule := \'term\'', Program.parse, errors)
 
 
 def test_expected_rule():
@@ -36,8 +36,8 @@ def test_expected_rule():
 
 
 def test_duplicate_rule():
-    text = ('rule := term'
-            '\nrule := otherTerm')
+    text = ('rule := \'term\''
+            '\nrule := \'otherTerm\'')
     errors = [
         ('duplicate rule \'rule\'', (2, 1)),
         ('first declared here', (1, 1))
@@ -46,6 +46,11 @@ def test_duplicate_rule():
 
 
 def test_trailing_garbage():
-    run_invalid_parse_test('rule := term {} {}', 
+    run_invalid_parse_test('rule := \'term\' {} {}', 
             Program.parse, 
-            [('expected a newline', (1, 17))])
+            [('expected a newline', (1, 19))])
+
+
+def test_undefined_reference():
+    errors = [('undefined reference to rule \'reference\'', (1, 9))]
+    run_invalid_parse_test('rule := reference', Program.parse, errors)    
