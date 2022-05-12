@@ -122,7 +122,28 @@ class ParseBuffer:
         assert callable(self.object, text, buffer_size, line_number)
 
         return str(text.value, 'utf-8')
+    
+    def match(self, text: str, consume: bool = False) -> bool:
+        callable = _library.parseBufferMatch
+        callable.argtypes = [
+            POINTER(ParseBuffer.Object),
+            c_char_p,
+            POINTER(c_uint8),
+            c_uint8
+        ]
+        callable.restype = c_uint8
 
+        match = c_uint8()
+        assert callable(self.object, text.encode(), byref(match), consume)
+
+        return bool(match)
+
+    def skip_space(self, include_newlines: bool = False):
+        callable = _library.parseBufferSkipSpace
+        callable.argtypes = [POINTER(ParseBuffer.Object), c_uint8]
+        callable.restype = c_uint8
+
+        assert callable(self.object, include_newlines)
 
 
 if __name__ == '__main__':
@@ -130,4 +151,7 @@ if __name__ == '__main__':
     print(buffer.object.contents.lineIndentations[0])
     print(buffer.line_indentation())
     print(buffer.line_text())
+    buffer.skip_space()
+    print(buffer.match('    hello'))
+    print(buffer.match('    mumble'))
     del buffer
