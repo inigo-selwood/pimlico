@@ -1,7 +1,7 @@
 from ctypes import *
 
 
-_library = cdll.LoadLibrary('./libparse_buffer.so')
+_library = cdll.LoadLibrary('./library.so')
 
 
 class Position(Structure):
@@ -23,10 +23,10 @@ class Position(Structure):
         callable.restype = c_uint8
 
         buffer_size = 16
-        buffer = create_string_buffer(buffer_size)
-        callable(byref(self), buffer, buffer_size)
+        text = create_string_buffer(buffer_size)
+        assert callable(byref(self), text, buffer_size)
 
-        return str(buffer.value, 'utf-8')
+        return str(text.value, 'utf-8')
 
 
 class ParseBuffer:
@@ -106,10 +106,28 @@ class ParseBuffer:
         indentation = c_uint8()
         assert callable(self.object, byref(indentation), 0)
         return indentation.value
+    
+    def line_text(self, line_number: int = 0) -> str:
+        callable = _library.parseBufferLineText
+        callable.argtypes = [
+            POINTER(ParseBuffer.Object), 
+            c_char_p, 
+            c_size_t,
+            c_uint32
+        ]
+        callable.restype = c_uint8
+
+        buffer_size = 128
+        text = create_string_buffer(buffer_size)
+        assert callable(self.object, text, buffer_size, line_number)
+
+        return str(text.value, 'utf-8')
+
 
 
 if __name__ == '__main__':
     buffer = ParseBuffer('    hello world')
     print(buffer.object.contents.lineIndentations[0])
     print(buffer.line_indentation())
+    print(buffer.line_text())
     del buffer

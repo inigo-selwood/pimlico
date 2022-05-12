@@ -79,8 +79,8 @@ ParseBuffer *parseBufferCreate(const char *text) {
     index = 0;
     uint32_t lineNumber = 0;
     uint32_t lineStartIndex = 0;
-    uint32_t lineIndices[lineCount];
-    uint8_t lineIndentations[lineCount];
+    uint32_t *lineIndices = (uint32_t *)malloc(sizeof(uint32_t) * lineCount);
+    uint8_t *lineIndentations = (uint8_t *)malloc(sizeof(uint8_t) * lineCount);
     while(index < length) {
         lineStartIndex = index;
 
@@ -118,7 +118,7 @@ ParseBuffer *parseBufferCreate(const char *text) {
         lineIndentations
     };
 
-    ParseBuffer *buffer = malloc(sizeof(ParseBuffer));
+    ParseBuffer *buffer = (ParseBuffer *)malloc(sizeof(ParseBuffer));
     if(buffer == NULL)
         return NULL;
     memcpy(buffer, &temporary, sizeof(ParseBuffer));
@@ -293,6 +293,8 @@ buffer: ParseBuffer *
     the buffer from which to get text
 value: char *
     pointer to fill with the result
+size: size_t
+    size of the value buffer, in bytes
 lineNumber: uint32_t
     the number of the line whose text to read. If zero, the current line is 
     presumed
@@ -304,6 +306,7 @@ success: uint8_t
 */
 uint8_t parseBufferLineText(ParseBuffer *buffer, 
         char *text, 
+        size_t size,
         uint32_t lineNumber) {
     
     if(buffer == NULL)
@@ -322,7 +325,7 @@ uint8_t parseBufferLineText(ParseBuffer *buffer,
     
     // Move the start index forward until we reach a non-whitespace character
     while(startIndex < buffer->length && 
-            (buffer->text[startIndex] < ' ' 
+            (buffer->text[startIndex] <= ' ' 
                 || buffer->text[startIndex] > '~'))
         startIndex += 1;
     
@@ -449,6 +452,9 @@ uint8_t parseBufferDestroy(ParseBuffer *buffer) {
     if(buffer == NULL)
         return 0;
     
+    free(buffer->lineIndentations);
+    free(buffer->lineIndices);
+
     free(buffer);
     buffer = NULL;
     return 1;

@@ -43,6 +43,7 @@ uint8_t parseBufferLineIndentation(ParseBuffer *buffer,
 
 uint8_t parseBufferLineText(ParseBuffer *buffer, 
         char *text, 
+        size_t size,
         uint32_t lineNumber);
 
 uint8_t parseBufferMatch(ParseBuffer *buffer, 
