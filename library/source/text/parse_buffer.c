@@ -5,6 +5,13 @@
 
 #include "parse_buffer.h"
 
+/* Creates a position object
+
+Returns
+-------
+position: Position
+    the position created
+*/
 Position positionCreate() {
     Position position;
 
