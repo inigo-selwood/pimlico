@@ -52,13 +52,16 @@ Arguments
 ---------
 text: char *
 	the text to fill the buffer with
+commentSequence: char *
+    the sequence of characters which denote the start of a comment; optional,
+    pass NULL if functionality not wanted
 
 Returns
 -------
 buffer: ParseBuffer
 	the initialized buffer object, or NULL if it failed
 */
-ParseBuffer *parseBufferCreate(const char *text) {
+ParseBuffer *parseBufferCreate(const char *text, const char *commentSequence) {
     if(text == NULL)
         return NULL;
             
@@ -115,9 +118,16 @@ ParseBuffer *parseBufferCreate(const char *text) {
         index += 1;
         lineNumber += 1;
     }
+
+    char sequenceCopy[16];
+    if(commentSequence != NULL)
+        strcpy(sequenceCopy, commentSequence);
+    else
+        strcpy(sequenceCopy, "\0");
     
     ParseBuffer temporary = {
         strdup(text),
+        strdup(sequenceCopy),
         length,
         position,
         lineCount,
@@ -250,10 +260,13 @@ success: uint8_t
     non-zero if the operation succeeded
 */
 uint8_t parseBufferRead(ParseBuffer *buffer, char *value, uint8_t consume) {
-    if(buffer == NULL 
-            || value == NULL 
-            || buffer->position.index == buffer->length)
+    if(buffer == NULL || value == NULL)
         return 0;
+    
+    else if(buffer->position.index == buffer->length) {
+        strcpy(value, "\0");
+        return 1;
+    }
     
     *value = buffer->text[buffer->position.index];
     if(consume)
@@ -316,7 +329,7 @@ uint8_t parseBufferLineText(ParseBuffer *buffer,
         size_t size,
         uint32_t lineNumber) {
     
-    if(buffer == NULL)
+    if(buffer == NULL || text == NULL || size < 1)
         return 0;
     
     if(lineNumber <= 0)
@@ -326,31 +339,37 @@ uint8_t parseBufferLineText(ParseBuffer *buffer,
         return 0;
     
     // Work out the start index, using the given line number
-    uint32_t startIndex = 0;
-    if(lineNumber > 1)
-        startIndex = buffer->lineIndentations[lineNumber - 1];
+    uint32_t startIndex = buffer->lineIndices[lineNumber - 1];
     
     // Move the start index forward until we reach a non-whitespace character
-    while(startIndex < buffer->length && 
-            (buffer->text[startIndex] <= ' ' 
+    while(startIndex < buffer->length
+            && buffer->text[startIndex] != '\n'
+            && (buffer->text[startIndex] <= ' ' 
                 || buffer->text[startIndex] > '~'))
         startIndex += 1;
     
     // Work out the end index
-    uint32_t endIndex = buffer->length;
-    if(lineNumber > buffer->lineCount)
+    uint32_t endIndex;
+    if(lineNumber < buffer->lineCount)
         endIndex = buffer->lineIndices[lineNumber] - 1;
-    else if(buffer->length > 0 && buffer->text[buffer->length - 1] == '\n')
+    else
         endIndex = buffer->length - 1;
-    
+
     // Move the end index backward until a non-whitespace character is reached
-    while(endIndex > startIndex && 
-            (buffer->text[startIndex] < ' ' 
+    while(endIndex > startIndex
+            && buffer->text[startIndex] != '\n'
+            && (buffer->text[startIndex] < ' ' 
                 || buffer->text[startIndex] > '~'))
         endIndex -= 1;
     
+    if(startIndex == endIndex) {
+        strcpy(text, "\0");
+        return 1;
+    }
+    
     // Copy the substring into the text result
-    strncpy(text, buffer->text + startIndex, endIndex - startIndex);
+    const uint8_t length = (endIndex - startIndex) + 1;
+    strncpy(text, buffer->text + startIndex, length);
     return 1;
 }
 
@@ -374,7 +393,7 @@ success: uint8_t
     non-zero if the operation succeeded
 */
 uint8_t parseBufferMatch(ParseBuffer *buffer, 
-        char *text, 
+        const char *text, 
         uint8_t *match, 
         uint8_t consume) {
     
@@ -385,8 +404,8 @@ uint8_t parseBufferMatch(ParseBuffer *buffer,
     
     // If a match would take us past the end of the buffer, don't bother 
     // checking
-    uint8_t textLength = strlen(text);
-    if(buffer->position.index + textLength >= buffer->length) {
+    const uint8_t textLength = strlen(text);
+    if(buffer->position.index + textLength > buffer->length) {
         *match = 0;
         return 1;
     }
@@ -430,6 +449,7 @@ uint8_t parseBufferSkipSpace(ParseBuffer *buffer, uint8_t includeNewlines) {
     if(buffer == NULL)
         return 0;
     
+    const uint8_t commentSkipEnabled = strlen(buffer->commentSequence) > 0;
     while(1) {
         if(buffer->position.index == buffer->length)
             break;
@@ -441,6 +461,19 @@ uint8_t parseBufferSkipSpace(ParseBuffer *buffer, uint8_t includeNewlines) {
                 || character == '\v'
                 || (includeNewlines && character == '\n'))
             parseBufferIncrement(buffer, 1);
+        
+        else if(commentSkipEnabled) {
+            uint8_t commentMatch;
+            const uint8_t matchSuccess = parseBufferMatch(buffer, 
+                    buffer->commentSequence, 
+                    &commentMatch, 
+                    1);
+            
+            if(matchSuccess == 0)
+                return 0;
+            else if(commentMatch)
+                parseBufferSkipLine(buffer);
+        }
         else
             break;
     }

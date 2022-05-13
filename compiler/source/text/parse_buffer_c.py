@@ -1,7 +1,7 @@
+import atexit
 from ctypes import *
 
-
-_library = cdll.LoadLibrary('./library.so')
+from utilities import get_library
 
 
 class Position(Structure):
@@ -13,12 +13,12 @@ class Position(Structure):
     ]
 
     def __new__(ctr):
-        callable = _library.positionCreate
+        callable = get_library().positionCreate
         callable.restype = Position
         return callable()
     
     def __str__(self):
-        callable = _library.positionPrint
+        callable = get_library().positionPrint
         callable.argtypes = [POINTER(Position), c_char_p, c_size_t]
         callable.restype = c_uint8
 
@@ -35,6 +35,7 @@ class ParseBuffer:
 
         _fields_ = [
             ('text', c_char_p),
+            ('commentSequence', c_char_p)
             ('length', c_uint32),
             ('position', Position),
 
@@ -50,25 +51,49 @@ class ParseBuffer:
         ---------
         text: str
             text to fill the buffer with
+        
+        Raises
+        ------
+        empty: ValueError
+            if the text is empty
+        invalid: ArgumentError
+            if a non-string is passed
         '''
         
         self.object = None
-        assert text
+        if not isinstance(text, str):
+            raise ArgumentError('expected string')
+        elif not text:
+            raise ValueError('empty text')
 
-        callable = _library.parseBufferCreate
+        callable = get_library().parseBufferCreate
         callable.argtypes = [c_char_p]
         callable.restype = POINTER(ParseBuffer.Object)
         self.object = callable(text.encode())
+
+        atexit.register(self.__del__)
         
     def __del__(self):
         ''' Frees the memory held by the buffer
         '''
 
         if self.object:
-            callable = _library.parseBufferDestroy
+            callable = get_library().parseBufferDestroy
             callable.argtypes = [POINTER(ParseBuffer.Object)]
             callable.restype = c_uint8
             assert callable(self.object)
+
+            self.object = None
+
+    @property
+    def position(self):
+        return self.object.contents.position
+
+    @position.setter
+    def position(self, value):
+        if not isinstance(value, Position):
+            raise ArgumentError('expected a Position object')
+        self.object.contents.position = value
     
     def get_character(self) -> str:
         ''' Gets a single character from the buffer
@@ -80,7 +105,7 @@ class ParseBuffer:
             been reached
         '''
 
-        callable = _library.parseBufferGetCharacter
+        callable = get_library().parseBufferGetCharacter
         callable.argtypes = [POINTER(ParseBuffer.Object), c_char_p]
         callable.restype = c_uint8
 
@@ -97,7 +122,7 @@ class ParseBuffer:
             True if the end of the buffer has been reached
         '''
 
-        callable = _library.parseBufferFinished
+        callable = get_library().parseBufferFinished
         callable.argtypes = [POINTER(ParseBuffer.Object), POINTER(c_uint8)]
         callable.restype = c_uint8
 
@@ -114,7 +139,7 @@ class ParseBuffer:
             the number of steps to increment the position by
         '''
 
-        callable = _library.parseBufferIncrement
+        callable = get_library().parseBufferIncrement
         callable.argtypes = [POINTER(ParseBuffer.Object), c_uint16]
         callable.restype = c_uint8
         assert callable(self.object, steps)
@@ -133,7 +158,7 @@ class ParseBuffer:
             the next character in the buffer
         '''
 
-        callable = _library.parseBufferRead
+        callable = get_library().parseBufferRead
         callable.argtypes = [POINTER(ParseBuffer.Object), c_char_p, c_uint8]
         callable.restype = c_uint8
 
@@ -156,7 +181,7 @@ class ParseBuffer:
             the indentation level in steps, where a tab is 4, and a space is 1
         '''
 
-        callable = _library.parseBufferLineIndentation
+        callable = get_library().parseBufferLineIndentation
         callable.argtypes = [
             POINTER(ParseBuffer.Object), 
             POINTER(c_uint8), 
@@ -182,7 +207,7 @@ class ParseBuffer:
             the text of the current line, from newline to newline
         '''
 
-        callable = _library.parseBufferLineText
+        callable = get_library().parseBufferLineText
         callable.argtypes = [
             POINTER(ParseBuffer.Object), 
             c_char_p, 
@@ -213,7 +238,7 @@ class ParseBuffer:
             whether the string matched
         '''
 
-        callable = _library.parseBufferMatch
+        callable = get_library().parseBufferMatch
         callable.argtypes = [
             POINTER(ParseBuffer.Object),
             c_char_p,
@@ -243,7 +268,7 @@ class ParseBuffer:
             before abandoning the search
         '''
 
-        callable = _library.parseBufferSeek
+        callable = get_library().parseBufferSeek
         callable.argtypes = [
             POINTER(ParseBuffer.Object), 
             c_char_p, 
@@ -266,7 +291,7 @@ class ParseBuffer:
         ''' Skips to the next newline (or EOF)
         '''
 
-        callable = _library.parseBufferSkipLine
+        callable = get_library().parseBufferSkipLine
         callable.argtypes = [POINTER(ParseBuffer.Object)]
         callable.restype = c_uint8
 
@@ -282,8 +307,12 @@ class ParseBuffer:
             if true, skips newline characters as well
         '''
 
-        callable = _library.parseBufferSkipSpace
+        callable = get_library().parseBufferSkipSpace
         callable.argtypes = [POINTER(ParseBuffer.Object), c_uint8]
         callable.restype = c_uint8
 
         assert callable(self.object, include_newlines)
+
+
+if __name__ == '__main__':
+    buffer = ParseBuffer('hello world')

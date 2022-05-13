@@ -12,7 +12,6 @@ class Position:
     
     def serialize(self) -> str:
         ''' Formats the position
-
         Returns
         -------
         value: str
@@ -25,6 +24,14 @@ class Position:
 class ParseBuffer:
 
     def __init__(self, text: str):
+        ''' Constructs the buffer object
+
+        Arguments
+        ---------
+        text: str
+            text to fill the buffer with
+        '''
+
         self.text = text
         self.length = len(text)
 
@@ -69,7 +76,6 @@ class ParseBuffer:
 
     def _get_character(self) -> str:
         ''' Gets a single character from the buffer
-
         Returns
         -------
         character: str
@@ -83,7 +89,6 @@ class ParseBuffer:
 
     def finished(self) -> bool:
         ''' Checks whether the buffer is finished
-
         Returns
         -------
         finished: bool
@@ -94,7 +99,6 @@ class ParseBuffer:
 
     def increment(self, steps: int = 1):
         ''' Increments the position in the buffer, updating the line and column
-
         Arguments
         ---------
         steps: int 
@@ -133,12 +137,10 @@ class ParseBuffer:
 
     def read(self, consume: bool = False) -> str:
         ''' Read the next character from the buffer, optionally incrementing
-
         Arguments
         ---------
         consume: bool
             if true, increments past the character just read
-
         Returns
         -------
         character: str
@@ -156,7 +158,6 @@ class ParseBuffer:
 
     def line_indentation(self, line_number: int = 0) -> int:
         ''' Gets the indentation of the current line (default), or a given one
-
         Arguments
         ---------
         line_number: int
@@ -179,7 +180,6 @@ class ParseBuffer:
 
     def line_text(self, line_number: int = 0) -> str:
         ''' Gets the text of the current line (default), or a given one
-
         Arguments
         ---------
         line_number: int
@@ -214,7 +214,6 @@ class ParseBuffer:
 
     def match(self, text: str, consume: bool = False) -> bool:
         ''' Checks for a string match, optionally consuming it
-
         Arguments
         ---------
         text: str
@@ -229,7 +228,7 @@ class ParseBuffer:
         '''
 
         length = len(text)
-        if self.position.index + length >= self.length:
+        if self.position.index + length > self.length:
             return False
 
         result = False
@@ -246,9 +245,7 @@ class ParseBuffer:
     
     def seek(self, text: str, consume: bool = False, limit: int = -1) -> bool:
         ''' Looks ahead a limited number of steps to try and match a string
-
         **Note:** Whitespace characters don't count towards the limit
-
         Arguments
         ---------
         text: str
@@ -303,7 +300,6 @@ class ParseBuffer:
 
     def skip_space(self, include_newlines: bool = False):
         ''' Skips whitespace characters, optionally including newlines
-
         Arguments
         ---------
         include_newlines: bool

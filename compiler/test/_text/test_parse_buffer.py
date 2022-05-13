@@ -3,10 +3,6 @@ from text import ParseBuffer
 
 class TestParseBuffer:
 
-    def test_empty_position(self):
-        buffer = ParseBuffer('')
-        assert (buffer.position.line, buffer.position.column) == (-1, -1)
-
     def test_position(self):
         buffer = ParseBuffer(' ')
         assert (buffer.position.line, buffer.position.column) == (1, 1)
@@ -16,9 +12,6 @@ class TestParseBuffer:
         assert (buffer.position.line, buffer.position.column) == (1, -1)
 
     def test_finished(self):
-        buffer = ParseBuffer('')
-        assert buffer.finished()
-
         buffer = ParseBuffer(' ')
         assert not buffer.finished()
 
@@ -43,6 +36,7 @@ class TestParseBuffer:
         buffer = ParseBuffer(' ')
         assert buffer.read(True) == ' '
         assert buffer.finished()
+        assert buffer.read() == ''
 
     def test_line_indentation(self):
         buffer = ParseBuffer('    \n')

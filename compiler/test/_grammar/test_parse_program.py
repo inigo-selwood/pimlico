@@ -32,7 +32,7 @@ def test_multiple_references():
 
 
 def test_empty_text():
-    run_invalid_parse_test('', Program.parse, [('empty text', (-1, -1))])
+    run_invalid_parse_test(' ', Program.parse, [('empty text', (-1, -1))])
 
 
 def test_unexpected_indentation_increase():
