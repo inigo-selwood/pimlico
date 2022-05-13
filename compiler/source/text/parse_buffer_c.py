@@ -35,7 +35,7 @@ class ParseBuffer:
 
         _fields_ = [
             ('text', c_char_p),
-            ('commentSequence', c_char_p)
+            ('commentSequence', c_char_p),
             ('length', c_uint32),
             ('position', Position),
 
@@ -44,13 +44,16 @@ class ParseBuffer:
             ('lineIndentations', POINTER(c_uint8))
         ]
     
-    def __init__(self, text: str):
+    def __init__(self, text: str, comment_sequence: str = ''):
         ''' Constructs the buffer object
 
         Arguments
         ---------
         text: str
             text to fill the buffer with
+        comment_sequence: str
+            a sequence which prompts the buffer to skip the rest of the line;
+            optional, omit if functionality not wanted
         
         Raises
         ------
@@ -69,7 +72,7 @@ class ParseBuffer:
         callable = get_library().parseBufferCreate
         callable.argtypes = [c_char_p]
         callable.restype = POINTER(ParseBuffer.Object)
-        self.object = callable(text.encode())
+        self.object = callable(text.encode(), comment_sequence.encode())
 
         atexit.register(self.__del__)
         
