@@ -5,3 +5,7 @@ import os
 # Add the sourcedirectory so that packages can be imported in tests
 source_path = os.path.abspath(os.path.relpath('../source'))
 sys.path.insert(0, source_path)
+
+
+root_path = os.path.abspath(os.path.relpath('../../'))
+os.environ['PIMLICO_ROOT'] = root_path
