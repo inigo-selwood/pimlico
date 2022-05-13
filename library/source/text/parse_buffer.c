@@ -64,11 +64,14 @@ buffer: ParseBuffer
 ParseBuffer *parseBufferCreate(const char *text, const char *commentSequence) {
     if(text == NULL)
         return NULL;
-            
+        
+    // Make sure text isn't empty
     const uint32_t length = strlen(text);
     if(length == 0)
         return NULL;
 
+    // Create position object; set line, column if not empty or at end-of-line
+    // respectively
     Position position = positionCreate();
     if(length > 0) {
         position.line = 1;
@@ -76,6 +79,8 @@ ParseBuffer *parseBufferCreate(const char *text, const char *commentSequence) {
             position.column = 1;
     }
 
+    // Count the number of lines in the text, so we know how large to make the 
+    // line indices and indentations buffers
     uint32_t index = 1;
     uint32_t lineCount = 1;
     while(1) {
@@ -86,6 +91,8 @@ ParseBuffer *parseBufferCreate(const char *text, const char *commentSequence) {
         index += 1;
     }
 
+    // Work out the index at which each line starts, and the indentation
+    // following that start-of-line
     index = 0;
     uint32_t lineNumber = 0;
     uint32_t lineStartIndex = 0;
@@ -99,6 +106,8 @@ ParseBuffer *parseBufferCreate(const char *text, const char *commentSequence) {
             if(index == length)
                 break;
 
+            // Tabs don't just add 4 to the indentation level, they round up 
+            // to the next multiple of 4 (+1)
             if(text[index] == '\t')
                 indentation = ((indentation + 4) & ~0x03);
             else if(text[index] == ' ')
@@ -112,19 +121,26 @@ ParseBuffer *parseBufferCreate(const char *text, const char *commentSequence) {
         lineIndices[lineNumber] = lineStartIndex;
         lineIndentations[lineNumber] = indentation;
 
+        // Move to the next newline
         while(index < length && text[index] != '\n')
             index += 1;
 
+        // Increment past that newline, and also to the next line
         index += 1;
         lineNumber += 1;
     }
 
+    // If a NULL value was passed for the comment sequence (ie: that feature
+    // isn't wanted), we need to use an empty string in its place to stop 
+    // string functions crashing
     char sequenceCopy[16];
     if(commentSequence != NULL)
         strcpy(sequenceCopy, commentSequence);
     else
         strcpy(sequenceCopy, "\0");
     
+    // Create a temporary local instance of the buffer we're going to return,
+    // to emplace the const values
     ParseBuffer temporary = {
         strdup(text),
         strdup(sequenceCopy),
@@ -135,6 +151,8 @@ ParseBuffer *parseBufferCreate(const char *text, const char *commentSequence) {
         lineIndentations
     };
 
+    // Allocate memory for the result, and copy the buffer we've just created
+    // into it
     ParseBuffer *buffer = (ParseBuffer *)malloc(sizeof(ParseBuffer));
     if(buffer == NULL)
         return NULL;
@@ -263,6 +281,7 @@ uint8_t parseBufferRead(ParseBuffer *buffer, char *value, uint8_t consume) {
     if(buffer == NULL || value == NULL)
         return 0;
     
+    // If the buffer's finished, we return an empty string
     else if(buffer->position.index == buffer->length) {
         strcpy(value, "\0");
         return 1;
@@ -332,6 +351,7 @@ uint8_t parseBufferLineText(ParseBuffer *buffer,
     if(buffer == NULL || text == NULL || size < 1)
         return 0;
     
+    // If the line number given is zero, we use the current line value instead
     if(lineNumber <= 0)
         lineNumber = buffer->position.line;
     
@@ -454,6 +474,7 @@ uint8_t parseBufferSkipSpace(ParseBuffer *buffer, uint8_t includeNewlines) {
         if(buffer->position.index == buffer->length)
             break;
         
+        // Check for the obvious whitespace stuff
         char character = buffer->text[buffer->position.index];
         if(character == ' '
                 || character == '\t'
@@ -465,6 +486,8 @@ uint8_t parseBufferSkipSpace(ParseBuffer *buffer, uint8_t includeNewlines) {
             continue;
         }
 
+        // If the user has given a comment sequence, we check for that too. If
+        // matched, skip a line
         if(commentSkipEnabled) {
             uint8_t commentMatch;
             const uint8_t matchSuccess = parseBufferMatch(buffer, 
@@ -521,18 +544,21 @@ uint8_t parseBufferSeek(ParseBuffer *buffer,
     uint32_t index = 0;
     while(1) {
         
+        // If we've reached the character limit, stop looking
         if(limit > 0) {
             if(index >= limit)
                 break;
             index += 1;
         }
 
+        // Skip whitespace, and make sure we haven't reached the end of the 
+        // buffer
         if(parseBufferSkipSpace(buffer, 0) == 0)
             return 0;
-        
         if(buffer->position.index == buffer->length)
             break;
 
+        // Check for a match
         uint8_t match;
         if(parseBufferMatch(buffer, text, &match, consume) == 0)
             return 0;
@@ -544,6 +570,8 @@ uint8_t parseBufferSeek(ParseBuffer *buffer,
         parseBufferIncrement(buffer, 1);
     }
 
+    // If we failed to find a match, or weren't supposed to consume anything, 
+    // reset the position
     if(*result == 0 || consume == 0)
         buffer->position = startPosition;
     
@@ -568,8 +596,11 @@ uint8_t parseBufferSkipLine(ParseBuffer *buffer) {
     
     buffer->position.column = -1;
 
+    // If we're on the last line of the buffer, we can just skip to the end
     if(buffer->position.line >= buffer->lineCount)
         buffer->position.index = buffer->length;
+    
+    // Otherwise, move to the index of the first character in the next line
     else {
         const uint32_t index = buffer->lineIndices[buffer->position.line];
         buffer->position.index = index - 1;
