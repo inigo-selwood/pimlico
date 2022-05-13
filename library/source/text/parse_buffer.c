@@ -459,10 +459,13 @@ uint8_t parseBufferSkipSpace(ParseBuffer *buffer, uint8_t includeNewlines) {
                 || character == '\t'
                 || character == '\r'
                 || character == '\v'
-                || (includeNewlines && character == '\n'))
+                || (includeNewlines && character == '\n')) {
+            
             parseBufferIncrement(buffer, 1);
-        
-        else if(commentSkipEnabled) {
+            continue;
+        }
+
+        if(commentSkipEnabled) {
             uint8_t commentMatch;
             const uint8_t matchSuccess = parseBufferMatch(buffer, 
                     buffer->commentSequence, 
@@ -471,11 +474,13 @@ uint8_t parseBufferSkipSpace(ParseBuffer *buffer, uint8_t includeNewlines) {
             
             if(matchSuccess == 0)
                 return 0;
-            else if(commentMatch)
+            else if(commentMatch) {
                 parseBufferSkipLine(buffer);
+                continue;
+            }
         }
-        else
-            break;
+        
+        break;
     }
 
     return 1;
