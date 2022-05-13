@@ -441,6 +441,98 @@ uint8_t parseBufferSkipSpace(ParseBuffer *buffer, uint8_t includeNewlines) {
     return 1;
 }
 
+/* Looks ahead a limited number of steps to try and match a string
+
+Note: Whitespace characters don't count towards the limit
+
+Arguments
+---------
+buffer: ParseBuffer
+    the buffer to seek within
+text: const char *
+    the text to seek for
+result: uint8_t *
+    pointer to the object to place the result in
+consume: uint8_t
+    whether or not to consume the text, if it's matched
+limit: uint8_t
+    the maximum number of characters to traverse before abandoning the search
+
+Returns
+-------
+success: uint8_t
+    non-zero if no problems were encountered
+*/
+uint8_t parseBufferSeek(ParseBuffer *buffer, 
+        const char *text,
+        uint8_t *result, 
+        uint8_t consume, 
+        uint8_t limit) {
+    
+    if(buffer == NULL)
+        return 0;
+
+    const Position startPosition = buffer->position;
+    uint32_t index = 0;
+    while(1) {
+        
+        if(limit > 0) {
+            if(index >= limit)
+                break;
+            index += 1;
+        }
+
+        if(parseBufferSkipSpace(buffer, 0) == 0)
+            return 0;
+        
+        if(buffer->position.index == buffer->length)
+            break;
+
+        uint8_t match;
+        if(parseBufferMatch(buffer, text, &match, consume) == 0)
+            return 0;
+        else if(match) {
+            *result = 1;
+            break;
+        }
+
+        parseBufferIncrement(buffer, 1);
+    }
+
+    if(*result == 0 || consume == 0)
+        buffer->position = startPosition;
+    
+    return 1;
+}
+
+/* Skips to the next newline (or EOF)
+
+Arguments
+---------
+buffer: ParseBuffer
+    the buffer in which to skip a line
+
+Returns
+-------
+success: uint8_t
+    non-zero if the operation was succeeded
+*/
+uint8_t parseBufferSkipLine(ParseBuffer *buffer) {
+    if(buffer == NULL)
+        return 0;
+    
+    buffer->position.column = -1;
+
+    if(buffer->position.line >= buffer->lineCount)
+        buffer->position.index = buffer->length;
+    else {
+        const uint32_t index = buffer->lineIndices[buffer->position.line];
+        buffer->position.index = index - 1;
+    }
+
+    return 1;
+}
+
 /* Destroy a buffer instance
 
 Arguments

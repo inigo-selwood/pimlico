@@ -51,6 +51,14 @@ uint8_t parseBufferMatch(ParseBuffer *buffer,
         uint8_t *match, 
         uint8_t consume);
 
+uint8_t parseBufferSeek(ParseBuffer *buffer, 
+        const char *text,
+        uint8_t *result, 
+        uint8_t consume, 
+        uint8_t limit);
+
+uint8_t parseBufferSkipLine(ParseBuffer *buffer);
+
 uint8_t parseBufferSkipSpace(ParseBuffer *buffer, uint8_t includeNewlines);
 
 uint8_t parseBufferDestroy(ParseBuffer *buffer);
