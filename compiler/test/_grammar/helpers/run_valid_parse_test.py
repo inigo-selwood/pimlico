@@ -14,7 +14,7 @@ def run_valid_parse_test(grammar: str, parser: callable, arguments: dict = {}):
         an optional dictionary of arguments to forward to the parser
     '''
     
-    buffer = ParseBuffer(grammar)
+    buffer = ParseBuffer(grammar, '#')
     errors = ErrorBuffer()
 
     result = parser(buffer, errors, **arguments)

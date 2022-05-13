@@ -23,7 +23,7 @@ def run_invalid_parse_test(grammar: str,
         an optional dictionary of arguments to forward to the parser
     '''
     
-    buffer = ParseBuffer(grammar)
+    buffer = ParseBuffer(grammar, '#')
     errors = ErrorBuffer()
 
     result = parser(buffer, errors, **arguments)
