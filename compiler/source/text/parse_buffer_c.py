@@ -1,5 +1,6 @@
 import atexit
 from ctypes import *
+from xml.etree.ElementInclude import include
 
 from utilities import get_library
 
@@ -96,6 +97,7 @@ class ParseBuffer:
     def position(self, value):
         if not isinstance(value, Position):
             raise ArgumentError('expected a Position object')
+        
         self.object.contents.position = value
     
     def get_character(self) -> str:
@@ -142,6 +144,11 @@ class ParseBuffer:
             the number of steps to increment the position by
         '''
 
+        if not isinstance(steps, int):
+            raise ArgumentError('expected an integer')
+        elif not steps > 0:
+            raise ValueError('expected an integer greater than 1')
+
         callable = get_library().parseBufferIncrement
         callable.argtypes = [POINTER(ParseBuffer.Object), c_uint16]
         callable.restype = c_uint8
@@ -160,6 +167,9 @@ class ParseBuffer:
         character: str
             the next character in the buffer
         '''
+
+        if not isinstance(consume, bool):
+            raise ArgumentError('expected a boolean')
 
         callable = get_library().parseBufferRead
         callable.argtypes = [POINTER(ParseBuffer.Object), c_char_p, c_uint8]
@@ -183,6 +193,9 @@ class ParseBuffer:
         indentation: int
             the indentation level in steps, where a tab is 4, and a space is 1
         '''
+
+        if not isinstance(line_number, int):
+            raise ArgumentError('expected an integer')
 
         callable = get_library().parseBufferLineIndentation
         callable.argtypes = [
@@ -209,6 +222,9 @@ class ParseBuffer:
         text: str
             the text of the current line, from newline to newline
         '''
+
+        if not isinstance(line_number, int):
+            raise ArgumentError('expected an integer')
 
         callable = get_library().parseBufferLineText
         callable.argtypes = [
@@ -241,6 +257,13 @@ class ParseBuffer:
             whether the string matched
         '''
 
+        if not isinstance(text, str):
+            raise ArgumentError('expected a string')
+        elif not text:
+            raise ValueError('expected a non-empty string')
+        elif not isinstance(consume, bool):
+            raise ArgumentError('expected a string')        
+
         callable = get_library().parseBufferMatch
         callable.argtypes = [
             POINTER(ParseBuffer.Object),
@@ -270,6 +293,15 @@ class ParseBuffer:
             the maximum number of characters to look ahead (not inclusive), 
             before abandoning the search
         '''
+
+        if not isinstance(text, str):
+            raise ArgumentError('expected a string')
+        elif not text:
+            raise ValueError('expected a non-empty string')
+        elif not isinstance(consume, bool):
+            raise ArgumentError('expected a string')
+        elif not isinstance(limit, int):
+            raise ArgumentError('expected an integer')
 
         callable = get_library().parseBufferSeek
         callable.argtypes = [
@@ -309,6 +341,9 @@ class ParseBuffer:
         include_newlines: bool
             if true, skips newline characters as well
         '''
+
+        if not isinstance(include_newlines, bool):
+            raise ArgumentError('expected a boolean')
 
         callable = get_library().parseBufferSkipSpace
         callable.argtypes = [POINTER(ParseBuffer.Object), c_uint8]
