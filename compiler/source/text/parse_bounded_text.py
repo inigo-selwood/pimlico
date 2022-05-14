@@ -41,7 +41,7 @@ def parse_bounded_text(buffer: ParseBuffer,
     assert buffer.match(start_sequence, True)
     domain = 'text:parse_bounded_text'
 
-    text = start_sequence
+    text = ''
 
     # If there is no end sequence, it's considered symmetric; ie: the start 
     # sequence is also the end. In this case, there's no need for a stack,
@@ -58,7 +58,6 @@ def parse_bounded_text(buffer: ParseBuffer,
                 errors.add(domain, 'unexpected newline', buffer.position)
                 return None
             elif buffer.match(start_sequence, True):
-                text += start_sequence
                 break
             else:
                 text += buffer.read(True)
@@ -85,8 +84,10 @@ def parse_bounded_text(buffer: ParseBuffer,
                 buffer.increment(len(start_sequence))
             elif buffer.match(end_sequence):
                 stack -= 1
-                text += end_sequence
                 buffer.increment(len(end_sequence))
+
+                if stack:
+                    text += end_sequence
             
             else:
                 text += buffer.read(True)
