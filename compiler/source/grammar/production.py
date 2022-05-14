@@ -1,5 +1,6 @@
+from copy import copy
+from utilities import format_c
 from text import ParseBuffer, ErrorBuffer, parse_bounded_text
-
 import grammar
 
 
@@ -46,10 +47,15 @@ class Production:
         
         expression = ''
         buffer.skip_space()
+        expression_position = copy(buffer.position)
         if buffer.match('{'):
-            expression = parse_bounded_text(buffer, errors, '{', '}')
+
+            expression = parse_bounded_text(buffer, errors, '{', '}').strip()
             if not expression:
+                errors.add(domain, 'empty expression', expression_position)
                 return None
+        
+            expression = format_c(expression)
         
         return Production(term, expression)
     
