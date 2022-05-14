@@ -1,5 +1,5 @@
 from copy import copy
-from utilities import format_c
+from utilities import format_c, indent_text
 from text import ParseBuffer, ErrorBuffer, parse_bounded_text
 import grammar
 
@@ -11,6 +11,15 @@ class Production:
     def __init__(self, term, expression: str):
         self.term = term
         self.expression = expression
+    
+    def __str__(self):
+        if not self.expression:
+            return self.term.__str__()
+        
+        indented_text = indent_text(self.expression, 2)
+        return (f'{self.term.__str__()} {{'
+                f'\n        {indented_text}'
+                '    }')
     
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):

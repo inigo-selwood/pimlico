@@ -1,5 +1,6 @@
 from copy import copy
 
+from utilities import indent_text
 from text import (Position,
         ParseBuffer,
         ErrorBuffer,
@@ -22,6 +23,26 @@ class Rule:
         self.type = type
         self.productions = productions
         self.position = position
+    
+    def __str__(self):
+        result = self.name
+        
+        if self.type:
+            result += f' <{self.type}>'
+        
+        result += ' :='
+
+        # Inline productions get printed on the same line
+        if len(self.productions) == 1:
+            result += f' {self.productions[0].__str__()}'
+        
+        # Multiple productions get written on a new line with a bullet-point
+        else:
+            for production in self.productions:
+                text = f'\n    - {production.__str__()}'
+                result = indent_text(text, 1)
+        
+        return result
 
     @staticmethod
     def parse(buffer: ParseBuffer, errors: ErrorBuffer):
