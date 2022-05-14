@@ -6,6 +6,15 @@ _library = None
 
 
 def get_library():
+    ''' Loads the compiled Pimlico shared C library
+
+    Note: requires that PIMLICO_ROOT be set
+
+    Returns
+    -------
+    library: cdll
+        the loaded shared library
+    '''
 
     global _library
     
