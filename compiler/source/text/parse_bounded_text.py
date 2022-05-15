@@ -52,10 +52,14 @@ def parse_bounded_text(buffer: ParseBuffer,
             if buffer.finished():
                 errors.add(domain, 
                         f'expected \'{start_sequence}\', got end-of-file', 
-                        buffer.position)
+                        buffer.position,
+                        buffer)
                 return None
             elif not permit_newlines and buffer.match('\n'):
-                errors.add(domain, 'unexpected newline', buffer.position)
+                errors.add(domain, 
+                        'unexpected newline', 
+                        buffer.position, 
+                        buffer)
                 return None
             elif buffer.match(start_sequence, True):
                 break
@@ -72,10 +76,14 @@ def parse_bounded_text(buffer: ParseBuffer,
             if buffer.finished():
                 errors.add(domain, 
                         f'expected \'{end_sequence}\', got end-of-file', 
-                        buffer.position)
+                        buffer.position, 
+                        buffer)
                 return None
             elif not permit_newlines and buffer.match('\n'):
-                errors.add(domain, 'unexpected newline', buffer.position)
+                errors.add(domain, 
+                        'unexpected newline', 
+                        buffer.position, 
+                        buffer)
                 return None
             
             elif buffer.match(start_sequence):
@@ -95,4 +103,4 @@ def parse_bounded_text(buffer: ParseBuffer,
             if stack == 0:
                 break
 
-    return text
+    return text.strip()

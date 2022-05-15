@@ -89,7 +89,7 @@ class Sequence(Term):
 
             buffer.skip_space()
             if buffer.match(')', True):
-                errors.add(domain, 'empty sequence', start_position)
+                errors.add(domain, 'empty sequence', start_position, buffer)
                 return None
 
         values = []
@@ -101,7 +101,10 @@ class Sequence(Term):
             if not term:
                 return None
             elif values and term.hash == values[-1].hash:
-                errors.add(domain, 'redundant (instance hint)', term.position)
+                errors.add(domain, 
+                        'redundant (instance hint)', 
+                        term.position, 
+                        buffer)
                 valid = False
             else:
                 values.append(term)
@@ -116,20 +119,26 @@ class Sequence(Term):
         if not valid:
             return None
         elif enclosed and not buffer.match(')', True):
-            errors.add(domain, 'expected \')\'', buffer.position)
+            errors.add(domain, 'expected \')\'', buffer.position, buffer)
             return None
         elif len(values) == 1:
             return values[0]
 
         return Sequence(values, start_position)
 
-    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+    def link_references(self, 
+            rules: dict, 
+            buffer: ParseBuffer, 
+            errors: ErrorBuffer) -> bool:
+        
         ''' Links rules to this term's children
 
         Arguments
         ---------
         rules: dict
             the full list of rules in the program
+        buffer: ParseBuffer
+            the buffer used for parsing
         errors: ErrorBuffer
             buffer for reporting errors
         
@@ -141,5 +150,5 @@ class Sequence(Term):
 
         success = True
         for term in self.values:
-            success = success and term.link_references(rules, errors)
+            success = success and term.link_references(rules, buffer, errors)
         return success

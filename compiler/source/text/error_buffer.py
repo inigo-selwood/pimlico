@@ -8,7 +8,12 @@ class ErrorBuffer:
     def __init__(self):
         self.instances = []
 
-    def add(self, section: str, message: str, position: Position = None):
+    def add(self, 
+            section: str, 
+            message: str, 
+            position: Position = None, 
+            buffer: ParseBuffer = None):
+        
         ''' Adds an error message to the buffer
 
         Arguments
@@ -19,26 +24,36 @@ class ErrorBuffer:
             some extra information about the error
         position: Position
             the point in the buffer where the error occured
+        buffer: ParseBuffer
+            the buffer to extract a quote from, if neccessary
         '''
         
-        new_position = copy(position) if position else None
-        self.instances.append((section, message, new_position))
+        if position:
+            assert buffer
 
-    def serialize(self, buffer: ParseBuffer = None) -> str:
+            text = buffer.line_text(position.line)
+            excerpt = (text, position)
+            self.instances.append((section, message, excerpt))
+
+        else:
+            self.instances.append((section, message, None))
+
+    def __str__(self) -> str:
         ''' Serializes all errors in the buffer
 
         Formats errors like so:
 
         ```
         [line:column] (section) message
+        ```
+
+        Or, if an excerpt was given:
+
+        ```
+        [line:column] (section) message
             text
             ^
         ```
-
-        Arguments
-        ---------
-        buffer: ParseBuffer
-            used to get the text of the relevant line(s)
 
         Returns
         -------
@@ -48,23 +63,25 @@ class ErrorBuffer:
 
         for instance in self.instances:
 
-            section, message, position = instance
+            section, message, excerpt = instance
 
-            if not position:
-                print(f'({section}) {message}')
+            # If there's no excerpt object, we don't need to print any text or 
+            # caret
+            if not excerpt:
+                return f'({section}) {message}'
 
             else:
-                assert self.buffer
+                
+                text, position = excerpt
 
-                excerpt = buffer.line_text(line)
-
-                pointer = ''
-                if column == -1:
-                    pointer = ' ' * len(excerpt)
+                # Evaluate how much padding the caret needs on its left-hand 
+                # side, to line up with the proper column in the text excerpt
+                pointer_offset = ''
+                if position.column == -1:
+                    pointer_offset = ' ' * len(excerpt)
                 else:
-                    offset = column - buffer.line_indentation(line) - 1
-                    pointer = ' ' * offset
+                    pointer_offset = ' ' * (position.column - 1)
 
-                print(f'{position.serialize()} ({section}) {message}\n'
-                        f'    {excerpt}\n'
-                        f'    {pointer}^')
+                return (f'{position.__str__()} ({section}) {message}\n'
+                        f'    {text}\n'
+                        f'    {pointer_offset}^')

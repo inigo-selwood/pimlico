@@ -47,7 +47,7 @@ class Production:
         domain = f'{Production.domain}:parse'
 
         if not grammar.Term.present(buffer):
-            errors.add(domain, 'expected a term', buffer.position)
+            errors.add(domain, 'expected a term', buffer.position, buffer)
             return None
         
         term = grammar.terms.Sequence.parse(buffer, errors, True)
@@ -59,22 +59,35 @@ class Production:
         expression_position = copy(buffer.position)
         if buffer.match('{'):
 
-            expression = parse_bounded_text(buffer, errors, '{', '}').strip()
+            expression = parse_bounded_text(buffer, errors, '{', '}')
+            if expression is None:
+                return None
+            
+            expression = expression.strip()
             if not expression:
-                errors.add(domain, 'empty expression', expression_position)
+                errors.add(domain, 
+                        'empty expression', 
+                        expression_position, 
+                        buffer)
                 return None
         
             expression = format_c(expression)
         
         return Production(term, expression)
     
-    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+    def link_references(self, 
+            rules: dict, 
+            buffer: ParseBuffer, 
+            errors: ErrorBuffer) -> bool:
+        
         ''' Links rules to references in this production's terms
 
         Arguments
         ---------
         rules: dict
             the full list of rules in the program
+        buffer: ParseBuffer
+            the buffer used for parsing
         errors: ErrorBuffer
             buffer for reporting errors
         
@@ -84,4 +97,4 @@ class Production:
             whether or not the linking succeeded
         '''
 
-        return self.term.link_references(rules, errors)
+        return self.term.link_references(rules, buffer, errors)

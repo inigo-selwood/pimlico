@@ -65,13 +65,22 @@ class Set(Term):
         while True:
 
             if buffer.finished():
-                errors.add(domain, 'unexpected end-of-file', buffer.position)
+                errors.add(domain, 
+                        'unexpected end-of-file', 
+                        buffer.position, 
+                        buffer)
                 return None
             elif buffer.match('\n'):
-                errors.add(domain, 'unexpected newline', buffer.position)
+                errors.add(domain, 
+                        'unexpected newline', 
+                        buffer.position, 
+                        buffer)
                 return None
             elif not in_range(buffer.read(), ' ', '~'):
-                errors.add(domain, 'invalid character', buffer.position)
+                errors.add(domain, 
+                        'invalid character', 
+                        buffer.position,
+                        buffer)
                 buffer.increment()
 
             elif buffer.match('\\`', True):
@@ -83,7 +92,10 @@ class Set(Term):
             elif buffer.match('`', True):
                 break
             elif buffer.read() in value:
-                errors.add(domain, 'duplicate character', buffer.position)
+                errors.add(domain, 
+                        'duplicate character', 
+                        buffer.position, 
+                        buffer)
                 buffer.increment()
                 valid = False
 
@@ -94,14 +106,14 @@ class Set(Term):
         if not valid:
             return None
         elif not value:
-            errors.add(domain, 'empty', start_position)
+            errors.add(domain, 'empty', start_position, buffer)
             return None
         elif len(value) == 1:
-            errors.add(domain, 'redundant (constant)', start_position)
+            errors.add(domain, 'redundant (constant)', start_position, buffer)
             return None
         elif (len(value) > 2
                 and (ord(value[-1]) - ord(value[0]) == len(value) - 1)):
-            errors.add(domain, 'redundant (range)', start_position)
+            errors.add(domain, 'redundant (range)', start_position, buffer)
             return None
 
         return Set(value, start_position)

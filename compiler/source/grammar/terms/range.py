@@ -77,16 +77,28 @@ class Range(Term):
 
             buffer.skip_space()
             if buffer.finished():
-                errors.add(domain, 'unexpected end-of-file', buffer.position)
+                errors.add(domain, 
+                        'unexpected end-of-file', 
+                        buffer.position, 
+                        buffer)
                 return None
             elif buffer.match('\n'):
-                errors.add(domain, 'unexpected newline', buffer.position)
+                errors.add(domain, 
+                        'unexpected newline', 
+                        buffer.position, 
+                        buffer)
                 return None
             elif buffer.match(']', True):
-                errors.add(domain, 'too few characters', start_position)
+                errors.add(domain, 
+                        'too few characters', 
+                        start_position, 
+                        buffer)
                 return None
             elif not in_range(buffer.read(), ' ', '~'):
-                errors.add(domain, 'invalid character', buffer.position)
+                errors.add(domain, 
+                        'invalid character', 
+                        buffer.position, 
+                        buffer)
                 buffer.increment()
                 return None
 
@@ -109,13 +121,16 @@ class Range(Term):
 
         buffer.skip_space()
         if buffer.finished():
-            errors.add(domain, 'unexpected end-of-file', buffer.position)
+            errors.add(domain, 
+                    'unexpected end-of-file', 
+                    buffer.position, 
+                    buffer)
             return None
         elif buffer.match('\n'):
-            errors.add(domain, 'unexpected newline', buffer.position)
+            errors.add(domain, 'unexpected newline', buffer.position, buffer)
             return None
         elif not buffer.match(']', True):
-            errors.add(domain, 'expected \']\'', buffer.position)
+            errors.add(domain, 'expected \']\'', buffer.position, buffer)
             return None
 
         return Range((lower, upper), start_position)

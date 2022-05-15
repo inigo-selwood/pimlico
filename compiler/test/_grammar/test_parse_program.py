@@ -15,10 +15,10 @@ def test_inclusion():
 
 def test_multi_line():
     text = ('rule0 :='
-            '\n    - \'term0\' {}'
-            '\n    - \'term1\' {}'
+            '\n    - \'term0\' { // Some C++ }'
+            '\n    - \'term1\' { // Some more C++ }'
             '\n'
-            '\nrule1 := \'term2\' {}')
+            '\nrule1 := \'term2\' { // Even more C++ }')
     run_valid_parse_test(text, Program.parse)   
 
 
@@ -55,9 +55,9 @@ def test_duplicate_rule():
 
 
 def test_trailing_garbage():
-    run_invalid_parse_test('rule := \'term\' {} {}', 
+    run_invalid_parse_test('rule := \'term\' { // Some C++ } {}', 
             Program.parse, 
-            [('expected a newline', (1, 19))])
+            [('expected a newline', (1, 32))])
 
 
 def test_undefined_reference():

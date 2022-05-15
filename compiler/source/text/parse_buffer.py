@@ -10,7 +10,7 @@ class Position:
         self.line = 1
         self.column = 1
     
-    def serialize(self) -> str:
+    def __str__(self) -> str:
         ''' Formats the position
         Returns
         -------
@@ -214,6 +214,7 @@ class ParseBuffer:
 
     def match(self, text: str, consume: bool = False) -> bool:
         ''' Checks for a string match, optionally consuming it
+        
         Arguments
         ---------
         text: str
@@ -245,7 +246,9 @@ class ParseBuffer:
     
     def seek(self, text: str, consume: bool = False, limit: int = -1) -> bool:
         ''' Looks ahead a limited number of steps to try and match a string
+
         **Note:** Whitespace characters don't count towards the limit
+
         Arguments
         ---------
         text: str

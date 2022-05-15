@@ -1,3 +1,4 @@
+import os
 from ctypes import cdll
 
 from .get_root import get_root

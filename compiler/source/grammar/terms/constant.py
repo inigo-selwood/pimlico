@@ -66,13 +66,22 @@ class Constant(Term):
         while True:
 
             if buffer.finished():
-                errors.add(domain, 'unexpected end-of-file', buffer.position)
+                errors.add(domain, 
+                        'unexpected end-of-file', 
+                        buffer.position, 
+                        buffer)
                 return None
             elif buffer.match('\n'):
-                errors.add(domain, 'unexpected newline', buffer.position)
+                errors.add(domain, 
+                        'unexpected newline', 
+                        buffer.position, 
+                        buffer)
                 return None
             elif not in_range(buffer.read(), ' ', '~'):
-                errors.add(domain, 'invalid character', buffer.position)
+                errors.add(domain, 
+                        'invalid character', 
+                        buffer.position, 
+                        buffer)
                 buffer.increment()
                 valid = False
 
@@ -87,7 +96,7 @@ class Constant(Term):
         if not valid:
             return None
         elif not value:
-            errors.add(domain, 'empty', start_position)
+            errors.add(domain, 'empty', start_position, buffer)
             return None
 
         return Constant(value, start_position)

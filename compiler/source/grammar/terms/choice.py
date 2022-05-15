@@ -86,7 +86,7 @@ class Choice(Term):
             if not term:
                 return None
             elif term.hash in options:
-                errors.add(domain, 'duplicate option', term.position)
+                errors.add(domain, 'duplicate option', term.position, buffer)
                 valid = False
             else:
                 options[term.hash] = term
@@ -103,7 +103,7 @@ class Choice(Term):
                 buffer.skip_space()
                 new_pipe_position = copy(buffer.position)
                 if buffer.match('|', True):
-                    errors.add(domain, 'empty option', pipe_position)
+                    errors.add(domain, 'empty option', pipe_position, buffer)
                     valid = False
                 else:
                     break
@@ -111,10 +111,16 @@ class Choice(Term):
                 pipe_position = new_pipe_position
 
             if buffer.finished():
-                errors.add(domain, 'unexpected end-of-file', buffer.position)
+                errors.add(domain, 
+                        'unexpected end-of-file', 
+                        buffer.position, 
+                        buffer)
                 return None
             elif buffer.match('\n'):
-                errors.add(domain, 'unexpected newline', buffer.position)
+                errors.add(domain, 
+                        'unexpected newline', 
+                        buffer.position, 
+                        buffer)
                 return None
 
         if not valid:
@@ -124,13 +130,19 @@ class Choice(Term):
 
         return Choice(options, start_position)
 
-    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+    def link_references(self, 
+            rules: dict, 
+            buffer: ParseBuffer, 
+            errors: ErrorBuffer) -> bool:
+    
         ''' Links rules to this term's children
 
         Arguments
         ---------
         rules: dict
             the full list of rules in the program
+        buffer: ParseBuffer
+            the buffer used for parsing
         errors: ErrorBuffer
             buffer for reporting errors
         
@@ -142,5 +154,5 @@ class Choice(Term):
 
         success = True
         for term in self.values.values():
-            success = success and term.link_references(rules, errors)
+            success = success and term.link_references(rules, buffer, errors)
         return success

@@ -4,7 +4,24 @@ from text import ErrorBuffer
 from utilities import get_configuration, get_root
 
 
-def run_help(parameters, errors: ErrorBuffer) -> bool:
+def run_help(parameters: tuple, errors: ErrorBuffer) -> bool:
+    ''' Prints tailored help messages
+
+    Note: the messages themselves are written in a .yaml, pointed to by 
+    the configuration object
+
+    Arguments
+    ---------
+    parameters: tuple
+        the (flags, arguments) pair
+    errors: ErrorBuffer
+        for error reporting
+    
+    Returns
+    -------
+    success: bool
+        True if the desired help message was printed properly
+    '''
 
     flags, arguments = parameters
     assert '--help' in flags

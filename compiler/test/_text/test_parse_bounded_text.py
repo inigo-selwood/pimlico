@@ -8,7 +8,7 @@ def test_simple():
     buffer = ParseBuffer('{test}')
     result = parse_bounded_text(buffer, ErrorBuffer(), '{', '}')
 
-    assert result == '{test}'
+    assert result == 'test'
     assert buffer.finished()
 
 
@@ -16,7 +16,7 @@ def test_nested():
     buffer = ParseBuffer('{{test}}')
     result = parse_bounded_text(buffer, ErrorBuffer(), '{', '}')
 
-    assert result == '{{test}}'
+    assert result == '{test}'
     assert buffer.finished()
 
 
@@ -24,7 +24,7 @@ def test_multi_character_string():
     buffer = ParseBuffer('### text ###')
     result = parse_bounded_text(buffer, ErrorBuffer(), '###')
 
-    assert result == '### text ###'
+    assert result == 'text'
     assert buffer.finished()
 
 
