@@ -8,7 +8,7 @@ class ErrorBuffer:
     def __init__(self):
         self.instances = []
 
-    def add(self, section: str, message: str, position: Position):
+    def add(self, section: str, message: str, position: Position = None):
         ''' Adds an error message to the buffer
 
         Arguments
@@ -21,9 +21,10 @@ class ErrorBuffer:
             the point in the buffer where the error occured
         '''
         
-        self.instances.append((section, message, copy(position)))
+        new_position = copy(position) if position else None
+        self.instances.append((section, message, new_position))
 
-    def serialize(self, buffer: ParseBuffer) -> str:
+    def serialize(self, buffer: ParseBuffer = None) -> str:
         ''' Serializes all errors in the buffer
 
         Formats errors like so:
@@ -48,19 +49,22 @@ class ErrorBuffer:
         for instance in self.instances:
 
             section, message, position = instance
-            column = position.column
-            line = position.line
 
-            excerpt = buffer.line_text(line)
+            if not position:
+                print(f'({section}) {message}')
 
-            pointer = ''
-            if column == -1:
-                pointer = ' ' * len(excerpt)
             else:
-                pointer = ' ' * (column - buffer.line_indentation(line) - 1)
+                assert self.buffer
 
-            print(
-                f'[{line}:{column}] ({section}) {message}\n'
-                f'    {excerpt}\n'
-                f'    {pointer}^\n'
-            )
+                excerpt = buffer.line_text(line)
+
+                pointer = ''
+                if column == -1:
+                    pointer = ' ' * len(excerpt)
+                else:
+                    offset = column - buffer.line_indentation(line) - 1
+                    pointer = ' ' * offset
+
+                print(f'{position.serialize()} ({section}) {message}\n'
+                        f'    {excerpt}\n'
+                        f'    {pointer}^')
