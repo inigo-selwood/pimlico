@@ -45,6 +45,12 @@ class ErrorBuffer:
 
         ```
         [line:column] (section) message
+        ```
+
+        Or, if an excerpt was given:
+
+        ```
+        [line:column] (section) message
             text
             ^
         ```
@@ -59,6 +65,8 @@ class ErrorBuffer:
 
             section, message, excerpt = instance
 
+            # If there's no excerpt object, we don't need to print any text or 
+            # caret
             if not excerpt:
                 return f'({section}) {message}'
 
@@ -66,12 +74,14 @@ class ErrorBuffer:
                 
                 text, position = excerpt
 
-                pointer = ''
+                # Evaluate how much padding the caret needs on its left-hand 
+                # side, to line up with the proper column in the text excerpt
+                pointer_offset = ''
                 if position.column == -1:
-                    pointer = ' ' * len(excerpt)
+                    pointer_offset = ' ' * len(excerpt)
                 else:
-                    pointer = ' ' * (position.column - 1)
+                    pointer_offset = ' ' * (position.column - 1)
 
                 return (f'{position.__str__()} ({section}) {message}\n'
                         f'    {text}\n'
-                        f'    {pointer}^')
+                        f'    {pointer_offset}^')
