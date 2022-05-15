@@ -17,9 +17,10 @@ def get_root() -> str:
     global _root
     
     if not _root:
-
         _root = os.environ.get('PIMLICO_ROOT')
+
         if not _root:
-            raise Exception('PIMLICO_ROOT not set')
+            path = os.path.dirname(os.path.abspath(__file__))
+            _root = os.path.abspath(f'{path}/../../../')
     
     return _root

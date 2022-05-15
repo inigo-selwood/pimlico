@@ -86,13 +86,17 @@ class Rule:
         buffer.skip_space()
         type = ''
         if buffer.match('<'):
-            type = parse_bounded_text(buffer, errors, '<', '>', permit_newlines=False)
+            type = parse_bounded_text(buffer, 
+                    errors, 
+                    '<', 
+                    '>', 
+                    permit_newlines=False)
             if not type:
                 return None
 
         buffer.skip_space()
         if not buffer.match(':=', True):
-            errors.add(domain, 'expected \':=\'', buffer.position)
+            errors.add(domain, 'expected \':=\'', buffer.position, buffer)
             return None
         
         # There are 2 types of rule forms; one has a single production on the 
@@ -122,13 +126,17 @@ class Rule:
                 elif buffer.line_indentation() != 4:
                     errors.add(domain, 
                             'invalid indentation', 
-                            buffer.position)
+                            buffer.position, 
+                            buffer)
                     return None
                 
                 # Check there's a term present
                 buffer.skip_space()
                 if not grammar.Term.present(buffer):
-                    errors.add(domain, 'expected a term', buffer.position)
+                    errors.add(domain, 
+                            'expected a term', 
+                            buffer.position, 
+                            buffer)
                     return None
                 
                 production = grammar.Production.parse(buffer, errors)
@@ -140,18 +148,24 @@ class Rule:
             if not productions:
                 errors.add(domain, 
                         'expected one or more productions', 
-                        buffer.position)
+                        buffer.position, 
+                        buffer)
                 return None
         
         return Rule(name, type, productions, start_position)
 
-    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+    def link_references(self, 
+            rules: dict, 
+            buffer: ParseBuffer, 
+            errors: ErrorBuffer) -> bool:
         ''' Links other rules to this rule's production references
 
         Arguments
         ---------
         rules: dict
             the full list of rules in the program
+        buffer: ParseBuffer
+            the buffer used for parsing
         errors: ErrorBuffer
             buffer for reporting errors
         
@@ -163,5 +177,6 @@ class Rule:
         
         success = True
         for production in self.productions:
-            success = success and production.link_references(rules, errors)
+            success = (success 
+                    and production.link_references(rules, buffer, errors))
         return success

@@ -19,7 +19,7 @@ def run_valid_parse_test(grammar: str, parser: callable, arguments: dict = {}):
 
     result = parser(buffer, errors, **arguments)
     
-    messages = errors.serialize(buffer)
+    messages = errors.__str__()
     assert result, messages
     assert buffer.finished(), messages
 

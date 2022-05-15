@@ -62,7 +62,7 @@ class Term:
             term = grammar.terms.Set.parse(buffer, errors)
 
         else:
-            errors.add(domain, 'expected a term', buffer.position)
+            errors.add(domain, 'expected a term', buffer.position, buffer)
             return None
 
         if not term:
@@ -103,13 +103,19 @@ class Term:
                 or character == '('
                 or character == '`')
 
-    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+    def link_references(self, 
+            rules: dict, 
+            buffer: ParseBuffer, 
+            errors: ErrorBuffer) -> bool:
+        
         ''' Links references (redundant override)
 
         Arguments
         ---------
         rules: dict
             the full list of rules in the program
+        buffer: ParseBuffer
+            the buffer used for parsing
         errors: ErrorBuffer
             buffer for reporting errors
         

@@ -8,7 +8,7 @@ def test_simple():
 
 
 def test_with_embed():
-    run_valid_parse_test('rule := term {}', Rule.parse)
+    run_valid_parse_test('rule := term { // Some C++ }', Rule.parse)
 
 
 def test_type():
@@ -50,8 +50,8 @@ def test_expected_productions():
 
 def test_expected_term():
     text = ('rule :='
-            '\n    - someTerm {}'
-            '\n    - {}')
+            '\n    - someTerm { // Some C++ }'
+            '\n    - { // Some more C++}')
     errors = [('expected a term', (3, 7))]
     run_invalid_parse_test(text, Rule.parse, errors)
 

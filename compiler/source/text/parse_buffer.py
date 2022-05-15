@@ -10,7 +10,7 @@ class Position:
         self.line = 1
         self.column = 1
     
-    def serialize(self) -> str:
+    def __str__(self) -> str:
         ''' Formats the position
         Returns
         -------

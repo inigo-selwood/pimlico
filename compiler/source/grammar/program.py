@@ -31,7 +31,7 @@ class Program:
 
         buffer.skip_space(include_newlines=True)
         if buffer.finished():
-            errors.add(domain, 'empty text', buffer.position)
+            errors.add(domain, 'empty text', buffer.position, buffer)
             return None
 
         includes = []
@@ -46,7 +46,8 @@ class Program:
                 buffer.skip_space()
                 errors.add(domain, 
                         'unexpected indentation increase', 
-                        buffer.position)
+                        buffer.position, 
+                        buffer)
                 return None
 
             # Handle inclusion macros
@@ -54,7 +55,10 @@ class Program:
 
                 buffer.skip_space()
                 if not buffer.match('('):
-                    errors.add(domain, 'expected \'(\'', buffer.position)
+                    errors.add(domain, 
+                            'expected \'(\'', 
+                            buffer.position, 
+                            buffer)
                 
                 inclusion = parse_bounded_text(buffer, 
                         errors, 
@@ -73,7 +77,7 @@ class Program:
             if (character != '_'
                     and not in_range(character, 'a', 'z')
                     and not in_range(character, 'A', 'Z')):
-                errors.add(domain, 'expected a rule', buffer.position)
+                errors.add(domain, 'expected a rule', buffer.position, buffer)
                 return None 
 
             # Parse the rule
@@ -83,10 +87,12 @@ class Program:
             elif rule.name in rules:
                 errors.add(domain, 
                         f'duplicate rule \'{rule.name}\'', 
-                        rule.position)
+                        rule.position, 
+                        buffer)
                 errors.add(domain,
                         'first declared here',
-                        rules[rule.name].position)
+                        rules[rule.name].position, 
+                        buffer)
                 return None
             rules[rule.name] = rule
             
@@ -95,7 +101,8 @@ class Program:
             if not buffer.finished() and not buffer.match('\n'):
                 errors.add(domain,
                         'expected a newline',
-                        buffer.position)
+                        buffer.position, 
+                        buffer)
                 return None
             
             buffer.skip_space(include_newlines=True)
@@ -103,7 +110,9 @@ class Program:
         # Emplace rule references
         link_success = True
         for rule in rules.values():
-            link_success = link_success and rule.link_references(rules, errors)
+            link_success = (link_success
+                    and rule.link_references(rules, buffer, errors))
+        
         if not link_success:
             return None
         

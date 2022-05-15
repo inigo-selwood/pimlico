@@ -7,4 +7,4 @@ if __name__ == '__main__':
 
     success = interface.parse(errors)
     if not success:
-        errors.serialize()
+        print(errors)

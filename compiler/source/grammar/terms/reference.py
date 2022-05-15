@@ -55,13 +55,19 @@ class Reference(Term):
         
         return Reference(value, start_position)
 
-    def link_references(self, rules: dict, errors: ErrorBuffer) -> bool:
+    def link_references(self, 
+            rules: dict, 
+            buffer: ParseBuffer, 
+            errors: ErrorBuffer) -> bool:
+        
         ''' Links this reference's value to a rule
 
         Arguments
         ---------
         rules: dict
             the full list of rules in the program
+        buffer: ParseBuffer
+            the buffer used for parsing
         errors: ErrorBuffer
             buffer for reporting errors
         
@@ -76,7 +82,8 @@ class Reference(Term):
         if self.value not in rules:
             errors.add(domain, 
                     f'undefined reference to rule \'{self.value}\'', 
-                    self.position)
+                    self.position,
+                    buffer)
             return False
         
         self.term = rules[self.value]
