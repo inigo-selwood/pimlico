@@ -33,7 +33,7 @@ def run_invalid_parse_test(grammar: str,
     assert len(errors.instances) == instance_count
     for index in range(instance_count):
         _, true_message, excerpt = errors.instances[index]
-        _, true_position = excerpt
+        _, true_position, _ = excerpt
         test_message, test_position = instances[index]
 
         assert true_message == test_message

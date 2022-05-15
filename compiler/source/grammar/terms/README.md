@@ -18,6 +18,19 @@ A string literal
 
 The character `'` can be escaped as `\'`
 
+### Intrinsic
+
+Pimlico comes with some common tokens built in
+
+Name             | Default Type   | Description
+-----------------|----------------|---
+`__character__`  | `char`         | Any ASCII value in the range `[ ~]`
+`__identifier__` | `const char *` | A string of alphanumeric values or underscores, not starting in a digit
+`__indent__`     | `bool`         | 4 spaces, or a horizontal tab
+`__integer__`    | `uint32_t`     | A decimal integer
+`__newline__`    | `bool`         | A newline, or carriage-return and newline
+`__number__`     | `double`       | A number in IEEE754 scientific notation
+
 ### Range
 
 Matches any ASCII value between the two given (inclusive)
