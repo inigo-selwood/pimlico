@@ -48,7 +48,7 @@ def run_build(parameters: tuple, errors: ErrorBuffer) -> bool:
         return False
     
     # Do the parsings
-    buffer = ParseBuffer(text)
+    buffer = ParseBuffer(text, comment_sequence='#')
     if not Program.parse(buffer, errors):
         return False
     

@@ -14,11 +14,9 @@ class Sequence(Term):
     domain = 'grammar.terms.sequence'
 
     def __init__(self, values: list, position: Position):
-        self.binding = ''
         self.values = values
         self.position = position
         self.type = 'sequence'
-        self.bounds = (1, 1)
 
         context = sha256()
         value_hashes = [value.hash for value in values]
@@ -73,12 +71,7 @@ class Sequence(Term):
         '''
 
         character = buffer.read()
-        assert (character == '\''
-                or character == '['
-                or in_range(character, 'a', 'z')
-                or in_range(character, 'A', 'Z')
-                or character == '('
-                or character == '`')
+        assert Term.present(buffer)
 
         domain = f'{Sequence.domain}:parse'
         start_position = copy(buffer.position)

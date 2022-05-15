@@ -12,12 +12,10 @@ class Range(Term):
     domain = 'grammar.terms.range'
 
     def __init__(self, values: tuple, position: Position):
-        self.binding = ''
         self.values = values
         self.position = position
         self.type = 'range'
         self.hash = hash(values)
-        self.bounds = (1, 1)
 
         context = sha256()
         for value in values:

@@ -12,11 +12,9 @@ class Choice(Term):
     domain = 'grammar.terms.choice'
 
     def __init__(self, values: dict, position: Position):
-        self.binding = ''
         self.values = values
         self.position = position
         self.type = 'choice'
-        self.bounds = (1, 1)
 
         context = sha256()
         for hash in sorted(values.keys()):

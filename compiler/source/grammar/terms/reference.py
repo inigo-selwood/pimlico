@@ -12,12 +12,10 @@ class Reference(Term):
     domain = 'grammar.reference'
 
     def __init__(self, value: str, position: Position):
-        self.binding = ''
         self.value = value
         self.term = None
         self.position = position
         self.type = 'reference'
-        self.bounds = (1, 1)
 
         context = sha256()
         context.update(value.encode('utf-8'))

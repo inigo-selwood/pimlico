@@ -14,11 +14,11 @@ intrinsic :=
 	- '__number__'
 
 rangeCharacter := '\' \'' | '\]' | __character__
-range := '[' rangeCharacter rangeCharacter ']'
+range := '[' rangeCharacter{2} ']'
 
 reference := __identifier__
 
-sequence := term term+
+sequence := term{2:}
 
 set := '`' (!'`' '\`' | __character__){2:} '`'
 
@@ -37,9 +37,9 @@ termBound :=
 	- '{' __integer__ ':' __integer__? '}'
 term := termPredicate? termType termBound?
 
-production := term ('{' character+ '}')
+production := term ('{' __character__+ '}')
 
-ruleName := __identifier__ ('<' character+ '>')?
+ruleName := __identifier__ ('<' __character__+ '>')?
 rule := 
 	- ruleName ':=' production
 	- ruleName ':=' (__newline__ __indent__ '-' production){2:}

@@ -118,6 +118,7 @@ class Rule:
             while True:
                 pre_production_position = copy(buffer.position)
                 buffer.skip_space(include_newlines=True)
+                new_production_position = copy(buffer.position)
                 if not buffer.match('-', True):
                     buffer.position = pre_production_position
                     break
@@ -126,7 +127,7 @@ class Rule:
                 elif buffer.line_indentation() != 4:
                     errors.add(domain, 
                             'invalid indentation', 
-                            buffer.position, 
+                            new_production_position, 
                             buffer)
                     return None
                 

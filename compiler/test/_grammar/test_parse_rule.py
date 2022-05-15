@@ -60,7 +60,7 @@ def test_unexpected_indentation_increase():
     text = ('rule :='
             '\n    - term0'
             '\n        - term1')
-    errors = [('invalid indentation', (3, 10))]
+    errors = [('invalid indentation', (3, 9))]
     run_invalid_parse_test(text, Rule.parse, errors)
 
 

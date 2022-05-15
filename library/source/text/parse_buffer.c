@@ -377,9 +377,9 @@ uint8_t parseBufferLineText(ParseBuffer *buffer,
 
     // Move the end index backward until a non-whitespace character is reached
     while(endIndex > startIndex
-            && buffer->text[startIndex] != '\n'
-            && (buffer->text[startIndex] < ' ' 
-                || buffer->text[startIndex] > '~'))
+            && (buffer->text[endIndex] < ' ' 
+                || buffer->text[endIndex] > '~'
+                || buffer->text[endIndex] == '\n'))
         endIndex -= 1;
     
     if(startIndex == endIndex) {

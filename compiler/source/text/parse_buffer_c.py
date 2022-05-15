@@ -350,7 +350,3 @@ class ParseBuffer:
         callable.restype = c_uint8
 
         assert callable(self.object, include_newlines)
-
-
-if __name__ == '__main__':
-    buffer = ParseBuffer('hello world')

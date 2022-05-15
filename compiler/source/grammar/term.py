@@ -15,7 +15,9 @@ class Term:
     domain = 'grammar.term'
 
     def __init__(self):
-        pass
+        self.binding = ''
+        self.bounds = (1, 1)
+        self.predicate = None
 
     @staticmethod
     def parse_bounds(buffer: ParseBuffer, errors: ErrorBuffer):
@@ -226,6 +228,13 @@ class Term:
             if not buffer.match(':', True):
                 buffer.position = binding_position
                 binding = ''
+        
+        buffer.skip_space()
+        predicate = None
+        if buffer.match('!', consume=True):
+            predicate = 'not'
+        elif buffer.match('&', consume=True):
+            predicate = 'and'
 
         buffer.skip_space()
         character = buffer.read()
@@ -236,6 +245,8 @@ class Term:
             term = grammar.terms.Constant.parse(buffer, errors)
         elif character == '[':
             term = grammar.terms.Range.parse(buffer, errors)
+        elif buffer.match('__'):
+            term = grammar.terms.Intrinsic.parse(buffer, errors)
         elif (character == '_'
                 or in_range(character, 'a', 'z')
                 or in_range(character, 'A', 'Z')):
@@ -255,6 +266,7 @@ class Term:
         if not term.bounds:
             return None
         
+        term.predicate = predicate
         term.binding = binding
         return term
 
@@ -279,6 +291,7 @@ class Term:
                 or character == '['
                 or in_range(character, 'a', 'z')
                 or in_range(character, 'A', 'Z')
+                or character == '_'
                 or character == '('
                 or character == '`')
 

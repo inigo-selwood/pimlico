@@ -32,7 +32,9 @@ class ErrorBuffer:
             assert buffer
 
             text = buffer.line_text(position.line)
-            excerpt = (text, position)
+            indentation = buffer.line_indentation(position.line)
+            excerpt = (text, copy(position), indentation)
+
             self.instances.append((section, message, excerpt))
 
         else:
@@ -72,7 +74,7 @@ class ErrorBuffer:
 
             else:
                 
-                text, position = excerpt
+                text, position,indentation = excerpt
 
                 # Evaluate how much padding the caret needs on its left-hand 
                 # side, to line up with the proper column in the text excerpt
@@ -80,8 +82,8 @@ class ErrorBuffer:
                 if position.column == -1:
                     pointer_offset = ' ' * len(excerpt)
                 else:
-                    pointer_offset = ' ' * (position.column - 1)
+                    pointer_offset = ' ' * (position.column - indentation - 1)
 
-                return (f'{position.__str__()} ({section}) {message}\n'
-                        f'    {text}\n'
-                        f'    {pointer_offset}^')
+                return (f'{position.__str__()} ({section}) {message}'
+                        f'\n    {text}'
+                        f'\n    {pointer_offset}^')
