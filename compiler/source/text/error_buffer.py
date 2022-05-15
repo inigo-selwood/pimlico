@@ -70,7 +70,7 @@ class ErrorBuffer:
                 if position.column == -1:
                     pointer = ' ' * len(excerpt)
                 else:
-                    pointer = ' ' * position.column
+                    pointer = ' ' * (position.column - 1)
 
                 return (f'{position.__str__()} ({section}) {message}\n'
                         f'    {text}\n'

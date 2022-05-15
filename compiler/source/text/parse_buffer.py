@@ -214,6 +214,7 @@ class ParseBuffer:
 
     def match(self, text: str, consume: bool = False) -> bool:
         ''' Checks for a string match, optionally consuming it
+        
         Arguments
         ---------
         text: str
@@ -245,7 +246,9 @@ class ParseBuffer:
     
     def seek(self, text: str, consume: bool = False, limit: int = -1) -> bool:
         ''' Looks ahead a limited number of steps to try and match a string
+
         **Note:** Whitespace characters don't count towards the limit
+
         Arguments
         ---------
         text: str
