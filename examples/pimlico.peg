@@ -1,0 +1,47 @@
+# Pimlico | Parsing Expression Grammar (PEG)
+# Inigo Selwood 2022 (c)
+
+choice := term ('|' term)+
+
+constant := '\'' (!'\'' '\\'' | __character__)+ '\''
+
+intrinsic :=
+	- '__character__'
+	- '__identifier__'
+	- '__indent__'
+	- '__integer__'
+	- '__newline__'
+	- '__number__'
+
+rangeCharacter := '\' \'' | '\]' | __character__
+range := '[' rangeCharacter rangeCharacter ']'
+
+reference := __identifier__
+
+sequence := term term+
+
+set := '`' (!'`' '\`' | __character__){2:} '`'
+
+termPredicate := `&!`
+termType := 
+	- choice
+	- constant
+    - intrinsic
+	- range
+	- reference
+	- sequence
+	- set
+termBound :=
+	- `+*?`
+	- '{' ':'? __integer__ '}'
+	- '{' __integer__ ':' __integer__? '}'
+term := termPredicate? termType termBound?
+
+production := term ('{' character+ '}')
+
+ruleName := __identifier__ ('<' character+ '>')?
+rule := 
+	- ruleName ':=' production
+	- ruleName ':=' (__newline__ __indent__ '-' production){2:}
+
+grammar := (rule __newline__+)* rule __newline__?
