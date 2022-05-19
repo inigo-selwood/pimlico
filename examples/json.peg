@@ -1,3 +1,6 @@
+# Pimlico | JSON
+# Inigo Selwood 2022 (c)
+
 element := 
     - object
     - array
