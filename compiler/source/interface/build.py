@@ -1,10 +1,11 @@
 import os
 
-from text import ParseBuffer, ErrorBuffer
+import controllers
 from grammar import Program
+from text import ParseBuffer, ErrorBuffer
 
 
-def run_build(parameters: tuple, errors: ErrorBuffer) -> bool:
+def build(parameters: tuple, errors: ErrorBuffer) -> bool:
     ''' Builds a Pimlico library and header file
 
     Arguments
@@ -33,23 +34,7 @@ def run_build(parameters: tuple, errors: ErrorBuffer) -> bool:
     
     # Make sure grammar file exists
     grammar_file = arguments[1]
-    if not os.path.exists(grammar_file):
-        errors.add(section, f'could not open \'{grammar_file}\'')
-        return False
     
-    # Read contents of grammar file
-    text = ''
-    with open(grammar_file, 'r') as file:
-        text = file.read().strip()
+    program = controllers.build(grammar_file, errors)
 
-    # Check text isn't empty
-    if not text:
-        errors.add(section, 'empty grammar')
-        return False
-    
-    # Do the parsings
-    buffer = ParseBuffer(text, comment_sequence='#')
-    if not Program.parse(buffer, errors):
-        return False
-    
     return True

@@ -2,8 +2,9 @@ import sys
 
 from text import ErrorBuffer
 
-from .run_help import run_help
-from .run_build import run_build
+from .help import help
+from .build import build
+from .map import map
 
 
 def parse(errors: ErrorBuffer) -> bool:
@@ -22,7 +23,7 @@ def parse(errors: ErrorBuffer) -> bool:
     # Help
     parameters = (flags, arguments)
     if '--help' in flags:
-        return run_help(parameters, errors)
+        return help(parameters, errors)
     
     # If not help, check for command
     if not arguments:
@@ -31,13 +32,14 @@ def parse(errors: ErrorBuffer) -> bool:
 
     # Delegate to command
     commands = {
-        'build': run_build
+        'build': build,
+        'map': map
     }
 
     # Check command found
     command = arguments[0]
     if command not in commands:
-        errors.add(section, 'unrecognized command \'{command}\'')
+        errors.add(section, f'unrecognized command \'{command}\'')
         return False
     
     return commands[command](parameters, errors)
