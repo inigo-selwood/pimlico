@@ -3,7 +3,7 @@
 
 choice := term ('|' term)+
 
-constant := '\'' (!'\'' '\\'' | __character__)+ '\''
+constant := '\'' (!'\'' '\\\'' | __character__)+ '\''
 
 intrinsic :=
 	- '__character__'
@@ -13,14 +13,14 @@ intrinsic :=
 	- '__newline__'
 	- '__number__'
 
-rangeCharacter := '\' \'' | '\]' | __character__
+rangeCharacter := '\' \'' | '\\]' | __character__
 range := '[' rangeCharacter{2} ']'
 
 reference := __identifier__
 
 sequence := term{2:}
 
-set := '`' (!'`' '\`' | __character__){2:} '`'
+set := '`' (!'`' '\\`' | __character__){2:} '`'
 
 termPredicate := `&!`
 termType := 
