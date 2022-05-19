@@ -5,6 +5,20 @@ from text import ParseBuffer, ErrorBuffer
 
 
 def build(grammar_file: str, errors: ErrorBuffer) -> Program:
+    ''' Generates a parser header file for a given grammar
+
+    Arguments
+    ---------
+    grammar_file: str
+        the name of the grammar file to build
+    errors: ErrorBuffer
+        for reporting errors
+    
+    Returns
+    -------
+    result: Program
+        the program generated
+    '''
 
     section = 'controllers:build'
 

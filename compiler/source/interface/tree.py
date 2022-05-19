@@ -21,6 +21,9 @@ def tree(parameters: tuple, errors: ErrorBuffer) -> bool:
     # Make sure grammar file exists
     grammar_file = arguments[1]
     
-    reference_map = controllers.tree(grammar_file, errors)
-
+    result = controllers.tree(grammar_file, errors)
+    if not result:
+        return False
+    
+    print(result)
     return True
