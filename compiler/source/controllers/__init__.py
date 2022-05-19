@@ -1,5 +1,5 @@
 from .build import build
-from .map import map
+from .tree import tree
 
 
-__all__ = ['build', 'map']
+__all__ = ['build', 'tree']

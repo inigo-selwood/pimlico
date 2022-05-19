@@ -121,6 +121,7 @@ class Sequence(Term):
 
     def link_references(self, 
             rules: dict, 
+            parent_rule,
             buffer: ParseBuffer, 
             errors: ErrorBuffer) -> bool:
         
@@ -130,6 +131,8 @@ class Sequence(Term):
         ---------
         rules: dict
             the full list of rules in the program
+        parent_rule: Rule
+            the rule in which this term is defined
         buffer: ParseBuffer
             the buffer used for parsing
         errors: ErrorBuffer
@@ -143,5 +146,9 @@ class Sequence(Term):
 
         success = True
         for term in self.values:
-            success = success and term.link_references(rules, buffer, errors)
+            term_success = term.link_references(rules,
+                    parent_rule, 
+                    buffer, 
+                    errors)
+            success = success and term_success
         return success

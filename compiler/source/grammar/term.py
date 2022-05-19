@@ -297,6 +297,7 @@ class Term:
 
     def link_references(self, 
             rules: dict, 
+            parent_rule,
             buffer: ParseBuffer, 
             errors: ErrorBuffer) -> bool:
         
@@ -306,6 +307,8 @@ class Term:
         ---------
         rules: dict
             the full list of rules in the program
+        parent_rule: Rule
+            the rule in which this term is defined
         buffer: ParseBuffer
             the buffer used for parsing
         errors: ErrorBuffer

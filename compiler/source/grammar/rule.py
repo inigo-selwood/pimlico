@@ -23,6 +23,8 @@ class Rule:
         self.type = type
         self.productions = productions
         self.position = position
+        self.imports = {}
+        self.exports = {}
     
     def __str__(self):
         result = self.name
@@ -178,6 +180,9 @@ class Rule:
         
         success = True
         for production in self.productions:
-            success = (success 
-                    and production.link_references(rules, buffer, errors))
+            production_success = production.link_references(rules, 
+                    self, 
+                    buffer, 
+                    errors)
+            success = success and production_success
         return success

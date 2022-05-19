@@ -37,4 +37,7 @@ def build(parameters: tuple, errors: ErrorBuffer) -> bool:
     
     program = controllers.build(grammar_file, errors)
 
+    if not program:
+        return False
+
     return True

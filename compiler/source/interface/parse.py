@@ -4,7 +4,7 @@ from text import ErrorBuffer
 
 from .help import help
 from .build import build
-from .map import map
+from .tree import tree
 
 
 def parse(errors: ErrorBuffer) -> bool:
@@ -33,7 +33,7 @@ def parse(errors: ErrorBuffer) -> bool:
     # Delegate to command
     commands = {
         'build': build,
-        'map': map
+        'tree': tree
     }
 
     # Check command found

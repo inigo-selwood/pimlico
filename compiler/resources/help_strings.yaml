@@ -1,10 +1,11 @@
 pimlico: |
   overview: a tool for creating C/C++ parsers
 
-  usage: pimlico [--help] {build} ...
+  usage: pimlico [--help] {build, tree} ...
 
   commands:
       build     create a parser library and header file
+      map       graph a grammar's dependencies
   
   options:
       --help    display this, or help with a command
@@ -15,3 +16,10 @@ build: |
   
   arguments:
       grammar   the .peg file to build from
+tree: |
+  overview: graph a grammar's dependencies
+
+  usage: pimlico tree grammar
+
+  arguments:
+      grammar   the .peg file whose dependencies to graph

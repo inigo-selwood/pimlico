@@ -13,7 +13,7 @@ class Reference(Term):
 
     def __init__(self, value: str, position: Position):
         self.value = value
-        self.term = None
+        self.rule = None
         self.position = position
         self.type = 'reference'
 
@@ -55,6 +55,7 @@ class Reference(Term):
 
     def link_references(self, 
             rules: dict, 
+            parent_rule,
             buffer: ParseBuffer, 
             errors: ErrorBuffer) -> bool:
         
@@ -64,6 +65,8 @@ class Reference(Term):
         ---------
         rules: dict
             the full list of rules in the program
+        parent_rule: Rule,
+            the rule in which this reference is defined
         buffer: ParseBuffer
             the buffer used for parsing
         errors: ErrorBuffer
@@ -84,5 +87,12 @@ class Reference(Term):
                     buffer)
             return False
         
-        self.term = rules[self.value]
+        rule = rules[self.value]
+
+        if parent_rule.name not in rule.exports:
+            rule.exports[parent_rule.name] = parent_rule
+        if rule.name not in parent_rule.imports:
+            parent_rule.imports[rule.name] = rule
+        self.rule = rule
+
         return True

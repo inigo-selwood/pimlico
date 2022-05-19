@@ -77,6 +77,7 @@ class Production:
     
     def link_references(self, 
             rules: dict, 
+            parent_rule,
             buffer: ParseBuffer, 
             errors: ErrorBuffer) -> bool:
         
@@ -86,6 +87,8 @@ class Production:
         ---------
         rules: dict
             the full list of rules in the program
+        parent_rule: Rule
+            the rule in which this term is defined
         buffer: ParseBuffer
             the buffer used for parsing
         errors: ErrorBuffer
@@ -97,4 +100,4 @@ class Production:
             whether or not the linking succeeded
         '''
 
-        return self.term.link_references(rules, buffer, errors)
+        return self.term.link_references(rules, parent_rule, buffer, errors)
