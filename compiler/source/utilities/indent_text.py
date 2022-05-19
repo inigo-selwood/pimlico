@@ -17,5 +17,5 @@ def indent_text(text: str, level: int, tab_width: int = 4) -> str:
     '''
 
     lines = text.split('\n')
-    indent = ' ' * level * tab_width
+    indent = ' ' * (level * tab_width)
     return f'\n{indent}'.join(lines)
