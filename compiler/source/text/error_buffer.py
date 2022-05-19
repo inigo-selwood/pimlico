@@ -74,13 +74,13 @@ class ErrorBuffer:
 
             else:
                 
-                text, position,indentation = excerpt
+                text, position, indentation = excerpt
 
                 # Evaluate how much padding the caret needs on its left-hand 
                 # side, to line up with the proper column in the text excerpt
                 pointer_offset = ''
                 if position.column == -1:
-                    pointer_offset = ' ' * len(excerpt)
+                    pointer_offset = ' ' * len(text)
                 else:
                     pointer_offset = ' ' * (position.column - indentation - 1)
 

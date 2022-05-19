@@ -2,8 +2,8 @@ from copy import copy
 
 from hashlib import sha256
 
-from utilities import in_range
-from text import Position, ParseBuffer, ErrorBuffer
+from utilities import escape_code, in_range, requires_escaping
+from text import Position, ParseBuffer, ErrorBuffer, parse_escape_code
 from grammar import Term
 
 
@@ -23,12 +23,14 @@ class Set(Term):
     
     def __str__(self):
         result = ''
-        for letter in self.values:
-            if letter == '`':
+        for character in self.values:
+            if character == '`':
                 result += '\\`'
+            elif requires_escaping(character):
+                result += escape_code(character)
             else:
-                result += letter
-            
+                result += character
+        
         if self.binding:
             return f'{self.binding}: `{result}`'
         else:
@@ -83,10 +85,18 @@ class Set(Term):
 
             elif buffer.match('\\`', True):
                 value += '`'
-            elif buffer.match('\\t', True):
-                value += '\t'
-            elif buffer.match('\\n', True):
-                value += '\n'
+
+            elif buffer.match('\\'):
+                code_position = copy(buffer.position)
+                code = parse_escape_code(buffer)
+                if not code:
+                    errors.add(domain, 
+                            'invalid escape code', 
+                            code_position, 
+                            buffer)
+                    return None
+                value += code
+            
             elif buffer.match('`', True):
                 break
             elif buffer.read() in value:
@@ -100,7 +110,6 @@ class Set(Term):
             else:
                 value += buffer.read(True)
 
-        value = sorted(value)
         if not valid:
             return None
         elif not value:

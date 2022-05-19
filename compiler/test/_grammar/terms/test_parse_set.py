@@ -22,7 +22,7 @@ def test_escape_codes():
     }
 
     for code, value in codes.items():
-        result = run_valid_parse_test(f'`.\\{code}`', Set.parse)
+        result = run_valid_parse_test(f'`.{code}`', Set.parse)
         assert value in result.values
 
 

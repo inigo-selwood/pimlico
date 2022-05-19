@@ -2,8 +2,8 @@ from copy import copy
 
 from hashlib import sha256
 
-from utilities import in_range
-from text import Position, ParseBuffer, ErrorBuffer
+from utilities import escape_code, in_range, requires_escaping
+from text import Position, ParseBuffer, ErrorBuffer, parse_escape_code
 from grammar import Term
 
 
@@ -24,11 +24,11 @@ class Constant(Term):
         result = ''
 
         value = ''
-        for letter in self.value:
-            if letter == '\'':
-                value += '\\\''
+        for character in self.value:
+            if requires_escaping(character):
+                value += escape_code(character)
             else:
-                value += letter
+                value += character
         
         if self.binding:
             return f'{self.binding}: \'{value}\''
@@ -83,8 +83,18 @@ class Constant(Term):
                 buffer.increment()
                 valid = False
 
-            elif buffer.match('\\\'', True):
-                value += '\''
+            elif buffer.match('\\'):
+                code_position = copy(buffer.position)
+                code = parse_escape_code(buffer)
+                
+                if not code:
+                    errors.add(domain, 
+                            'invalid escape code', 
+                            code_position, 
+                            buffer)
+                    return None
+                value += code
+            
             elif buffer.match('\'', True):
                 break
 

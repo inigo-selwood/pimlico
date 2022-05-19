@@ -38,12 +38,32 @@ def test_bindings():
 
 
 def test_escape_codes():
+
+    codes = [
+        r'\n',
+        r'\r',
+        r'\t',
+        r'\v',
+        r'\\',
+        '\\\'',
+        r'\"',
+    ]
+
+    for code in codes:
+        for text in [f'\'{code}\'', f'`.{code}`']:
+            errors = ErrorBuffer()
+            buffer = ParseBuffer(text)
+            result = Term.parse(buffer, errors).__str__() 
+
+            assert result == text, errors.__str__()
+
     texts = [
-        '\'\\\'\'',
         '[\' \'~]',
         r'[[\]]',
-        r'`\\``'
+        r'`.\``'
     ]
 
     for text in texts:
-        assert Term.parse(ParseBuffer(text), ErrorBuffer()).__str__() == text
+        errors = ErrorBuffer()
+        buffer = ParseBuffer(text)
+        assert Term.parse(buffer, errors).__str__() == text, errors.__str__()
