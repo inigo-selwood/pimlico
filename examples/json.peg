@@ -1,0 +1,31 @@
+element := 
+    - object
+    - array
+    - string
+    - number
+    - boolean
+    - null
+
+object := '{' objectMemberList? '}'
+
+objectMemberList := 
+    - objectMember
+    - objectMember '.' objectMemberList
+
+objectMember := string ':' element
+
+array := '[' elementList? ']'
+
+elementList :=
+    - element
+    - element ',' elementList
+
+string := '"' (stringEscapeCode | __character__)+ '"'
+stringEscapeCode := '\\' `"\\/bfnrtu`
+
+number := '-'? __integer__ ('.' __integer__)? (`eE` `+-`? __integer__)?
+
+boolean := 'true' | 'false'
+
+null := 'null'
+
