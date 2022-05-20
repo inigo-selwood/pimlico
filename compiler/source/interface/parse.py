@@ -33,7 +33,7 @@ def parse(errors: ErrorBuffer) -> bool:
     # Delegate to command
     commands = {
         'build': build,
-        'tree': tree
+        # 'tree': tree
     }
 
     # Check command found
