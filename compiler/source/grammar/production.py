@@ -8,8 +8,9 @@ class Production:
     
     domain = 'grammar.production'
 
-    def __init__(self, term, expression: str):
+    def __init__(self, term, terminal: bool, expression: str):
         self.term = term
+        self.terminal = terminal
         self.expression = expression
     
     def __str__(self):
@@ -54,6 +55,7 @@ class Production:
         if not term:
             return None
         
+        # Parse embedded expression
         expression = ''
         buffer.skip_space()
         expression_position = copy(buffer.position)
@@ -73,7 +75,25 @@ class Production:
         
             expression = format_c(expression)
         
-        return Production(term, expression)
+        # Check if this production is terminal by looking for references
+        terminal = True
+        stack = [term]
+        while True:
+
+            if not stack:
+                break
+        
+            head = stack[-1]
+            stack = stack[:-1]
+            if head.type == 'choice':
+                stack.extend(head.values.values())
+            elif head.type == 'sequene':
+                stack.extend(head.values)
+            elif head.type == 'reference':
+                terminal = False
+                break
+        
+        return Production(term, terminal, expression)
     
     def link_references(self, 
             rules: dict, 
