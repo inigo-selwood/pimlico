@@ -52,9 +52,9 @@ The Python compiler uses [`ctypes`](https://docs.python.org/3/library/ctypes.htm
 ```
 .include(iostream)
 
-term := 'say hello' {
+term := 'say hello' {{
         std::cout << "hello world\n";
-    }
+    }}
 ```
 
 Here you've created a single rule `term`. This term matches the string constant `"say hello"`, and binds it to an expression that prints `"hello world"` to stdout. When the constant is encountered, the expression is executed.
