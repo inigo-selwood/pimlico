@@ -8,7 +8,7 @@ import text
 class Excerpt:
 
     def __init__(self, 
-            buffer: text.ParseBuffer, 
+            buffer: text.Buffer, 
             position: text.Position = None):
         
         self.position = copy(position) if position else buffer.position

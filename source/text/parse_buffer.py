@@ -4,7 +4,7 @@ import text
 from text import helpers
 
 
-class ParseBuffer:
+class Buffer:
 
     def __init__(self, buffer_text: str):
         if not buffer_text:
@@ -15,11 +15,14 @@ class ParseBuffer:
         self.position = text.Position()
         
         index = 0
+        start_index = 0
         self.line_indices = []
         while index < self.length:
-            self.line_indices.append(index)
+            self.line_indices.append(start_index)
             while index < self.length and buffer_text[index - 1] != '\n':
                 index += 1
+            
+            start_index = index
             index += 1
     
     def finished(self) -> bool:
@@ -42,7 +45,8 @@ class ParseBuffer:
 
             # Handle tabs by rounding up to the next multiple of 4 (+1)
             elif character == '\t':
-                self.position.column = ((self.position.column + 3) / 4) * 4 + 1
+                column = int(((self.position.column + 3) / 4) * 4 + 1)
+                self.position.column = column
 
             # Failing the above, and if the character wasn't format-related,
             # increment the column

@@ -4,7 +4,7 @@ import text
 from text import helpers
 
 
-def parse_integer(buffer: text.ParseBuffer) -> str:
+def parse_integer(buffer: text.Buffer) -> str:
 
     character = buffer.read()
     if not helpers.in_range(character, '0', '9'):

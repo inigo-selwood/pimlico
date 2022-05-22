@@ -6,7 +6,7 @@ import text
 import tools
 
 
-def parse_escape_code(buffer: text.ParseBuffer, errors: tools.ErrorLog) -> str:
+def parse_escape_code(buffer: text.Buffer, errors: tools.ErrorLog) -> str:
     
     start_position = copy(buffer.position)
     if not buffer.match('\\', consume=True):

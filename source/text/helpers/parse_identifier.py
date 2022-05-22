@@ -4,7 +4,7 @@ import text
 from text import helpers
 
 
-def parse_identifier(buffer: text.ParseBuffer) -> str:    
+def parse_identifier(buffer: text.Buffer) -> str:    
     
     character = buffer.read()
     if not (character == '_'

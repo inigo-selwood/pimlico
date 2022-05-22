@@ -5,7 +5,7 @@ from text import helpers
 import tools
 
 
-def parse_expression(buffer: text.ParseBuffer, 
+def parse_expression(buffer: text.Buffer, 
         tokens: tuple, 
         errors: tools.ErrorLog,
         permit_newlines: bool = False,
