@@ -148,6 +148,18 @@ class Buffer:
 
         return result
 
+    def skip_line(self):
+
+        self.position.column = -1
+
+        line_count = len(self.line_indices)
+        if self.position.line >= line_count:
+            self.position.index = self.length
+
+        else:
+            index = self.line_indices[self.position.line]
+            self.position.index = index - 1
+
     def skip_space(self, include_newlines: bool = False):
 
         while True:

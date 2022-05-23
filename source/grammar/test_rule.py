@@ -51,7 +51,7 @@ def test_parse_invalid():
     errors = test.parse_invalid(text, grammar.Rule.parse)
     assert errors.has_value('expected a term', (3, 7))
 
-    # Invalid indentation
+    # Invalid production indentation
     text = ('rule :='
             '\n    - term0'
             '\n        - term1')
