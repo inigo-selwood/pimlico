@@ -26,10 +26,13 @@ class Schema:
         rules = {}
         while True:
 
-            # Skip comments
-            while buffer.match('#'):
-                buffer.skip_line()
+            # Skip space, comments
+            while True:
                 buffer.skip_space(include_newlines=True)
+                
+                if not buffer.match('#'):
+                    break
+                buffer.skip_line()
 
             # Move to next rule
             buffer.skip_space(include_newlines=True)
