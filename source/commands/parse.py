@@ -6,7 +6,6 @@ import commands
 
 def parse(arguments: list, errors: tools.ErrorLog) -> bool:
 
-    # Ignore path
     arguments = arguments[1:]
 
     # # Split arguments into flags, parameters
@@ -21,7 +20,7 @@ def parse(arguments: list, errors: tools.ErrorLog) -> bool:
     
     # pair = (flags, parameters)
     
-    if not arguments:
+    if not len(arguments):
         errors.add(__name__, 'expected arguments')
         return False
 
@@ -36,6 +35,7 @@ def parse(arguments: list, errors: tools.ErrorLog) -> bool:
         return False
 
     bindings = {
+        'generate': commands.generate,
     }
 
     if command not in bindings:

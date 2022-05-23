@@ -29,6 +29,7 @@ class Schema:
             # Skip comments
             while buffer.match('#'):
                 buffer.skip_line()
+                buffer.skip_space(include_newlines=True)
 
             # Move to next rule
             buffer.skip_space(include_newlines=True)

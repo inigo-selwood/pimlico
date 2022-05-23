@@ -17,7 +17,12 @@ class Excerpt:
     def __str__(self):
         stripped_text = self.text.lstrip()
         indentation = len(self.text) - len(stripped_text)
-        offset = ' ' * (self.position.column - indentation - 1)
+
+        column = self.position.column
+        if column == -1:
+            column = len(stripped_text)
+        
+        offset = ' ' * (column - indentation - 1)
         
         return (f'{stripped_text}'
                 f'\n{offset}^')
