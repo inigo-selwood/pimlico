@@ -38,22 +38,22 @@ def test_parse_invalid():
 
     # No assign operator
     errors = test.parse_invalid('rule', grammar.Rule.parse)
-    assert errors.has_value('expected \':=\'', (1, -1))
+    assert errors.has_value('expected \':=\'', position=(1, -1))
 
     # Missing production
     errors = test.parse_invalid('rule := {}', grammar.Rule.parse)
-    assert errors.has_value('expected productions', (1, 9))
+    assert errors.has_value('expected productions', position=(1, 9))
 
     # Missing term
     text = ('rule :='
             '\n    - someTerm {{ // Some C++ }}'
             '\n    - {{ // Some more C++}}')
     errors = test.parse_invalid(text, grammar.Rule.parse)
-    assert errors.has_value('expected a term', (3, 7))
+    assert errors.has_value('expected a term', position=(3, 7))
 
     # Invalid production indentation
     text = ('rule :='
             '\n    - term0'
             '\n        - term1')
     errors = test.parse_invalid(text, grammar.Rule.parse)
-    assert errors.has_value('invalid indentation', (3, 9))
+    assert errors.has_value('invalid indentation', position=(3, 9))
