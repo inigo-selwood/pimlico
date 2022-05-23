@@ -20,7 +20,7 @@ class Excerpt:
 
         column = self.position.column
         if column == -1:
-            column = len(stripped_text)
+            column = len(stripped_text) + 1
         
         offset = ' ' * (column - indentation - 1)
         

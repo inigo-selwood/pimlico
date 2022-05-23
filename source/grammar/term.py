@@ -62,6 +62,7 @@ class Term:
             errors.add(__name__, 
                     'missing bounds values', 
                     buffer.excerpt(bounds_position))
+            return None
 
         # N instances
         # - term{0} is invalid, since it'll never match
