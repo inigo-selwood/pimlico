@@ -1,3 +1,3 @@
-def help(pair: tuple) -> bool:
+def help(arguments: list) -> bool:
     print('helping')
     return True

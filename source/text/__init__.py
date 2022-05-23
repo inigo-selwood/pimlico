@@ -1,3 +1,3 @@
 from .position import Position
-from .parse_buffer import ParseBuffer
+from .buffer import Buffer
 from .excerpt import Excerpt

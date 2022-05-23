@@ -1,36 +1,44 @@
-import tools
+from __future__ import annotations
 
-from .help import help
+import tools
+import commands
 
 
 def parse(arguments: list, errors: tools.ErrorLog) -> bool:
 
-    # Split arguments into flags, parameters
-    flags = []
-    parameters = []
+    # Ignore path
+    arguments = arguments[1:]
 
-    for argument in arguments[1:]:
-        if len(argument) > 1 and argument[:2] == '--':
-            flags.append(argument)
-        else:
-            parameters.append(argument)
-    
-    pair = (flags, parameters)
-    
-    # Handle help flag
-    if flags and flags[0] == '--help':
-        return help(pair)
+    # # Split arguments into flags, parameters
+    # flags = []
+    # parameters = []
 
-    # Handle subcommands
-    elif not parameters:
-        errors.add(__name__, 'expected a command')
+    # for argument in arguments[1:]:
+    #     if len(argument) > 1 and argument[:2] == '--':
+    #         flags.append(argument)
+    #     else:
+    #         parameters.append(argument)
+    
+    # pair = (flags, parameters)
+    
+    if not arguments:
+        errors.add(__name__, 'expected arguments')
         return False
-    
-    commands = {}
-    
-    command = parameters[0]
 
-    if command not in commands:
+    # Handle help flag
+    elif arguments[0] == '--help':
+        return commands.help(arguments)
+    
+    command = arguments[0]
+
+    if len(command) > 2 and command[:2] == '--':
+        errors.add(__name__, f'expected a command, not \'{command}\'')
+        return False
+
+    bindings = {
+    }
+
+    if command not in bindings:
         errors.add(__name__, f'unrecognized command \'{command}\'')
     
-    return commands[command](pair)
+    return bindings[command](arguments, errors)
