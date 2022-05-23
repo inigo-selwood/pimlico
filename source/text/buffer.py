@@ -15,14 +15,31 @@ class Buffer:
         self.position = text.Position()
         
         index = 0
-        start_index = 0
         self.line_indices = []
+        self.line_indentations = []
+        
         while index < self.length:
-            self.line_indices.append(start_index)
-            while index < self.length and buffer_text[index - 1] != '\n':
-                index += 1
+            self.line_indices.append(index)
+        
+            # Evaluate indentation
+            indentation = 0
+            while True:
+                if index == self.length:
+                    break
             
-            start_index = index
+                if buffer_text[index] == '\t':
+                    indentation = ((indentation + 4) & ~0x03)
+                elif buffer_text[index] == ' ':
+                    indentation += 1
+                else:
+                    break
+            
+                index += 1
+            self.line_indentations.append(indentation)
+
+            # Move to next newline
+            while index < self.length and buffer_text[index] != '\n':
+                index += 1
             index += 1
     
     def finished(self) -> bool:
@@ -85,6 +102,19 @@ class Buffer:
             end_index = self.length - 1
 
         return self.text[start_index:end_index]
+
+    def line_indentation(self, line_number: int = 0) -> int:
+
+        # Set line to current if not specified
+        if line_number <= 0:
+            line_number = self.position.line
+
+        # Check line is in bounds
+        line_count = len(self.line_indentations)
+        if line_number < 1 or line_number > line_count:
+            return None
+
+        return self.line_indentations[line_number - 1]
 
     def read(self, consume: bool = False) -> str:
 

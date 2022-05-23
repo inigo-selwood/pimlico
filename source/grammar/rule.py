@@ -10,15 +10,22 @@ import grammar
 
 class Rule:
 
-    def __init__(self, name: str, productions: list):
+    def __init__(self, 
+            name: str, 
+            type: str, 
+            productions: list, 
+            position: text.Position):
+
         self.name = name
+        self.type = type
         self.productions = productions
+        self.position = position
     
-    def parse(self, 
-            buffer: text.Buffer, 
+    @staticmethod
+    def parse(buffer: text.Buffer, 
             errors: tools.ErrorLog) -> grammar.Rule:
         
-        start_position = copy(buffer.position)
+        postion = copy(buffer.position)
         name = helpers.parse_identifier(buffer)
 
         # Check for type
@@ -84,8 +91,8 @@ class Rule:
             
             if not productions:
                 errors.add(__name__, 
-                        'expected one or more productions', 
+                        'expected productions', 
                         buffer.excerpt())
                 return None
         
-        return Rule(name, type, productions, start_position)
+        return Rule(name, type, productions, postion)
