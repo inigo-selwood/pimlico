@@ -32,12 +32,12 @@ class Intrinsic(Term):
         position = copy(buffer.position)
 
         types = [
-            '__character__'
-            '__identifier__'
-            '__indent__'
-            '__integer__'
-            '__newline__'
-            '__number__'
+            '__character__',
+            '__identifier__',
+            '__indent__',
+            '__integer__',
+            '__newline__',
+            '__number__',
         ]
 
         for type in types:
