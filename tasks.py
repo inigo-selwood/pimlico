@@ -5,12 +5,15 @@ import invoke
 
 _root = None
 
+
 def _run(context: invoke.context, command: list, path: str = '.'):
     global _root
 
+    # Get root, relative to this file
     if _root is None:
         _root = os.path.dirname(os.path.abspath(__file__))
 
+    # Move to the path specified, run the command
     with context.cd(f'{_root}/{path}'):
         context.run(' '.join(command))
 
@@ -18,6 +21,7 @@ def _run(context: invoke.context, command: list, path: str = '.'):
 @invoke.task
 def test(context):
 
+    # Run pytest
     command = [
         'python3',
         '-m',
@@ -30,6 +34,7 @@ def test(context):
 @invoke.task
 def coverage(context):
 
+    # Make sure coverage directory exists
     command = [
         'mkdir',
         '-p',
@@ -37,6 +42,7 @@ def coverage(context):
     ]
     _run(context, command, 'source/')
 
+    # Create .coveragerc to omit test files from output report
     command = [
         'echo',
         '"[run]\nomit = */test*"',
@@ -45,6 +51,7 @@ def coverage(context):
     ]
     _run(context, command, 'source/')
 
+    # Run the coverage analysis
     command = [
         'python3',
         '-m',
@@ -56,6 +63,7 @@ def coverage(context):
     ]
     _run(context, command, 'source/')
 
+    # Get rid of temp. coverage files
     command = [
         'rm',
         '-rf',
@@ -64,12 +72,11 @@ def coverage(context):
     ]
     _run(context, command, 'source/')
 
-        
-
 
 @invoke.task
 def clean(context):
 
+    # Delete coverage generated files etc.
     command = [
         'rm',
         '-rf',
