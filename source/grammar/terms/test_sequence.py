@@ -26,3 +26,6 @@ def test_parse_invalid():
     # Empty sequence
     errors = test.parse_invalid('( )', terms.Sequence.parse)
     assert errors.has_value('empty sequence', position=(1, 1))
+
+    # Error in child
+    errors = test.parse_invalid('\'\'', terms.Sequence.parse)

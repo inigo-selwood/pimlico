@@ -27,3 +27,6 @@ def test_parse_invalid():
     # Duplicate option
     errors = test.parse_invalid('a | a', terms.Choice.parse)
     assert errors.has_value('duplicate option', position=(1, 5))
+
+    # Error in child
+    errors = test.parse_invalid('\'\'', terms.Sequence.parse)

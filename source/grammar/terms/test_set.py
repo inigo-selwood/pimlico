@@ -23,6 +23,10 @@ def test_empty_set():
     errors = test.parse_invalid('``', terms.Set.parse)
     assert errors.has_value('empty', position=(1, 1))
 
+    # Duplicates
+    errors = test.parse_invalid('`aa`', terms.Set.parse)
+    assert errors.has_value('contains duplicates', position=(1, 1))
+
     # Could've been constant
     errors = test.parse_invalid('`a`', terms.Set.parse)
     assert errors.has_value('redundant (constant)', position=(1, 1))

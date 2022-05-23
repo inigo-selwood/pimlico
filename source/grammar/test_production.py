@@ -32,3 +32,9 @@ def test_parse_invalid():
     # Empty expression
     errors = test.parse_invalid('term {{}}', grammar.Production.parse)
     assert errors.has_value('empty expression', position=(1, 6))
+
+    # Error in term
+    errors = test.parse_invalid('\'\'', grammar.Production.parse)
+
+    # Invalid expression
+    errors = test.parse_invalid('term {{}', grammar.Production.parse)

@@ -16,3 +16,6 @@ def test_parse_valid():
     for sentence in sentences:
         test.parse_valid(sentence, terms.Intrinsic.parse)
     
+    # Not an intrinsic value, cast to reference
+    term = test.parse_valid('__invalid__', terms.Intrinsic.parse)
+    assert term.type == 'reference'
