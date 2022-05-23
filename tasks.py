@@ -1,82 +1,80 @@
 import os
 
-from invoke import task
+import invoke
 
 
-def _get_root():
-    return os.path.dirname(os.path.abspath(__file__))
+_root = None
+
+def _run(context: invoke.context, command: list, path: str = '.'):
+    global _root
+
+    if _root is None:
+        _root = os.path.dirname(os.path.abspath(__file__))
+
+    with context.cd(f'{_root}/{path}'):
+        context.run(' '.join(command))
 
 
-@task
+@invoke.task
 def test(context):
 
-    root = _get_root()
-
-    with context.cd(f'{root}/source'):
-        command = [
-            'python3',
-            '-m',
-            'pytest',
-            '.'
-        ]
-
-        root = _get_root()
-        with context.cd(f'{root}/source/'):
-            context.run(' '.join(command))
+    command = [
+        'python3',
+        '-m',
+        'pytest',
+        '.'
+    ]
+    _run(context, command, 'source/')
     
 
-@task
+@invoke.task
 def coverage(context):
 
+    command = [
+        'mkdir',
+        '-p',
+        '../coverage/'
+    ]
+    _run(context, command, 'source/')
 
-    root = _get_root()
-    with context.cd(root):
+    command = [
+        'echo',
+        '"[run]\nomit = */test*"',
+        '>',
+        '../.coveragerc'
+    ]
+    _run(context, command, 'source/')
 
-        command = [
-            'mkdir',
-            '-p',
-            'coverage/'
-        ]
+    command = [
+        'python3',
+        '-m',
+        'pytest',
+        '--cov=.',
+        '--cov-report=html:../coverage',
+        '--cov-config=../.coveragerc',
+        '.'
+    ]
+    _run(context, command, 'source/')
 
-        context.run(' '.join(command))
+    command = [
+        'rm',
+        '-rf',
+        '../.coveragerc',
+        '.coverage'
+    ]
+    _run(context, command, 'source/')
 
-        command = [
-            'echo',
-            '"[run]\nomit = */test*"',
-            '>',
-            '.coveragerc'
-        ]
-
-        context.run(' '.join(command))
-
-    with context.cd(f'{root}/source'):
-
-        command = [
-            'python3',
-            '-m',
-            'pytest',
-            '--cov=.',
-            '--cov-report=html:../coverage',
-            '--cov-config=../.coveragerc',
-            '.'
-        ]
-
-        context.run(' '.join(command))
+        
 
 
-@task
+@invoke.task
 def clean(context):
 
-    root = _get_root()
-
-    with context.cd(root):
-
-        command = [
-            'rm',
-            '-rf',
-            'coverage/',
-            '.coveragerc',
-            'source/.coverage',
-        ]
-
-        context.run(' '.join(command))
+    command = [
+        'rm',
+        '-rf',
+        'coverage/',
+        '.coveragerc',
+        'source/.coverage',
+    ]
+    _run(context, command, 'source/')
