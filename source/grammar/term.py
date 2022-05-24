@@ -17,35 +17,36 @@ class Term:
         self.binding = ''
     
     def __str__(self):
-
-        if self.bounds == (1, 1):
-            return ''
-        elif self.bounds == (0, None):
-            return '*'
-        elif self.bounds == (1, None):
-            return '+'
-        elif self.bounds == (0, 1):
-            return '?'
         
+        result = ''
         lower, upper = self.bounds
 
+        if self.bounds == (1, 1):
+            result = ''
+        elif self.bounds == (0, None):
+            result = '*'
+        elif self.bounds == (1, None):
+            result = '+'
+        elif self.bounds == (0, 1):
+            result = '?'
+        
         # (n, n) -> {n}
-        if lower is not None and upper is not None and lower == upper:
-            return f'{{{lower}}}'
+        elif lower is not None and upper is not None and lower == upper:
+            result = f'{{{lower}}}'
             
         # (n, None) -> {n:}
         elif lower is not None and upper is None:
-            return f'{{{lower}:}}'
+            result = f'{{{lower}:}}'
         
         # (None, n) -> {:n}
         elif lower is None and upper is not None:
-            return f'{{:{upper}}}'
+            result = f'{{:{upper}}}'
         
         # (n, m) -> {n:m}
         elif lower is not None and upper is not None:
-            return f'{{{lower}:{upper}}}'
+            result = f'{{{lower}:{upper}}}'
         
-        return ''
+        return text.colour(result, 'yellow')
 
     @staticmethod
     def parse_bounds(buffer: text.Buffer, errors: tools.ErrorLog):
@@ -225,6 +226,9 @@ class Term:
         
         elif character == '[':
             term = terms.Range.parse(buffer, errors)
+        
+        elif buffer.match('__'):
+            term = terms.Intrinsic.parse(buffer, errors)
         
         elif (character == '_'
                 or helpers.in_range(character, 'a', 'z')

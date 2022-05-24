@@ -32,7 +32,10 @@ def generate(arguments: list, errors: tools.ErrorLog) -> bool:
     
     # Generate a schema
     buffer = text.Buffer(grammar_text)
-    if grammar.Schema.parse(buffer, errors) is None:
+    schema = grammar.Schema.parse(buffer, errors)
+    if schema is None:
         return False
+    
+    print(schema)
 
     return True

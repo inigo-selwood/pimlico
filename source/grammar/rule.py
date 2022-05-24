@@ -21,6 +21,23 @@ class Rule:
         self.productions = productions
         self.position = position
     
+    def __str__(self):
+        result = self.name
+
+        if self.type:
+            result += f' <{self.type}>'
+        
+        result += ' := '
+
+        if len(self.productions) == 1:
+            result += f' {self.productions[0].__str__()}'
+        
+        else:
+            for production in self.productions:
+                result += f'\n    - {production.__str__()}'
+    
+        return result
+    
     @staticmethod
     def parse(buffer: text.Buffer, 
             errors: tools.ErrorLog) -> grammar.Rule:

@@ -12,6 +12,20 @@ class Schema:
     def __init__(self, rules: dict, includes: list):
         self.rules = rules
         self.includes = includes
+    
+    def __str__(self):
+        result = ''
+
+        index = 0
+        count = len(self.rules)
+        for rule in self.rules.values():
+            result += rule.__str__()
+
+            if index + 1 < count:
+                result += '\n\n'
+            index += 1
+        
+        return result
 
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Schema:

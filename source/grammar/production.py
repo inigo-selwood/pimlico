@@ -14,6 +14,9 @@ class Production:
     def __init__(self, term: grammar.Term, expression: str):
         self.term = term
         self.expression = expression
+    
+    def __str__(self):
+        return self.term.__str__()
 
     @staticmethod
     def parse(buffer: text.Buffer, 
