@@ -14,11 +14,6 @@ def test_parse_valid():
     sequence = test.parse_valid(text, terms.Sequence.parse)
     assert sequence.__str__() == text
 
-    # Check that (when root), brackets are consumed
-    test.parse_valid('(a b) c', 
-            terms.Sequence.parse, 
-            arguments={'root': True})
-
     # Check reduction
     result = test.parse_valid('\'a\'', terms.Sequence.parse)
     assert result.type == 'constant'

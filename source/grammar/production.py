@@ -11,12 +11,22 @@ from grammar import terms
 
 class Production:
 
-    def __init__(self, term: grammar.Term, expression: str):
-        self.term = term
+    def __init__(self, term: list, expression: str):
+        self.terms = terms
         self.expression = expression
     
     def __str__(self):
-        return self.term.__str__()
+        result = ''
+
+        index = 0
+        count = len(self.terms)
+        for term in self.terms:
+
+            result += term.__str__()
+            if index + 1 < count:
+                result += ' '
+        
+        return result
 
     @staticmethod
     def parse(buffer: text.Buffer, 
@@ -27,11 +37,36 @@ class Production:
             errors.add(__name__, 'expected a term', buffer.excerpt())
             return None
         
-        # Parse the term
-        term = terms.Sequence.parse(buffer, errors, True)
-        if not term:
+        values = []
+        valid = True
+        while True:
+
+            # Parse term
+            term = terms.Choice.parse(buffer, errors)
+            if not term:
+                return None
+            
+            # Check value not duplicated
+            elif values and term.hash == values[-1].hash:
+                errors.add(__name__, 
+                        'redundant (instance hint)', 
+                        buffer.excerpt(term.position,))
+                valid = False
+            
+            else:
+                values.append(term)
+
+            # Break when a newline, expression, or enclosure are reached
+            buffer.skip_space()
+            if (buffer.finished()
+                    or buffer.match('\n')
+                    or buffer.match('{')
+                    or buffer.match(')')):
+                break
+
+        if not valid:
             return None
-        
+                
         # Check for, and parse an embedded expression
         expression = ''
         buffer.skip_space()
@@ -54,4 +89,4 @@ class Production:
                         buffer.excerpt(expression_position))
                 return None
         
-        return Production(term, expression)
+        return Production(values, expression)

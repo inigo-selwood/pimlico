@@ -53,9 +53,7 @@ class Sequence(Term):
         return result
 
     @staticmethod
-    def parse(buffer: text.Buffer, 
-            errors: tools.ErrorLog, 
-            root: bool = False) -> grammar.Sequence:
+    def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Sequence:
         
         position = copy(buffer.position)
 
@@ -64,7 +62,7 @@ class Sequence(Term):
 
         # Check for parenthesis enclosure
         enclosed = False
-        if not root and buffer.match('(', True):
+        if buffer.match('(', True):
             enclosed = True
 
             buffer.skip_space()

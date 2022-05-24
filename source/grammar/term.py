@@ -46,7 +46,7 @@ class Term:
         elif lower is not None and upper is not None:
             result = f'{{{lower}:{upper}}}'
         
-        return text.colour(result, 'yellow')
+        return result
 
     @staticmethod
     def parse_bounds(buffer: text.Buffer, errors: tools.ErrorLog):
