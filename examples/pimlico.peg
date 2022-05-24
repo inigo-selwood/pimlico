@@ -3,7 +3,7 @@
 
 choice := term ('|' term)+
 
-constant := '\'' (!'\'' '\\\'' | __character__)+ '\''
+constant := '\'' ('\\\'' | __character__)+ '\''
 
 intrinsic :=
 	- '__character__'
@@ -13,8 +13,7 @@ intrinsic :=
 	- '__newline__'
 	- '__number__'
 
-rangeCharacter := '\' \'' | '\\]' | __character__
-range := '[' rangeCharacter{2} ']'
+range := '[' ('\' \'' | '\\]' | __character__){2} ']'
 
 reference := __identifier__
 
@@ -22,7 +21,7 @@ sequence := term{2:}
 
 set := '`' (!'`' '\\`' | __character__){2:} '`'
 
-termPredicate := `&!`
+predicate := `&!`
 termType := 
 	- choice
 	- constant
@@ -35,7 +34,7 @@ termBound :=
 	- `+*?`
 	- '{' ':'? __integer__ '}'
 	- '{' __integer__ ':' __integer__? '}'
-term := termPredicate? termType termBound?
+term := predicate? termType termBound?
 
 production := term ('{' __character__+ '}')
 
