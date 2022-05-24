@@ -15,6 +15,8 @@ from ..term import Term
 class Range(Term):
 
     def __init__(self, values: tuple, position: text.Position):
+        super(Range, self).__init__()
+
         self.values = values
         self.position = position
         self.type = 'range'
@@ -23,6 +25,19 @@ class Range(Term):
         for value in values:
             context.update(value.encode('utf-8'))
         self.hash = context.hexdigest()
+    
+    def __str__(self):
+        escape_codes = {
+            ' ': '\' \'',
+            ']': '\\]',
+        }
+
+        lower, upper = self.values
+        lower = helpers.escape(lower, custom_codes=escape_codes)
+        upper = helpers.escape(lower, custom_codes=escape_codes)
+        
+        instances = super(Range, self).__str__()
+        return f'[{lower}{upper}]{instances}'
     
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Sequence:

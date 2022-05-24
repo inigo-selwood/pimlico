@@ -15,6 +15,8 @@ from ..term import Term
 class Set(Term):
 
     def __init__(self, values: str, position: text.Position):
+        super(Set, self).__init__()
+
         self.value = values
         self.position = position
         self.type = 'set'
@@ -23,6 +25,11 @@ class Set(Term):
         ordered_characters = ''.join(sorted(values))
         context.update(ordered_characters.encode('utf-8'))
         self.hash = context.hexdigest()
+
+    def __str__(self):
+        value = helpers.escape(self.value, custom_codes={'`': '\\`'})
+        instances = super(Set, self).__str__()
+        return f'`{value}`{instances}'
     
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Constant:

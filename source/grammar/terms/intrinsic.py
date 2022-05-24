@@ -14,14 +14,20 @@ from ..term import Term
 
 class Intrinsic(Term):
 
-    def __init__(self, type: str, position: text.Position):
-        self.type = type
+    def __init__(self, variant: str, position: text.Position):
+        super(Intrinsic, self).__init__()
+
+        self.variant = variant
         self.position = position
         self.type = 'intrinsic'
 
         context = sha256()
-        context.update(type.encode('utf-8'))
+        context.update(variant.encode('utf-8'))
         self.hash = context.hexdigest()
+    
+    def __str__(self):
+        instances = super(Intrinsic, self).__str__()
+        return f'{self.variant}{instances}'
     
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Choice:
@@ -31,7 +37,7 @@ class Intrinsic(Term):
         
         position = copy(buffer.position)
 
-        types = [
+        variants = [
             '__character__',
             '__identifier__',
             '__indent__',
@@ -40,9 +46,9 @@ class Intrinsic(Term):
             '__number__',
         ]
 
-        for type in types:
-            if buffer.match(type, consume=True):
-                return Intrinsic(type, position)
+        for variant in variants:
+            if buffer.match(variant, consume=True):
+                return Intrinsic(variant, position)
         
         # If we can't match it, try to parse it as a reference
         return terms.Reference.parse(buffer, errors)

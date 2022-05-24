@@ -15,6 +15,8 @@ from ..term import Term
 class Sequence(Term):
 
     def __init__(self, sequence_terms: list, position: text.Position):
+        super(Sequence, self).__init__()
+
         self.terms = sequence_terms
         self.position = position
         self.type = 'sequence'
@@ -25,6 +27,19 @@ class Sequence(Term):
             context.update(hash.encode('utf-8'))
         self.hash = context.hexdigest()
     
+    def __str__(self):
+        result = ''
+
+        count = len(self.terms)
+        for index in range(count):
+            result += self.terms[index]
+
+            if index + 1 < count:
+                result += ' '
+            index += 1
+        
+        return result
+
     @staticmethod
     def parse(buffer: text.Buffer, 
             errors: tools.ErrorLog, 
@@ -86,4 +101,32 @@ class Sequence(Term):
         elif len(values) == 1:
             return values[0]
 
-        return Sequence(values, position)
+        result = Sequence(values, position)
+        if root:
+            result.bounds = (1, 1)
+        return result
+    
+    def enumerate(self):
+        result = []
+
+        for term in self.terms:
+            enumeration = term.enumerate()
+            
+            # If the result's empty, we can directly assign
+            if not result:
+                result = enumeration
+            
+            # Otherwise, for each sequence we have already, create a variant
+            # with each of the new enumerated sequences
+            else:
+                temporary = []
+                for sequence in result:
+                    for extension in enumeration:
+                        temporary.append(sequence + extension)
+                result = temporary
+
+        lower, _ = self.bounds
+        if lower == 0:
+            result.insert(0, [])
+
+        return result

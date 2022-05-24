@@ -15,6 +15,8 @@ from ..term import Term
 class Constant(Term):
 
     def __init__(self, value: str, position: text.Position):
+        super(Constant, self).__init__()
+
         self.value = value
         self.position = position
         self.type = 'constant'
@@ -22,6 +24,11 @@ class Constant(Term):
         context = sha256()
         context.update(value.encode('utf-8'))
         self.hash = context.hexdigest()
+    
+    def __str__(self):
+        value = helpers.escape(self.value)
+        instances = super(Constant, self).__str__()
+        return f'\'{value}\'{instances}'
     
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Constant:

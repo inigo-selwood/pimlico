@@ -15,15 +15,46 @@ class Term:
         self.bounds = (0, 0)
         self.type = ''
         self.binding = ''
+    
+    def __str__(self):
+
+        if self.bounds == (1, 1):
+            return ''
+        elif self.bounds == (0, None):
+            return '*'
+        elif self.bounds == (1, None):
+            return '+'
+        elif self.bounds == (0, 1):
+            return '?'
+        
+        lower, upper = self.bounds
+
+        # (n, n) -> {n}
+        if lower is not None and upper is not None and lower == upper:
+            return f'{{{lower}}}'
+            
+        # (n, None) -> {n:}
+        elif lower is not None and upper is None:
+            return f'{{{lower}:}}'
+        
+        # (None, n) -> {:n}
+        elif lower is None and upper is not None:
+            return f'{{:{upper}}}'
+        
+        # (n, m) -> {n:m}
+        elif lower is not None and upper is not None:
+            return f'{{{lower}:{upper}}}'
+        
+        return ''
 
     @staticmethod
     def parse_bounds(buffer: text.Buffer, errors: tools.ErrorLog):
 
         # Handle all the built-in shorthand cases
         if buffer.match('*', True):
-            return (0, -1)
+            return (0, None)
         elif buffer.match('+', True):
-            return (1, -1)
+            return (1, None)
         elif buffer.match('?', True):
             return (0, 1)
         
@@ -39,7 +70,7 @@ class Term:
         lower_bound = None
         buffer.skip_space()
         if helpers.in_range(buffer.read(), '0', '9'):
-            lower_bound = helpers.parse_integer(buffer)
+            lower_bound = int(helpers.parse_integer(buffer))
         
         # Check for colon
         buffer.skip_space()
@@ -49,7 +80,7 @@ class Term:
         upper_bound = None
         buffer.skip_space()
         if helpers.in_range(buffer.read(), '0', '9'):
-            upper_bound = helpers.parse_integer(buffer)
+            upper_bound = int(helpers.parse_integer(buffer))
         
         # Check for a closing bracket
         buffer.skip_space()
@@ -100,7 +131,7 @@ class Term:
                         buffer.excerpt(bounds_position))
                 return None
 
-            return (lower_bound, -1)
+            return (lower_bound, None)
 
         # Up to N instances
         # - term{:0} makes no sense
@@ -231,3 +262,14 @@ class Term:
                 or character == '_'
                 or character == '('
                 or character == '`')
+
+    def enumerate(self) -> list:
+
+        lower, _ = self.bounds
+        if lower > 0:
+            return [[self]]
+        else:
+            return [
+                [],
+                [self],
+            ]

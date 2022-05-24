@@ -1,4 +1,5 @@
 from .in_range import in_range
+from .escape import escape
 
 from .parse_escape_code import parse_escape_code
 from .parse_expression import parse_expression
