@@ -12,7 +12,7 @@ import tools
 class Term:
 
     def __init__(self):
-        self.bounds = (0, 0)
+        self.bounds = (1, 1)
         self.type = ''
         self.binding = ''
     
@@ -149,7 +149,7 @@ class Term:
                         buffer.excerpt(bounds_position))
                 return None
             
-            return (0, upper_bound)
+            return (None, upper_bound)
 
         # Between N and M instances
         # - term{n:n} is the same as term{n}

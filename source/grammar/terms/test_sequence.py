@@ -5,7 +5,14 @@ from utilities import test
 def test_parse_valid():
     
     # Big ol' seqeunce of terms
-    test.parse_valid('a | b \'c\' [de] f `gh`', terms.Sequence.parse)
+    text = 'a | b \'c\' [de] f `gh`'
+    sequence = test.parse_valid(text, terms.Sequence.parse)
+    assert sequence.__str__() == text
+
+    # Instance bounds
+    text = 'a+ b* c? d{2} e{2:} f{:2} g{2:3}'
+    sequence = test.parse_valid(text, terms.Sequence.parse)
+    assert sequence.__str__() == text
 
     # Check that (when root), brackets are consumed
     test.parse_valid('(a b) c', 

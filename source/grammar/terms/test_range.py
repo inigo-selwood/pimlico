@@ -5,16 +5,20 @@ from utilities import test
 def test_parse_valid():
     
     # Simple range
-    test.parse_valid('[az]', terms.Range.parse)
+    range = test.parse_valid('[az]', terms.Range.parse)
+    assert range.__str__() == '[az]'
 
     # Range with some whitespace
     test.parse_valid('[ a z ]', terms.Range.parse)
 
     # Escaped closing bracket
-    test.parse_valid(r'[[\]]', terms.Range.parse)
+    range = test.parse_valid(r'[[\]]', terms.Range.parse)
+    assert range.__str__() == r'[[\]]'
 
     # Escaped space
-    test.parse_valid('[\' \'~]', terms.Range.parse)
+    text = '[\' \'~]'
+    range = test.parse_valid(text, terms.Range.parse)
+    assert range.__str__() == text
 
 
 def test_parse_invalid():

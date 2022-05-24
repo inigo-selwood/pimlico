@@ -6,8 +6,17 @@ from utilities import test
 
 def test_parse_valid():
 
-    # Real simple ol' choice
-    test.parse_valid('a | b', terms.Choice.parse)
+    # Simple choice
+    choice = test.parse_valid('a | b', terms.Choice.parse)
+    assert choice.__str__() == 'a | b'
+
+    # Sequence within choice
+    choice = test.parse_valid('(a b) | c', terms.Choice.parse)
+    assert choice.__str__() == '(a b) | c'
+
+    # Instanced choice within choice
+    choice = test.parse_valid('(a | b)+ | c', terms.Choice.parse)
+    assert choice.__str__() == '(a | b)+ | c'
 
 
 def test_parse_invalid():

@@ -113,8 +113,4 @@ class Sequence(Term):
         elif len(values) == 1:
             return values[0]
 
-        result = Sequence(values, position)
-        if root:
-            result.bounds = (1, 1)
-        return result
-    
+        return Sequence(values, position)

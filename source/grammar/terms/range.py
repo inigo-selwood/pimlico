@@ -34,7 +34,7 @@ class Range(Term):
 
         lower, upper = self.values
         lower = helpers.escape(lower, custom_codes=escape_codes)
-        upper = helpers.escape(lower, custom_codes=escape_codes)
+        upper = helpers.escape(upper, custom_codes=escape_codes)
         
         instances = super(Range, self).__str__()
         return f'[{lower}{upper}]{instances}'

@@ -5,16 +5,20 @@ from utilities import test
 def test_simple():
     
     # Simple
-    test.parse_valid('`az`', terms.Set.parse)
+    set = test.parse_valid('`az`', terms.Set.parse)
+    assert set.__str__() == '`az`'
     
     # Less simple
-    test.parse_valid('`+-*/%`', terms.Set.parse)
+    set = test.parse_valid('`+-*/%`', terms.Set.parse)
+    assert set.__str__() == '`+-*/%`'
     
     # Escaped closing backtick
-    test.parse_valid(r'`.\``', terms.Set.parse)
+    set = test.parse_valid(r'`.\``', terms.Set.parse)
+    assert set.__str__() == r'`.\``'
 
     # Escape codes
-    test.parse_valid('`\\t\\n`', terms.Set.parse)
+    set = test.parse_valid('`\\t\\n`', terms.Set.parse)
+    assert set.__str__() == '`\\t\\n`'
 
 
 def test_empty_set():

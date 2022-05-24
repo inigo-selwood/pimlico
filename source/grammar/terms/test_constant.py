@@ -4,10 +4,14 @@ from utilities import test
 
 def test_parse_valid():
 
-    test.parse_valid('\'a\'', terms.Constant.parse)
+    # Simple term
+    constant = test.parse_valid('\' \'', terms.Constant.parse)
+    assert constant.__str__() == '\' \''
     
-    test.parse_valid('\'\\\'\'', terms.Constant.parse)
-
+    # All escape codes
+    text = '\' \\\' \\\" \\\\ \\t \\v \\n \\r \''
+    constant = test.parse_valid(text, terms.Constant.parse)
+    assert constant.__str__() == text
 
 def test_parse_invalid():
 
