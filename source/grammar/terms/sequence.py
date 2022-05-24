@@ -29,10 +29,22 @@ class Sequence(Term):
     
     def __str__(self):
         result = ''
-
+        
         count = len(self.terms)
         for index in range(count):
-            result += self.terms[index]
+
+            term = self.terms[index]
+
+            enclosed = False
+            if term.type == 'sequence':
+                result += '('
+                enclosed = True
+
+            result += term.__str__()
+
+            if enclosed:
+                result += ')'
+                result += super(Sequence, term).__str__()
 
             if index + 1 < count:
                 result += ' '
@@ -106,27 +118,3 @@ class Sequence(Term):
             result.bounds = (1, 1)
         return result
     
-    def enumerate(self):
-        result = []
-
-        for term in self.terms:
-            enumeration = term.enumerate()
-            
-            # If the result's empty, we can directly assign
-            if not result:
-                result = enumeration
-            
-            # Otherwise, for each sequence we have already, create a variant
-            # with each of the new enumerated sequences
-            else:
-                temporary = []
-                for sequence in result:
-                    for extension in enumeration:
-                        temporary.append(sequence + extension)
-                result = temporary
-
-        lower, _ = self.bounds
-        if lower == 0:
-            result.insert(0, [])
-
-        return result

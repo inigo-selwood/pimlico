@@ -262,14 +262,3 @@ class Term:
                 or character == '_'
                 or character == '('
                 or character == '`')
-
-    def enumerate(self) -> list:
-
-        lower, _ = self.bounds
-        if lower > 0:
-            return [[self]]
-        else:
-            return [
-                [],
-                [self],
-            ]

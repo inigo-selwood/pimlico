@@ -37,7 +37,7 @@ class Choice(Term):
 
         index = 0
         count = len(self.terms)
-        for term in self.terms:
+        for term in self.terms.values():
 
             # If it's a sequence inside a choice, put backets around it
             term_enclosed = False
@@ -130,13 +130,3 @@ class Choice(Term):
 
         return Choice(options, position)
     
-    def enumerate(self) -> list:
-        result = []
-
-        lower, _ = self.bounds
-        if lower == 0:
-            result.append([])
-
-        for term in self.terms.values():
-            result.extend(term.enumerate())
-        return result
