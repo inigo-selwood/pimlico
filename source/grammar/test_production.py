@@ -5,22 +5,45 @@ from utilities import test
 def test_parse_valid():
 
     # Simple
-    test.parse_valid('term', grammar.Production.parse)
+    production = test.parse_valid('term', grammar.Production.parse)
+    assert production.__str__() == 'term'
 
     # With an embedded expression
-    test.parse_valid('term {{ // Some C++ }}', grammar.Production.parse)
-
+    text = ('term {{'
+            '\n        // Some C++'
+            '\n    }}')
+    production =  test.parse_valid(text, grammar.Production.parse)
+    assert production.__str__() == text
+    
     # Sequence, and expression
-    test.parse_valid('a b {{ // Some C++ }}', grammar.Production.parse)
+    text = ('termA termB {{'
+            '\n        // Some C++'
+            '\n    }}')
+    production =  test.parse_valid(text, grammar.Production.parse)
+    assert production.__str__() == text
 
     # Root-level enclosed seqeunce
-    test.parse_valid('(a | b) {{ // Some C++ }}', grammar.Production.parse)
+    text = ('(termA termB) | termC {{'
+            '\n        // Some C++'
+            '\n    }}')
+    production =  test.parse_valid(text, grammar.Production.parse)
+    assert production.__str__() == text
     
     # Choice, and an expression
-    test.parse_valid('a | b {{ // Some C++ }}', grammar.Production.parse)
+    text = ('termA | termB {{'
+            '\n        // Some C++'
+            '\n    }}')
+    production =  test.parse_valid(text, grammar.Production.parse)
+    assert production.__str__() == text
 
     # Expression with nested brackets in it
-    test.parse_valid('term {{ { // Some C++ } }}', grammar.Production.parse)
+    text = ('term {{'
+            '\n        int main() {'
+            '\n            return 0;'
+            '\n        }'
+            '\n    }}')
+    production = test.parse_valid(text, grammar.Production.parse)
+    assert production.__str__() == text
 
 
 def test_parse_invalid():

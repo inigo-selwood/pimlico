@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import subprocess
 from copy import copy
+import json
 
 import text
 from text import helpers
@@ -11,7 +13,7 @@ from grammar import terms
 
 class Production:
 
-    def __init__(self, term: list, expression: str):
+    def __init__(self, terms: list, expression: str):
         self.terms = terms
         self.expression = expression
     
@@ -23,9 +25,19 @@ class Production:
         for term in self.terms:
 
             result += term.__str__()
-            if index + 1 < count:
+            if (index + 1) < count:
                 result += ' '
-        
+            index += 1
+            
+        if self.expression:
+            lines = self.expression.split('\n')
+            indentation = ' ' * 8
+            indented_text = f'\n{indentation}'.join(lines)
+
+            result += (' {{'
+                    f'\n        {indented_text}'
+                    '\n    }}')
+
         return result
 
     @staticmethod
@@ -88,5 +100,29 @@ class Production:
                         'empty expression', 
                         buffer.excerpt(expression_position))
                 return None
+            
+            # Format the expression
+            try:
+                flags = {
+                    'BasedOnStyle': 'llvm',
+                    'AllowShortFunctionsOnASingleLine': False,
+                    'IndentWidth': 4,
+                }
+
+                style_flags = json.dumps(flags, separators=(',', ':'))
+
+                command = [
+                    'clang-format',
+                    f'-style={style_flags}',
+                ]
+
+                process = subprocess.run(command, 
+                        check=True,
+                        input=expression.encode(), 
+                        capture_output=True)
+                expression = process.stdout.decode('utf-8')
+
+            except FileNotFoundError as error:
+                pass
         
         return Production(values, expression)
