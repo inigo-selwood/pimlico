@@ -16,12 +16,27 @@ class Schema:
     def __str__(self):
         result = ''
 
+        include_count = len(self.includes)
+        rule_count = len(self.rules)
+
+        # Serialize includes
         index = 0
-        count = len(self.rules)
+        for include in self.includes:
+            result += f'.include({include})'
+
+            # Add a newline between each inclusion, and a double-newline if
+            # there are rules to follow
+            if index + 1 < include_count:
+                result += '\n'
+            elif index + 1 == include_count and rule_count > 0:
+                reuslt += '\n'
+
+        # Print rules
+        index = 0
         for rule in self.rules.values():
             result += rule.__str__()
 
-            if index + 1 < count:
+            if index + 1 < rule_count:
                 result += '\n\n'
             index += 1
         
@@ -76,7 +91,8 @@ class Schema:
                         permit_newlines=False)
                 if not inclusion:
                     return None
-                
+                inclusion = inclusion[1:-1]
+
                 includes.append(inclusion)
                 buffer.skip_space(include_newlines=True)
                 continue
@@ -113,14 +129,5 @@ class Schema:
                         'expected newline',
                         buffer.excerpt())
                 return None
-            
-        # # Emplace rule references
-        # link_success = True
-        # for rule in rules.values():
-        #     link_success = (link_success
-        #             and rule.link_references(rules, buffer, errors))
-        
-        # if not link_success:
-        #     return None
         
         return Schema(rules, includes)

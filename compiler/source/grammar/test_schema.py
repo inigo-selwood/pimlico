@@ -5,23 +5,36 @@ from utilities import test
 def test_simple():
 
     # Single rule
-    test.parse_valid('rule0 := \'term0\'', grammar.Schema.parse)
+    text = 'rule0 := \'term0\''
+    schema = test.parse_valid(text, grammar.Schema.parse)
+    assert text == schema.__str__()
 
     # Mutliple rules
     text = ('rule0 := \'term0\''
+            '\n'
             '\nrule1 := \'term1\'')
-    test.parse_valid(text, grammar.Schema.parse)
+    schema = test.parse_valid(text, grammar.Schema.parse)
+    assert text == schema.__str__()
 
     # Inclusion macro
-    test.parse_valid('.include(string)', grammar.Schema.parse)
+    text = '.include(string)'
+    schema = test.parse_valid(text, grammar.Schema.parse)
+    assert text == schema.__str__()
 
     # Multi-choice rule
     text = ('rule0 :='
-            '\n    - \'term0\' {{ // Some C++ }}'
-            '\n    - \'term1\' {{ // Some more C++ }}'
+            '\n    - \'term0\' {{'
+            '\n        // Some C++'
+            '\n    }}'
+            '\n    - \'term1\' {{'
+            '\n        // Some more C++'
+            '\n    }}'
             '\n'
-            '\nrule1 := \'term2\' {{ // Even more C++ }}')
-    test.parse_valid(text, grammar.Schema.parse)
+            '\nrule1 := \'term2\' {{'
+            '\n        // Even more C++'
+            '\n    }}')
+    schema = test.parse_valid(text, grammar.Schema.parse)
+    assert text == schema.__str__()
 
 
 def test_empty_text():

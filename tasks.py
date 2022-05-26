@@ -28,7 +28,7 @@ def test(context):
         'pytest',
         '.'
     ]
-    _run(context, command, 'source/')
+    _run(context, command, 'compiler/source/')
     
 
 @invoke.task
@@ -38,18 +38,18 @@ def coverage(context):
     command = [
         'mkdir',
         '-p',
-        '../coverage/'
+        'coverage/'
     ]
-    _run(context, command, 'source/')
+    _run(context, command, 'compiler/')
 
     # Create .coveragerc to omit test files from output report
     command = [
         'echo',
         '"[run]\nomit = */test*"',
         '>',
-        '../.coveragerc'
+        '.coveragerc'
     ]
-    _run(context, command, 'source/')
+    _run(context, command, 'compiler/')
 
     # Run the coverage analysis
     command = [
@@ -61,16 +61,16 @@ def coverage(context):
         '--cov-config=../.coveragerc',
         '.'
     ]
-    _run(context, command, 'source/')
+    _run(context, command, 'compiler/source/')
 
     # Get rid of temp. coverage files
     command = [
         'rm',
         '-rf',
-        '../.coveragerc',
-        '.coverage'
+        '.coveragerc',
+        'source/.coverage'
     ]
-    _run(context, command, 'source/')
+    _run(context, command, 'compiler/')
 
 
 @invoke.task
@@ -80,8 +80,6 @@ def clean(context):
     command = [
         'rm',
         '-rf',
-        'coverage/',
-        '.coveragerc',
-        'source/.coverage',
+        'compiler/coverage/',
     ]
     _run(context, command, 'source/')

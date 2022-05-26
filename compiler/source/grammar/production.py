@@ -43,7 +43,7 @@ class Production:
     @staticmethod
     def parse(buffer: text.Buffer, 
             errors: tools.ErrorLog) -> grammar.Production:
-        
+                
         # Check production is present
         if not grammar.Term.present(buffer):
             errors.add(__name__, 'expected a term', buffer.excerpt())

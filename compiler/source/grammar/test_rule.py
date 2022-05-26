@@ -5,33 +5,44 @@ from utilities import test
 def test_parse_valid():
 
     # Simple term
-    test.parse_valid('rule := term', grammar.Rule.parse)
+    text = 'rule := term'
+    rule = test.parse_valid(text, grammar.Rule.parse)
+    assert rule.__str__() == text
 
     # Rule with embedded expression
-    test.parse_valid('rule := term {{ // Some C++ }}', grammar.Rule.parse)
+    text = ('rule := term {{'
+            '\n        // Some C++'
+            '\n    }}')
+    rule = test.parse_valid(text, grammar.Rule.parse)
+    assert rule.__str__() == text
 
     # Typed rule
-    test.parse_valid('rule <Type> := term', grammar.Rule.parse)
+    text = 'rule <Type> := term'
+    rule = test.parse_valid(text, grammar.Rule.parse)
+    assert rule.__str__() == text
 
     # Typed rule with nested brackets
     text = 'rule <std::vector<std::string>> := term'
-    test.parse_valid(text, grammar.Rule.parse)
+    rule = test.parse_valid(text, grammar.Rule.parse)
+    assert rule.__str__() == text
 
     # Indented multi-line rule
-    text = ('rule := '
+    text = ('rule :='
             '\n    - term0'
             '\n    - term1')
-    test.parse_valid(text, grammar.Rule.parse)
+    rule = test.parse_valid(text, grammar.Rule.parse)
+    assert rule.__str__() == text
 
     # Multi-line rule with expressions
-    text = ('rule := '
+    text = ('rule :='
             '\n    - term0 {{'
             '\n        // Some C++'
             '\n    }}'
             '\n    - term1 {{'
             '\n        // Some more C++'
             '\n    }}')
-    test.parse_valid(text, grammar.Rule.parse)
+    rule = test.parse_valid(text, grammar.Rule.parse)
+    assert rule.__str__() == text
 
 
 def test_parse_invalid():

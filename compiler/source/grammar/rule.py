@@ -27,7 +27,7 @@ class Rule:
         if self.type:
             result += f' <{self.type}>'
         
-        result += ' := '
+        result += ' :='
 
         if len(self.productions) == 1:
             result += f' {self.productions[0].__str__()}'
@@ -49,8 +49,17 @@ class Rule:
         buffer.skip_space()
         type = ''
         if buffer.match('<'):
+            type_position = copy(buffer.position)
+
             type = helpers.parse_expression(buffer, ('<', '>'), errors)
             if type is None:
+                return None
+            type = type[1:-1]
+
+            if not type:
+                errors.add(__name__, 
+                        'empty type', 
+                        buffer.excerpt(type_position))
                 return None
 
         # Check for assign symbol
