@@ -18,6 +18,11 @@ def test_parse_valid():
     result = test.parse_valid('\'a\'', terms.Sequence.parse)
     assert result.type == 'constant'
 
+    # Check production with ligture
+    text = 'a . b'
+    result = test.parse_valid(text, terms.Sequence.parse)
+    assert result.__str__() == text
+
 
 def test_parse_invalid():
 
