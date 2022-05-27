@@ -38,3 +38,10 @@ def test_parse_invalid():
         errors = test.parse_invalid(sentence, terms.Range.parse)
         assert errors.has_value('too few characters', position=(1, 1))
     
+    # Too few characters
+    errors = test.parse_invalid('[za]', terms.Range.parse)
+    assert errors.has_value('illogical (\'z\' > \'a\')', position=(1, 1))
+
+    # Too few characters
+    errors = test.parse_invalid('[aa]', terms.Range.parse)
+    assert errors.has_value('redundant (constant)', position=(1, 1))

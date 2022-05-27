@@ -115,4 +115,19 @@ class Range(Term):
             errors.add(__name__, 'expected \']\'', buffer.excerpt())
             return None
 
+        lower_index = ord(lower)
+        upper_index = ord(upper)
+
+        if lower_index > upper_index:
+            errors.add(__name__, 
+                    f'illogical (\'{lower}\' > \'{upper}\')',
+                    buffer.excerpt(position))
+            return None
+        
+        elif lower_index == upper_index:
+            errors.add(__name__, 
+                    f'redundant (constant)',
+                    buffer.excerpt(position))
+            return None
+
         return Range((lower, upper), position)
