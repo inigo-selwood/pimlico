@@ -1,46 +1,53 @@
-# Pimlico | Parsing Expression Grammar (PEG)
-# Inigo Selwood 2022 (c)
+# Pimlico | Inigo Selwood 2022 (c)
+
+__root__ := (element __newline__+)* element __newline__*
+
+element := 
+    - comment
+    - macro
+    - rule
+
+comment := '#' __character__*
+
+macro :=
+    - '.include' '\"' . (!'\"' __character__)+ . '\"'
+    - '.include' '<' . (!'>' __character__)+ . '>'
+
+rule := __identifier__ ruleType? ':=' production
+ruleType := '<' . (!'>' __character__)+ ruleType? . '>'
+
+production := sequence productionExpression?
+productionExpression := '{{' (!'}}' __character__ | __newline__)+ '}}'
+
+term :=
+    - choice
+    - constant
+    - intrinsic
+    - range
+    - reference
+    - sequence
+    - set
 
 choice := term ('|' term)+
 
-constant := '\'' ('\\\'' | __character__)+ '\''
+constant := '\'' . (!'\'' escapeCode | __character__)+ . '\''
 
-intrinsic :=
-	- '__character__'
-	- '__identifier__'
-	- '__indent__'
-	- '__integer__'
-	- '__newline__'
-	- '__number__'
+intrinsic := 
+    - '__character__'
+    - '__identifier__'
+    - '__integer__'
+    - '__newline__'
+    - '__number__'
 
-range := '[' ('\' \'' | '\\]' | __character__){2} ']'
+range := '[' . rangeCharacter{2} . ']'
+rangeCharacter := rangeEscapeCode | __character__
+rangeEscapeCode := '\' \'' | '\]' | escapeCode
 
 reference := __identifier__
 
-sequence := term{2:}
+sequence := term term+
 
-set := '`' (!'`' '\\`' | __character__){2:} '`'
+set := '`' . (!'`' setEscapeCode | __character__)+ . '`'
+setEscapeCode := '\`' | escapeCode
 
-predicate := `&!`
-termType := 
-	- choice
-	- constant
-    - intrinsic
-	- range
-	- reference
-	- sequence
-	- set
-termBound :=
-	- `+*?`
-	- '{' ':'? __integer__ '}'
-	- '{' __integer__ ':' __integer__? '}'
-term := predicate? termType termBound?
-
-production := term ('{' __character__+ '}')
-
-ruleName := __identifier__ ('<' __character__+ '>')?
-rule := 
-	- ruleName ':=' production
-	- ruleName ':=' (__newline__ __indent__ '-' production){2:}
-
-grammar := (rule __newline__+)* rule __newline__?
+escapeCode := '\\\'' | '\\\"' | '\\\\' | '\\t' | '\\v' | '\\n' | '\\r'
