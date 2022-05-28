@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from grammar import terms
+import text
 from utilities import test
 
 
@@ -39,3 +40,25 @@ def test_parse_invalid():
 
     # Error in child
     errors = test.parse_invalid('\'\'', terms.Sequence.parse)
+
+
+def test_match():
+
+    # Simple choice
+    choice = test.parse_valid('\'a\' | \'b\'', terms.Choice.parse)
+
+    # Check ('a', 'b') succeed
+    match_text = test.match_valid(choice, 'a')
+    assert match_text == 'a'
+    match_text = test.match_valid(choice, 'b')
+    assert match_text == 'b'
+
+    # Check 'c' doesn't
+    test.match_invalid(choice, 'c')
+
+    # Precedence check
+    # Make sure that the first successful match is returned
+    choice = test.parse_valid('\'a\' | \'aa\'', terms.Choice.parse)
+    match_text = test.match_valid(choice, 'aa')
+    assert match_text == 'a'
+

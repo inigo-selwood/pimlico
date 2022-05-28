@@ -114,7 +114,7 @@ class Range(Term):
         elif not buffer.match(']', consume=True):
             errors.add(__name__, 'expected \']\'', buffer.excerpt())
             return None
-
+        
         lower_index = ord(lower)
         upper_index = ord(upper)
 
@@ -131,3 +131,13 @@ class Range(Term):
             return None
 
         return Range((lower, upper), position)
+    
+    @Term.greedy_parser
+    def match(self, buffer: text.Buffer) -> tuple:
+        character = buffer.read()
+        lower, upper = self.values
+        
+        if helpers.in_range(character, lower, upper):
+            buffer.increment()
+            return (True, character)
+        return (False, '')

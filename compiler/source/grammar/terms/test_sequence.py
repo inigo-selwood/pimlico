@@ -36,3 +36,11 @@ def test_parse_invalid():
 
     # Error in child
     errors = test.parse_invalid('\'\'', terms.Sequence.parse)
+
+
+def test_match():
+
+    # Simple choice
+    choice = test.parse_valid('\'a\' \'b\'', terms.Sequence.parse)
+    test.match_valid(choice, 'a b')
+    test.match_invalid(choice, 'a')

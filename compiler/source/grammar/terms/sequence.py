@@ -34,7 +34,7 @@ class Sequence(Term):
         for index in range(count):
 
             term = self.terms[index]
-
+            
             if term.ligated:
                 result += '. '
             result += term.__str__()
@@ -43,8 +43,6 @@ class Sequence(Term):
             if term.type == 'sequence':
                 result += '('
                 enclosed = True
-
-            result += term.__str__()
 
             if enclosed:
                 result += ')'
@@ -128,3 +126,23 @@ class Sequence(Term):
             return values[0]
 
         return Sequence(values, position)
+    
+    @Term.greedy_parser
+    def match(self, buffer: text.Buffer) -> tuple:
+        position = copy(buffer.position)
+
+        text = ''
+        for term in self.terms:
+
+            if not term.ligated:
+                buffer.skip_space()
+                text += ' '
+            
+            term_match, match_text = term.match(buffer)
+            if not term_match:
+                buffer.position = position
+                return (False, '')
+            
+            text += match_text
+        
+        return (True, text)
