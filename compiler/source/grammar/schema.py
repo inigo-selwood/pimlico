@@ -22,7 +22,7 @@ class Schema:
         # Serialize includes
         index = 0
         for include in self.includes:
-            result += f'.include({include})'
+            result += f'.include {include}'
 
             # Add a newline between each inclusion, and a double-newline if
             # there are rules to follow
@@ -80,20 +80,27 @@ class Schema:
             elif buffer.match('.include', True):
 
                 buffer.skip_space()
-                if not buffer.match('('):
-                    errors.add(__name__, 
-                            'expected \'(\'', 
-                            buffer.excerpt())
-                
-                inclusion = helpers.parse_expression(buffer, 
-                        ('(', ')'), 
-                        errors, 
-                        permit_newlines=False)
-                if not inclusion:
-                    return None
-                inclusion = inclusion[1:-1]
+                for initiator in [('\"', '\"'), ('<', '>')]:
 
-                includes.append(inclusion)
+                    start_token, _ = initiator
+                    if buffer.match(start_token):
+
+                        inclusion = helpers.parse_expression(buffer, 
+                            initiator, 
+                            errors, 
+                            permit_newlines=False)
+                        if not inclusion:
+                            return None
+
+                        includes.append(inclusion)
+                        break
+                
+                else:
+                    errors.add(__name__, 
+                            'expected \'\\\"\' or \'<\'', 
+                            buffer.excerpt())
+                    return None
+                
                 buffer.skip_space(include_newlines=True)
                 continue
 

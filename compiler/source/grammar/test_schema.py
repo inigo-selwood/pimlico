@@ -16,8 +16,13 @@ def test_simple():
     schema = test.parse_valid(text, grammar.Schema.parse)
     assert text == schema.__str__()
 
-    # Inclusion macro
-    text = '.include(string)'
+    # Absolute inclusion macro
+    text = '.include <string.h>'
+    schema = test.parse_valid(text, grammar.Schema.parse)
+    assert text == schema.__str__()
+
+    # Relative inclusion macro
+    text = '.include "custom_header.hpp"'
     schema = test.parse_valid(text, grammar.Schema.parse)
     assert text == schema.__str__()
 
@@ -42,6 +47,10 @@ def test_empty_text():
     # Empty grammar
     errors = test.parse_invalid(' ', grammar.Schema.parse)
     assert errors.has_value('empty text')
+
+    # Empty grammar
+    errors = test.parse_invalid('.include', grammar.Schema.parse)
+    assert errors.has_value('expected \'\\\"\' or \'<\'', position=(1, -1))
 
     # Invalid indentation
     errors = test.parse_invalid('    rule := \'term\'', grammar.Schema.parse)
