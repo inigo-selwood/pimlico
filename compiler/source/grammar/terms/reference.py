@@ -18,6 +18,7 @@ class Reference(Term):
         super(Reference, self).__init__()
         
         self.name = name
+        self.term = None
         self.position = position
         self.type = 'reference'
 
@@ -36,3 +37,7 @@ class Reference(Term):
         position = copy(buffer.position)
         value = helpers.parse_identifier(buffer)
         return Reference(value, position)
+    
+    @Term.greedy_parser
+    def match(self, buffer: text.Buffer) -> tuple:
+        return self.term.match(buffer)

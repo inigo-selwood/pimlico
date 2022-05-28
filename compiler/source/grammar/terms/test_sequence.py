@@ -18,6 +18,11 @@ def test_parse_valid():
     result = test.parse_valid('\'a\'', terms.Sequence.parse)
     assert result.type == 'constant'
 
+    # Check production with ligture
+    text = 'a . b'
+    result = test.parse_valid(text, terms.Sequence.parse)
+    assert result.__str__() == text
+
 
 def test_parse_invalid():
 
@@ -31,3 +36,11 @@ def test_parse_invalid():
 
     # Error in child
     errors = test.parse_invalid('\'\'', terms.Sequence.parse)
+
+
+def test_match():
+
+    # Simple choice
+    choice = test.parse_valid('\'a\' \'b\'', terms.Sequence.parse)
+    test.match_valid(choice, 'a b')
+    test.match_invalid(choice, 'a')

@@ -37,4 +37,29 @@ def test_parse_invalid():
     for sentence in ['[]', '[a]']:
         errors = test.parse_invalid(sentence, terms.Range.parse)
         assert errors.has_value('too few characters', position=(1, 1))
+
+    # Too few characters
+    errors = test.parse_invalid('[za]', terms.Range.parse)
+    assert errors.has_value('illogical (\'z\' > \'a\')', position=(1, 1))
+
+    # Too few characters
+    errors = test.parse_invalid('[aa]', terms.Range.parse)
+    assert errors.has_value('redundant (constant)', position=(1, 1))
+
+
+def test_match():
+
+    # Simple range
+    range_term = test.parse_valid('[09]', terms.Range.parse)
+    characters = '0123456789'
+    for value in characters:
+        match_text = test.match_valid(range_term, value)
+        assert match_text == value
     
+    # Check nothing else matches
+    for ordinal in range(ord(' '), ord('~') + 1):
+        character = chr(ordinal)
+        if character in characters:
+            continue
+        
+        test.match_invalid(range_term, character)

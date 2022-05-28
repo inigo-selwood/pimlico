@@ -17,7 +17,7 @@ class Set(Term):
     def __init__(self, values: str, position: text.Position):
         super(Set, self).__init__()
 
-        self.value = values
+        self.values = values
         self.position = position
         self.type = 'set'
 
@@ -27,9 +27,9 @@ class Set(Term):
         self.hash = context.hexdigest()
 
     def __str__(self):
-        value = helpers.escape(self.value, custom_codes={'`': '\\`'})
+        values = helpers.escape(self.values, custom_codes={'`': '\\`'})
         instances = super(Set, self).__str__()
-        return f'`{value}`{instances}'
+        return f'`{values}`{instances}'
     
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Constant:
@@ -39,33 +39,42 @@ class Set(Term):
         if not buffer.match('`'):
             raise ValueError('expected \'`\'')
 
-        # Parse value
-        value = helpers.parse_expression(buffer, 
+        # Parse values
+        values = helpers.parse_expression(buffer, 
                 ('`', '`'), 
                 errors, 
                 escape_codes=True)
-        if value is None:
+        if values is None:
             return None
 
         # Discard backticks, make sure there are enough values
-        value = value[1:-1]
-        if not value:
+        values = values[1:-1]
+        if not values:
             errors.add(__name__, 'empty', buffer.excerpt(position))
             return None
         
         # Check the set couldn't have been a constant
-        elif len(value) == 1:
+        elif len(values) == 1:
             errors.add(__name__, 
                     'redundant (constant)', 
                     buffer.excerpt(position))
             return None
         
         # Check for duplicates
-        for letter in value:
-            if value.count(letter) > 1:
+        for letter in values:
+            if values.count(letter) > 1:
                 errors.add(__name__, 
                         'contains duplicates', 
                         buffer.excerpt(position))
                 return None
 
-        return Set(value, position)
+        return Set(values, position)
+    
+    @Term.greedy_parser
+    def match(self, buffer: text.Buffer) -> tuple:
+        character = buffer.read()
+        
+        if character in self.values:
+            buffer.increment()
+            return (True, character)
+        return (False, '')

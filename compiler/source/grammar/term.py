@@ -15,6 +15,8 @@ class Term:
         self.bounds = (1, 1)
         self.type = ''
         self.binding = ''
+        self.ligated = False
+        self.predicate = None
     
     def __str__(self):
         
@@ -266,3 +268,43 @@ class Term:
                 or character == '_'
                 or character == '('
                 or character == '`')
+
+    @staticmethod
+    def greedy_parser(match_function: callable) -> tuple:
+
+        def functor(self, buffer: text.Buffer):
+
+            position = copy(buffer.position)
+
+            text = ''
+            match_count = 0
+            lower_bound, upper_bound = self.bounds
+            while True:
+
+                term_match, match_text = match_function(self, buffer)
+                if term_match:
+                    match_count += 1
+                    text += match_text
+                else:
+                    break
+            
+                if upper_bound is not None and match_count > upper_bound:
+                    break
+            
+                break
+
+            if match_count < lower_bound:
+                buffer.position = position
+                return (False, '')
+            
+            predicate = self.predicate
+            if predicate == 'and':
+                buffer.position = position
+                return (True, '')
+            elif predicate == 'not':
+                buffer.position = position
+                return (False, '')
+            
+            return (True, text)
+        
+        return functor

@@ -130,3 +130,17 @@ class Choice(Term):
 
         return Choice(options, position)
     
+    @Term.greedy_parser
+    def match(self, buffer: text.Buffer) -> tuple:
+        
+        for term in self.terms.values():
+            position = copy(buffer.position)
+            result = term.match(buffer)
+            
+            term_match, _ = result
+            if term_match:
+                return result
+            
+            buffer.position = position
+        
+        return (False, '')

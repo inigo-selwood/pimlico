@@ -53,3 +53,9 @@ class Constant(Term):
             return None
 
         return Constant(value, position)
+    
+    @Term.greedy_parser
+    def match(self, buffer: text.Buffer) -> tuple:
+        if buffer.match(self.value, consume=True):
+            return (True, self.value)
+        return (False, '')

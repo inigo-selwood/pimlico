@@ -42,3 +42,21 @@ def test_empty_set():
     # Unexpected newline
     errors = test.parse_invalid('`\n', terms.Set.parse)
     assert errors.has_value('unexpected newline', position=(1, -1))
+
+
+def test_match():
+
+    # Basic set of arithmetic operators
+    characters = '+-*/%'
+    set = test.parse_valid(f'`{characters}`', terms.Set.parse)
+    for character in characters:
+        match_text = test.match_valid(set, character)
+        assert match_text == character
+    
+    # Check all other characters fail
+    for ordinal in range(ord(' '), ord('~') + 1):
+        character = chr(ordinal)
+        if character in set.values:
+            continue
+            
+        test.match_invalid(set, character)
