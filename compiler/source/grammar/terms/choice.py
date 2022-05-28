@@ -144,3 +144,17 @@ class Choice(Term):
             buffer.position = position
         
         return (False, '')
+    
+    def link_rules(self, 
+            rules: dict, 
+            buffer: text.Buffer, 
+            errors: tools.ErrorLog,
+            parent: grammar.Rule) -> bool:
+        
+        success = True
+        for term in self.terms.values():
+
+            term_link_result = term.link_rules(rules, buffer, errors, parent)
+            success = success and term_link_result
+        
+        return success

@@ -5,29 +5,31 @@ from utilities import test
 def test_simple():
 
     # Single rule
-    text = 'rule0 := \'term0\''
+    text = '__root__ := \'term0\''
     schema = test.parse_valid(text, grammar.Schema.parse)
     assert text == schema.__str__()
 
     # Mutliple rules
-    text = ('rule0 := \'term0\''
+    text = ('__root__ := \'term0\''
             '\n'
             '\nrule1 := \'term1\'')
     schema = test.parse_valid(text, grammar.Schema.parse)
     assert text == schema.__str__()
 
     # Absolute inclusion macro
-    text = '.include <string.h>'
+    text = ('.include <string.h>'
+            '\n__root__ := \'term\'')
     schema = test.parse_valid(text, grammar.Schema.parse)
     assert text == schema.__str__()
 
     # Relative inclusion macro
-    text = '.include "custom_header.hpp"'
+    text = ('.include "custom_header.hpp"'
+            '\n__root__ := \'term\'')
     schema = test.parse_valid(text, grammar.Schema.parse)
     assert text == schema.__str__()
 
     # Multi-choice rule
-    text = ('rule0 :='
+    text = ('__root__ :='
             '\n    - \'term0\' {{'
             '\n        // Some C++'
             '\n    }}'
@@ -72,5 +74,6 @@ def test_empty_text():
     errors = test.parse_invalid(text, grammar.Schema.parse)
     assert errors.has_value('expected newline', position=(1, 34))
 
-    # errors = test.parse_invalid('rule := reference', grammar.Schema.parse, errors) 
-    # assert errors.has_value('undefined reference', position=(1, 9))
+    # Undefined reference
+    errors = test.parse_invalid('__root__ := reference', grammar.Schema.parse) 
+    assert errors.has_value('undefined reference', position=(1, 13))

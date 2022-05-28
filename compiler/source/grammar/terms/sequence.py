@@ -148,3 +148,17 @@ class Sequence(Term):
             text += match_text
         
         return (True, text)
+
+    def link_rules(self, 
+            rules: dict, 
+            buffer: text.Buffer, 
+            errors: tools.ErrorLog,
+            parent: grammar.Rule) -> bool:
+
+        success = True
+        for term in self.terms:
+
+            term_link_result = term.link_rules(rules, buffer, errors, parent)
+            success = success and term_link_result
+        
+        return success

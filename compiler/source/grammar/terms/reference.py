@@ -41,3 +41,20 @@ class Reference(Term):
     @Term.greedy_parser
     def match(self, buffer: text.Buffer) -> tuple:
         return self.term.match(buffer)
+    
+    def link_rules(self, 
+            rules: dict, 
+            buffer: text.Buffer, 
+            errors: tools.ErrorLog,
+            parent: grammar.Rule) -> bool:
+        
+        if self.name not in rules:
+            errors.add(__name__, 
+                    'undefined reference', 
+                    buffer.excerpt(self.position))
+            return False
+        
+        rule = rules[self.name]
+        rule.used_by.append(parent)
+        parent.uses.append(rule)
+        self.rule = rule

@@ -308,3 +308,10 @@ class Term:
             return (True, text)
         
         return functor
+    
+    def link_rules(self, 
+            rules: dict, 
+            buffer: text.Buffer, 
+            errors: tools.ErrorLog,
+            parent: grammar.Rule) -> bool:
+        return True

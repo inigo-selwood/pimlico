@@ -20,6 +20,8 @@ class Rule:
         self.type = type
         self.productions = productions
         self.position = position
+        self.uses = []
+        self.used_by = []
     
     def __str__(self):
         result = self.name
@@ -122,3 +124,16 @@ class Rule:
                 return None
         
         return Rule(name, type, productions, postion)
+    
+    def link_rules(self, 
+            rules: dict, 
+            buffer: text.Buffer, 
+            errors: tools.ErrorLog):
+        
+        success = True
+
+        for production in self.productions:
+            link_success = production.link_rules(rules, buffer, errors, self)
+            success = success and link_success
+        
+        return success

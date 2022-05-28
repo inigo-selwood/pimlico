@@ -29,7 +29,7 @@ class Schema:
             if index + 1 < include_count:
                 result += '\n'
             elif index + 1 == include_count and rule_count > 0:
-                reuslt += '\n'
+                result += '\n'
 
         # Print rules
         index = 0
@@ -136,5 +136,17 @@ class Schema:
                         'expected newline',
                         buffer.excerpt())
                 return None
+        
+        if '__root__' not in rules:
+            errors.add(__name__, '\'__root__\' undefined')
+            return None
+        
+        success = True
+        for rule in rules.values():
+            link_success = rule.link_rules(rules, buffer, errors)
+            success = success and link_success
+        
+        if not success:
+            return None
         
         return Schema(rules, includes)

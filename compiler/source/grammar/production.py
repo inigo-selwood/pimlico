@@ -94,3 +94,11 @@ class Production:
                 pass
         
         return Production(sequence, expression)
+    
+    def link_rules(self, 
+            rules: dict, 
+            buffer: text.Buffer, 
+            errors: tools.ErrorLog,
+            parent: grammar.Rule) -> bool:
+        
+        return self.sequence.link_rules(rules, buffer, errors, parent)
