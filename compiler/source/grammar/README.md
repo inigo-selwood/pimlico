@@ -1,8 +1,8 @@
 # Grammar
 
-A grammar guides the lexing process. 
+A grammar guides the parsing process. 
 
-- A complete grammar is called a program, and is comprised of rules. 
+- A complete grammar is called a schema 
 - Each rule has one or more productions. Rules can have types, and be referenced by others.
 - Productions are comprised of a sequence of terms and an optional expression.
 
@@ -21,88 +21,69 @@ See [terms](terms/README.md)
 
 ## Production
 
-A production is a sequence of terms, followed by an optional expression. If the terms match, the expression is executed.
+A production is a sequence of terms:
 
 ```
-([az] | [AZ] | [09] | `-_.`)+ '@outlook.com' {{
-    std::cout << "you entered an alphanumeric email address"; 
-}}
+term0 ... termN
 ```
 
-**Note:** In this example we've used `std::cout`. In the context of a program, this dependency has to be imported, which will be explained later.
+Productions can have an embedded C/C++ expression. When the sequence is matched, the expression is executed:
+
+```
+term0 ... termN {{
+        // C/C++ expression
+    }}
+```
 
 ## Rule
 
-Rules group one or more productions together like a list of options. They're the building blocks of programs -- reusable units of grammar which can reference each other.
-For parsing to succeed, the whole text has to reduce to a single rule.
-
-When there's only one production, it's written inline:
+A rule maps one or more productions to a named non-terminal. 
 
 ```
-alphanumericEmail := ([az] | [AZ] | [09] | `-_.`)+ '@outlook.com'
+ruleName := term0 ... termN
 ```
 
----
-
-If the rule can have more than one form, they're enumerated like a list:
+If the production has an embedded expression, it's executed when that production matches:
 
 ```
-alphanumericEmailOrWebsite :=
-    - ([az] | [AZ] | [09] | `-_.`)+ '@outlook.com'
-    - 'https://www.' ([az] | [AZ] | [09] | `-_.`)+ '.com
-```
-
-In the above case, both `name@outlook.com` and `https://www.name.com` will match.
-
----
-
-To return custom values from production expressions, for use in other rules, the rule must be typed:
-
-```
-.include(string)
-.include(assignment.hpp)
-
-integer <int> := [09]+ {{
-        return std::stoi({% __text__ %});
-    }}
-
-integerAssignment <Assignment> := '=' (value: integer) {{
-        return Assignment({% value %});
+ruleName := term0 ... termN {{
+        // C/C++ expression
     }}
 ```
 
-In this example we're using `std::stoi` and a custom type `Assignment`. We have to import their declarations with the `.include` macro
-
-## Program
-
-Finally, we can bring multiple rules together to form a complete program:
+If the embedded expression returns a value to be used elsewhere, the rule needs to be typed:
 
 ```
-# These macros include the stdlib string header, and a custom header 
-# declaration.hpp
-.include(string)
-.include(declaration.hpp)
+ruleName <RuleType *> := term0 ... termN {{
+        return (RuleType *)malloc(sizeof(RuleType));
+    }}
+```
 
-# Lowercase and number are rules with one production. Each production has one 
-# term, and no expression
-lowercase := [az]
-number := [09]
+Typed rules with no embedded expression will return default constructed values, or NULL for pointers.
 
-# Letter is a rule with two productions. One production references the rule 
-# lowercase, and the other defines a range for uppercase letters.
-letter := 
-    - lowercase
-    - [AZ]
+Rules can match more than one production, where the first one that matches is always accepted:
 
-# Identifier is a rule with a type and an expression. It uses the __text__ 
-# macro
-identifier <std::string> := (letter | '_') (letter | number | '_')+ {{
-        return std::string({% __text__ %});
+```
+ruleName := 
+    - term0 ... termN
+    - term0 ... termM
+```
+
+## Schema
+
+A schema consists of comments, macros, and rules:
+
+```
+# Comment
+
+# Macro
+.include <strings.h>
+.include "your_header.hpp"
+
+# Rule
+ruleName <RuleType *> := term0 ... termN {{
+        // C/C++ expression
     }}
 
-# Declaration binds two instances of the identifier rule to use in its 
-# expression
-declaration <Declaration> := (type: identifier) (name: identifier) ';' {{
-        return Declaration({% terms.type %}, {% terms.name %});
-    }}
+...
 ```

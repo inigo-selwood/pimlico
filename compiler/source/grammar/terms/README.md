@@ -62,12 +62,21 @@ A series of terms expected to appear in order
 ('red' 'orange' 'yellow' 'green' 'blue' 'indigo' 'violet')
 ```
 
+#### Ligatures
+
+Under normal circumstantes, the parser ignores whitespace between each term in a sequence. Ligatures change this behaviour by telling the parser that the two terms are connected.
+
+Grammar     | Matches
+------------|---
+`'a' 'b'`   | `ab` `a b` `a ... b`
+`'a' . 'b'` | `ab`
+
 ### Set
 
 A choice of single characters, any of which will match
 
 ```
-`+-*/`
+`+-*/%`
 ```
 
 The backtick character can be escaped with a backslash
