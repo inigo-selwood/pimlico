@@ -24,7 +24,7 @@ def _run(context: invoke.context, command: list, path: str = '.'):
     root = _get_root()
 
     # Move to the path specified, run the command
-    with context.cd(f'{_root}/{path}'):
+    with context.cd(f'{root}/{path}'):
         context.run(' '.join(command))
 
 

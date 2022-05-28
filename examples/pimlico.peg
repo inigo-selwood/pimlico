@@ -41,13 +41,13 @@ intrinsic :=
 
 range := '[' . rangeCharacter{2} . ']'
 rangeCharacter := rangeEscapeCode | __character__
-rangeEscapeCode := '\' \'' | '\]' | escapeCode
+rangeEscapeCode := '\' \'' | '\\]' | escapeCode
 
 reference := __identifier__
 
-sequence := term term+
+sequence := term{2:}
 
 set := '`' . (!'`' setEscapeCode | __character__)+ . '`'
-setEscapeCode := '\`' | escapeCode
+setEscapeCode := '\\`' | escapeCode
 
 escapeCode := '\\\'' | '\\\"' | '\\\\' | '\\t' | '\\v' | '\\n' | '\\r'
