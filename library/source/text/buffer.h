@@ -1,11 +1,6 @@
 #ifndef _PEG_BUFFER_H
 #define _PEG_BUFFER_H
 
-#include <stdint.h>
-
-#define PEG_TRUE  1
-#define PEG_FALSE 0
-
 #define PEG_CONSUME    1
 #define PEG_NO_CONSUME 0
 

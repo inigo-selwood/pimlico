@@ -1,10 +1,4 @@
-#include "buffer.h"
-
-#include <assert.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <pimlico.h>
 
 // Create a buffer; text must be non-empty
 PEG_Buffer *PEG_bufferCreate(const char *text) {
@@ -125,7 +119,7 @@ char PEG_bufferMatch(PEG_Buffer *buffer,
     // Check the matching text wouldn't overrun the size of the buffer
     const size_t textLength = strlen(text);
     if(buffer->position.index + textLength > buffer->length)
-        return PEG_FALSE;
+        return PEG_false;
     
     // Check if each character matches; branchless
     uint8_t result = 1;

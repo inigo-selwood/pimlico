@@ -1,7 +1,7 @@
 #ifndef _PEG_TERM_H
 #define _PEG_TERM_H
 
-#include <stdint.h>
+typedef uint8_t PEG_Bool;
 
 typedef struct PEG_Term {
 

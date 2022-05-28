@@ -1,11 +1,4 @@
-#include "term.h"
-
-#include <assert.h>
-#include <errno.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <pimlico.h>
 
 // Create a constant term
 PEG_Term *PEG_termCreateConstant(const char *value) {
@@ -68,6 +61,12 @@ PEG_Term *PEG_termCreateSet(const char *values) {
     set->size = strlen(values);
 
     return set;
+}
+
+PEG_Bool PEG_termMatchConstant(PEG_Buffer *buffer) {
+    assert(buffer);
+
+    return 1;
 }
 
 // Free the memory held by a term
