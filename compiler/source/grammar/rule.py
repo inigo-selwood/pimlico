@@ -137,3 +137,18 @@ class Rule:
             success = success and link_success
         
         return success
+    
+    def match(self, buffer: text.Buffer) -> tuple:
+
+        position = copy(buffer.position)
+        for production in self.productions:
+            
+            result = production.match(buffer)
+            production_match, _ = result
+
+            if production_match:
+                return result
+            
+            buffer.position = position
+        
+        return (False, '')

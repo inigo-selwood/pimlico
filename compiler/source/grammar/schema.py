@@ -29,7 +29,7 @@ class Schema:
             if index + 1 < include_count:
                 result += '\n'
             elif index + 1 == include_count and rule_count > 0:
-                result += '\n'
+                result += '\n\n'
 
         # Print rules
         index = 0
@@ -140,7 +140,7 @@ class Schema:
         if '__root__' not in rules:
             errors.add(__name__, '\'__root__\' undefined')
             return None
-        
+
         success = True
         for rule in rules.values():
             link_success = rule.link_rules(rules, buffer, errors)
@@ -150,3 +150,6 @@ class Schema:
             return None
         
         return Schema(rules, includes)
+    
+    def match(self, buffer: text.Buffer) -> tuple:
+        return self.rules['__root__'].match(buffer)

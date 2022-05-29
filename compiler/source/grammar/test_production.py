@@ -61,3 +61,18 @@ def test_parse_invalid():
 
     # Invalid expression
     errors = test.parse_invalid('term {{}', grammar.Production.parse)
+
+
+def test_match():
+
+    # Sequence
+    production = test.parse_valid('\'.\' \',\'', grammar.Production.parse)
+    test.match_valid(production, '.,')
+    test.match_valid(production, '. ,')
+    test.match_invalid(production, '.;')
+
+    # Choice
+    production = test.parse_valid('\'.\' | \',\'', grammar.Production.parse)
+    test.match_valid(production, '.')
+    test.match_valid(production, ',')
+    test.match_invalid(production, ';')

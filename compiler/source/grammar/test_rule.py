@@ -68,3 +68,18 @@ def test_parse_invalid():
             '\n        - term1')
     errors = test.parse_invalid(text, grammar.Rule.parse)
     assert errors.has_value('invalid indentation', position=(3, 9))
+
+
+def test_match():
+
+    # Single term
+    rule = test.parse_valid('__root__ := \'.\'', grammar.Rule.parse)
+    test.match_valid(rule, '.')
+
+    # Choice
+    text = ('__root__ := '
+            '\n    - \'.\''
+            '\n    - \',\'')
+    rule = test.parse_valid(text, grammar.Rule.parse)
+    test.match_valid(rule, '.')
+    test.match_valid(rule, ',')

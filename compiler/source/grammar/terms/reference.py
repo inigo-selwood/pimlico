@@ -40,7 +40,7 @@ class Reference(Term):
     
     @Term.greedy_parser
     def match(self, buffer: text.Buffer) -> tuple:
-        return self.term.match(buffer)
+        return self.rule.match(buffer)
     
     def link_rules(self, 
             rules: dict, 
@@ -58,3 +58,5 @@ class Reference(Term):
         rule.used_by.append(parent)
         parent.uses.append(rule)
         self.rule = rule
+
+        return True

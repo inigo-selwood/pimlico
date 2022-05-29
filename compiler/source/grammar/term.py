@@ -41,7 +41,7 @@ class Term:
             result = f'{{{lower}:}}'
         
         # (None, n) -> {:n}
-        elif lower is None and upper is not None:
+        elif lower == 0 and upper is not None:
             result = f'{{:{upper}}}'
         
         # (n, m) -> {n:m}
@@ -152,7 +152,7 @@ class Term:
                         buffer.excerpt(bounds_position))
                 return None
             
-            return (None, upper_bound)
+            return (0, upper_bound)
 
         # Between N and M instances
         # - term{n:n} is the same as term{n}
@@ -288,10 +288,8 @@ class Term:
                 else:
                     break
             
-                if upper_bound is not None and match_count > upper_bound:
+                if upper_bound is not None and match_count >= upper_bound:
                     break
-            
-                break
 
             if match_count < lower_bound:
                 buffer.position = position

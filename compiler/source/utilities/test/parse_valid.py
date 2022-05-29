@@ -10,6 +10,6 @@ def parse_valid(grammar: str, parser: callable):
     
     messages = errors.__str__()
     assert result, messages
-    assert buffer.finished(), messages
+    assert buffer.finished(), buffer.position
 
     return result

@@ -2,7 +2,7 @@ import grammar
 from utilities import test
 
 
-def test_simple():
+def test_parse_valid():
 
     # Single rule
     text = '__root__ := \'term0\''
@@ -18,12 +18,14 @@ def test_simple():
 
     # Absolute inclusion macro
     text = ('.include <string.h>'
+            '\n'
             '\n__root__ := \'term\'')
     schema = test.parse_valid(text, grammar.Schema.parse)
     assert text == schema.__str__()
 
     # Relative inclusion macro
     text = ('.include "custom_header.hpp"'
+            '\n'
             '\n__root__ := \'term\'')
     schema = test.parse_valid(text, grammar.Schema.parse)
     assert text == schema.__str__()
@@ -44,7 +46,7 @@ def test_simple():
     assert text == schema.__str__()
 
 
-def test_empty_text():
+def test_parse_invalid():
 
     # Empty grammar
     errors = test.parse_invalid(' ', grammar.Schema.parse)
@@ -77,3 +79,13 @@ def test_empty_text():
     # Undefined reference
     errors = test.parse_invalid('__root__ := reference', grammar.Schema.parse) 
     assert errors.has_value('undefined reference', position=(1, 13))
+
+
+def test_match():
+
+    # Choice
+    text = ('__root__ := reference'
+            '\n'
+            '\nreference := \'term\'')
+    schema = test.parse_valid(text, grammar.Schema.parse)
+    test.match_valid(schema, 'term')

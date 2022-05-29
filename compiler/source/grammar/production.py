@@ -102,3 +102,6 @@ class Production:
             parent: grammar.Rule) -> bool:
         
         return self.sequence.link_rules(rules, buffer, errors, parent)
+    
+    def match(self, buffer: text.Buffer) -> tuple:
+        return self.sequence.match(buffer)
