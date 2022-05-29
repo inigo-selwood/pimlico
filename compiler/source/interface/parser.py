@@ -126,7 +126,7 @@ class Parser:
                 
                 # For each parameter that the flag takes, add it to a dict
                 flag_parameters = {}
-                parameter_count = len(command.flags.parameters)
+                parameter_count = len(flag.parameters)
                 while True:
 
                     # Stop if we've parsed the last parameter this flag takes
@@ -155,7 +155,6 @@ class Parser:
 
                 # Check the parameter was expected
                 parameter_index = len(parameters)
-                print(f'{parameter_index}, {len(command.parameters)}')
                 if parameter_index >= len(command.parameters):
                 
                     print(command.usage())
@@ -171,5 +170,8 @@ class Parser:
         
         # Check we got all the parameters we expected
         if len(parameters) < len(command.parameters):
-            pass
+            print(self.usage())
+            errors.add(__name__, 'too few arguments')
+            return None
+        
         return command.functor(flags, parameters, errors)
