@@ -5,19 +5,10 @@ import text
 import grammar
 
 
-def generate(arguments: list, errors: tools.ErrorLog) -> bool:
-    
-    # Check this is a generate command
-    if not arguments[0] == 'generate':
-        raise ValueError('expected \'generate\' as first argument')
-    
-    # Make sure there's a grammar file
-    elif len(arguments) < 2:
-        errors.add(__name__, 'expected grammar file')
-        return False
+def generate(flags: dict, parameters: dict, errors: tools.ErrorLog) -> bool:
     
     # Check the file exists
-    grammar_file = arguments[1]
+    grammar_file = parameters['grammar-file']
     if not os.path.exists(grammar_file):
         errors.add(__name__, f'error opening file \'{grammar_file}\'')
         return False
