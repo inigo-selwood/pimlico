@@ -34,15 +34,13 @@ class Sequence(Term):
         for index in range(count):
 
             term = self.terms[index]
-            
-            if term.ligated:
-                result += '. '
-            result += term.__str__()
 
             enclosed = False
             if term.type == 'sequence':
                 result += '('
                 enclosed = True
+
+            result += term.__str__()
 
             if enclosed:
                 result += ')'
@@ -78,7 +76,6 @@ class Sequence(Term):
 
         values = []
         valid = True
-        ligated = False
         while True:
 
             # Parse term
@@ -86,11 +83,6 @@ class Sequence(Term):
             term = terms.Choice.parse(buffer, errors)
             if not term:
                 return None
-            
-            # If there was a ligature after the last term, indicate it
-            if ligated:
-                term.ligated = True
-                ligated = False
             
             # Check value not duplicated
             if values and term.hash == values[-1].hash:
@@ -109,11 +101,6 @@ class Sequence(Term):
                     or buffer.match('{')
                     or buffer.match(')')):
                 break
-
-            # Check for a ligature
-            buffer.skip_space()
-            if buffer.match('.', consume=True):
-                ligated = True
 
         if not valid:
             return None
@@ -135,10 +122,6 @@ class Sequence(Term):
 
         text = ''
         for term in self.terms:
-
-            if not term.ligated:
-                buffer.skip_space()
-                text += ' '
             
             term_match, match_text = term.match(buffer)
             if not term_match:

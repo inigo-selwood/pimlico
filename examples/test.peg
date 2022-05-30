@@ -1,0 +1,5 @@
+__root__ := object
+
+__ := _ | __newline__
+
+object := '{' '\"' (!'\"' __character__)+ '\"' '}'

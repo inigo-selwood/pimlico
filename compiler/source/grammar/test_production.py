@@ -66,10 +66,9 @@ def test_parse_invalid():
 def test_match():
 
     # Sequence
-    production = test.parse_valid('\'.\' \',\'', grammar.Production.parse)
+    production = test.parse_valid('\'.\'\',\'', grammar.Production.parse)
     test.match_valid(production, '.,')
-    test.match_valid(production, '. ,')
-    test.match_invalid(production, '.;')
+    test.match_invalid(production, '.')
 
     # Choice
     production = test.parse_valid('\'.\' | \',\'', grammar.Production.parse)
