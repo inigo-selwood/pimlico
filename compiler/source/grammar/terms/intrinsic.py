@@ -151,3 +151,21 @@ class Intrinsic(Term):
             text += helpers.parse_integer(buffer)
 
             return (True, text)
+        
+        elif self.variant == '__space__':
+            character = buffer.read()
+
+            space_characters = ' \t\v\r'
+            if character in space_characters:
+                buffer.increment()
+                return (True, character)
+            return (False, '')
+        
+        elif self.variant == '__whitespace__':
+            character = buffer.read()
+
+            space_characters = ' \t\v\n\r'
+            if character in space_characters:
+                buffer.increment()
+                return (True, character)
+            return (False, '')

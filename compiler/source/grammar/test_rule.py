@@ -47,6 +47,21 @@ def test_parse_valid():
 
 def test_parse_invalid():
 
+    # Check redefinition of reserved names
+    reserved_names = [
+        '_',
+        '__',
+        '__character__',
+        '__identifier__',
+        '__integer__',
+        '__newline__',
+        '__number__',
+    ]
+
+    for name in reserved_names:
+        errors = test.parse_invalid(f'{name} := \'term\'', grammar.Rule.parse)
+        assert errors.has_value('redefinition of reserved name', position=(1, 1))
+
     # No assign operator
     errors = test.parse_invalid('rule', grammar.Rule.parse)
     assert errors.has_value('expected \':=\'', position=(1, -1))

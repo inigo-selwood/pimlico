@@ -44,8 +44,24 @@ class Rule:
     def parse(buffer: text.Buffer, 
             errors: tools.ErrorLog) -> grammar.Rule:
         
-        postion = copy(buffer.position)
+        position = copy(buffer.position)
         name = helpers.parse_identifier(buffer)
+
+        reserved_names = [
+            '_',
+            '__',
+            '__character__',
+            '__identifier__',
+            '__integer__',
+            '__newline__',
+            '__number__',
+        ]
+
+        if name in reserved_names:
+            errors.add(__name__, 
+                    'redefinition of reserved name', 
+                    buffer.excerpt(position))
+            return None
 
         # Check for type
         buffer.skip_space()
@@ -123,7 +139,7 @@ class Rule:
                         buffer.excerpt())
                 return None
         
-        return Rule(name, type, productions, postion)
+        return Rule(name, type, productions, position)
     
     def link_rules(self, 
             rules: dict, 
