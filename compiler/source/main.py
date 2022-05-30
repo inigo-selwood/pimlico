@@ -9,16 +9,27 @@ if __name__ == '__main__':
 
     parser = interface.Parser('a PEG parser generator for C/C++')
 
+    # Add interactive command
+    validate = interface.Command('validate', 
+            'checks whether a given string belongs to a grammar',
+            controllers.validate)
+    validate.add_parameter('grammar-file', 
+            'file to generate the parser from')
+    validate.add_flag('input',
+            'file to read input from',
+            ['file'])
+    parser.add_command(validate)
+
     # Add generate command
-    generate_command = interface.Command('generate', 
+    generate = interface.Command('generate', 
             'creates a C/C++ parser header from a grammar file',
             controllers.generate)
-    generate_command.add_parameter('grammar-file', 
+    generate.add_parameter('grammar-file', 
             'file to generate the parser from')
-    generate_command.add_flag('output', 
+    generate.add_flag('output', 
             'name of file to write output to', 
             ['file'])
-    parser.add_command(generate_command)
+    parser.add_command(generate)
 
     # Run program
     errors = tools.ErrorLog()
