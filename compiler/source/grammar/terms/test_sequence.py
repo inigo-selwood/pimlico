@@ -40,8 +40,8 @@ def test_match():
     test.match_valid(choice, 'ab')
     test.match_invalid(choice, 'a')
 
-    # # Simple choice
-    # text = '\'\\\"\' (!\'\\\"\' __character__)+ \'\\\"\''
-    # choice = test.parse_valid(text, terms.Sequence.parse)
-    # test.match_valid(choice, '\"test\"')
-    # test.match_invalid(choice, '\"\"')
+    # Simple choice
+    text = '\'\\\"\' (!\'\\\"\' __character__)+ \'\\\"\''
+    choice = test.parse_valid(text, terms.Sequence.parse)
+    test.match_valid(choice, '\"test\"')
+    test.match_invalid(choice, '\"\"')

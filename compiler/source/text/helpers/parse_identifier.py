@@ -6,18 +6,13 @@ from text import helpers
 
 def parse_identifier(buffer: text.Buffer) -> str:    
     
-    character = buffer.read()
-    if not (character == '_'
-            or helpers.in_range(character, 'a', 'z')
-            or helpers.in_range(character, 'A', 'Z')):
-        raise ValueError('expected an underscore or letter')
-
     result = ''
     while True:
 
         if buffer.finished():
             break
     
+        character = buffer.read()
         if (character != '_'
                 and not helpers.in_range(character, 'a', 'z')
                 and not helpers.in_range(character, 'A', 'Z')
@@ -25,6 +20,8 @@ def parse_identifier(buffer: text.Buffer) -> str:
             break
     
         result += buffer.read(consume=True)
-        character = buffer.read()
     
+    if result == '' or helpers.in_range(result[0], '0', '9'):
+        raise ValueError('expected an underscore or letter')
+
     return result

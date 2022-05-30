@@ -238,11 +238,10 @@ class Term:
         elif character == '[':
             term = terms.Range.parse(buffer, errors)
         
-        elif buffer.match('__'):
+        elif buffer.match('_'):
             term = terms.Intrinsic.parse(buffer, errors)
         
-        elif (character == '_'
-                or helpers.in_range(character, 'a', 'z')
+        elif (helpers.in_range(character, 'a', 'z')
                 or helpers.in_range(character, 'A', 'Z')):
             term = terms.Reference.parse(buffer, errors)
         
@@ -277,7 +276,9 @@ class Term:
     def present(buffer: text.Buffer) -> bool:
 
         character = buffer.read()
-        return (character == '\''
+        return (character == '!'
+                or character == '&'
+                or character == '\''
                 or character == '['
                 or helpers.in_range(character, 'a', 'z')
                 or helpers.in_range(character, 'A', 'Z')

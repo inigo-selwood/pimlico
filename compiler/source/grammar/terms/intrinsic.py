@@ -41,8 +41,8 @@ class Intrinsic(Term):
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Choice:
         
-        if not buffer.match('__'):
-            raise ValueError('expected a double-underscore')
+        if not buffer.match('_'):
+            raise ValueError('expected an underscore')
         
         position = copy(buffer.position)
 
@@ -54,11 +54,16 @@ class Intrinsic(Term):
             '__number__',
         ]
 
-        for variant in variants:
-            if buffer.match(variant, consume=True):
-                return Intrinsic(variant, position)
+        identifier = helpers.parse_identifier(buffer)
+        if identifier == '_':
+            return Intrinsic('__space__', position)
+        elif identifier == '__':
+            return Intrinsic('__whitespace__', position)
+        elif identifier in variants:
+            return Intrinsic(identifier, position)
         
         # If we can't match it, try to parse it as a reference
+        buffer.position = position
         return terms.Reference.parse(buffer, errors)
     
     @Term.greedy_parser
