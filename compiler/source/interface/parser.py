@@ -50,6 +50,7 @@ class Parser:
         arguments = arguments[1:]
         
         if not len(arguments):
+            print(self.usage())
             errors.add(__name__, 'expected arguments')
             return False
 
@@ -170,7 +171,7 @@ class Parser:
         
         # Check we got all the parameters we expected
         if len(parameters) < len(command.parameters):
-            print(self.usage())
+            print(command.usage())
             errors.add(__name__, 'too few arguments')
             return None
         

@@ -17,18 +17,13 @@ class Parameter:
 
 class Command:
 
-    def __init__(self, 
-            name: str, 
-            detail: str,
-            functor: callable,
-            flags: dict = {}, 
-            parameters: list = []):
+    def __init__(self, name: str, detail: str, functor: callable):
         
         self.name = name
-        self.flags = flags
-        self.parameters = parameters
         self.detail = detail
         self.functor = functor
+        self.flags = {}
+        self.parameters = []
     
     def add_flag(self, name: str, detail: str, parameters: list = []):
         assert name not in self.flags
