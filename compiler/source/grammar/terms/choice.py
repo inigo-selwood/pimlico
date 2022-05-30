@@ -25,43 +25,34 @@ class Choice(Term):
         for hash in sorted(terms.keys()):
             context.update(hash.encode('utf-8'))
         self.hash = context.hexdigest()
-    
+
     def __str__(self):
+        return self._serialize(enclosed=False)
+    
+    def _serialize(self, enclosed: bool):
         result = ''
 
-        # Put brackets around the choice if it has an instance bound
-        enclosed = False
-        if self.bounds != (1, 1):
+        if enclosed:
             result += '('
-            enclosed = True
 
         index = 0
         count = len(self.terms)
         for term in self.terms.values():
 
-            # If it's a sequence inside a choice, put backets around it
-            term_enclosed = False
-            if term.type == 'sequence':
-                result += '('
-                term_enclosed = True
+            if term.type == 'sequence' or term.type == 'choice':
+                result += term._serialize(enclosed=True)
+            else:
+                result += term.__str__()
 
-            # Add the term and a closing bracket
-            result += term.__str__()
-            if term_enclosed:
-                result += ')'
-                result += super(terms.Sequence, term).__str__()
-            
             # Add a choice pipe
             if index + 1 < count:
                 result += ' | '
             index += 1
         
-        # Close the bracket, if there was one
         if enclosed:
             result += ')'
-        instances = super(Choice, self).__str__()
         
-        return f'{result}{instances}'
+        return Term.decorate(self, result)
     
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Choice:

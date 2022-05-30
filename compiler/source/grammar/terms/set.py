@@ -28,8 +28,7 @@ class Set(Term):
 
     def __str__(self):
         values = helpers.escape(self.values, custom_codes={'`': '\\`'})
-        instances = super(Set, self).__str__()
-        return f'`{values}`{instances}'
+        return Term.decorate(self, f'`{values}`')
     
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Constant:

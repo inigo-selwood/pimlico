@@ -4,40 +4,52 @@ from utilities import test
 
 def test_match():
 
+    # Predicates
+    # And predicate
+    term = test.parse_valid('!\'.\'', grammar.Term.parse)
+    test.match_valid(term, ',')
+    test.match_invalid(term, '.')
+
+    # And predicate
+    term = test.parse_valid('&\'.\'', grammar.Term.parse)
+    test.match_valid(term, '.')
+    test.match_invalid(term, ',')
+
+    # Term bounds
     # Zero or more
-    production = test.parse_valid('\'.\'*', grammar.Production.parse)
-    test.match_valid(production, ' ')
-    test.match_valid(production, '.')
-    test.match_valid(production, '..')
+    term = test.parse_valid('\'.\'*', grammar.Term.parse)
+    test.match_valid(term, ' ')
+    test.match_valid(term, '.')
+    test.match_valid(term, '..')
 
     # Optional
-    production = test.parse_valid('\'.\'?', grammar.Production.parse)
-    test.match_valid(production, ' ')
-    test.match_valid(production, '.')
+    term = test.parse_valid('\'.\'?', grammar.Term.parse)
+    test.match_valid(term, ' ')
+    test.match_valid(term, '.')
 
     # One or more
-    production = test.parse_valid('\'.\'+', grammar.Production.parse)
-    test.match_valid(production, '.')
-    test.match_valid(production, '..')
+    term = test.parse_valid('\'.\'+', grammar.Term.parse)
+    test.match_valid(term, '.')
+    test.match_valid(term, '..')
 
     # N instances
-    production = test.parse_valid('\'.\'{2}', grammar.Production.parse)
-    test.match_invalid(production, '.')
-    test.match_valid(production, '..')
+    term = test.parse_valid('\'.\'{2}', grammar.Term.parse)
+    test.match_invalid(term, '.')
+    test.match_valid(term, '..')
 
     # Up to N instances
-    production = test.parse_valid('\'.\'{:2}', grammar.Production.parse)
-    test.match_valid(production, '.')
-    test.match_valid(production, '..')
+    term = test.parse_valid('\'.\'{:2}', grammar.Term.parse)
+    test.match_valid(term, '.')
+    test.match_valid(term, '..')
 
     # N or more instances
-    production = test.parse_valid('\'.\'{2:}', grammar.Production.parse)
-    test.match_invalid(production, '.')
-    test.match_valid(production, '..')
-    test.match_valid(production, '...')
+    term = test.parse_valid('\'.\'{2:}', grammar.Term.parse)
+    test.match_invalid(term, '.')
+    test.match_valid(term, '..')
+    test.match_valid(term, '...')
 
     # Between N and M instances
-    production = test.parse_valid('\'.\'{2:3}', grammar.Production.parse)
-    test.match_invalid(production, '.')
-    test.match_valid(production, '..')
-    test.match_valid(production, '...')
+    term = test.parse_valid('\'.\'{2:3}', grammar.Term.parse)
+    test.match_invalid(term, '.')
+    test.match_valid(term, '..')
+    test.match_valid(term, '...')

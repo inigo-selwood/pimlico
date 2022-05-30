@@ -26,31 +26,35 @@ class Sequence(Term):
         for hash in value_hashes:
             context.update(hash.encode('utf-8'))
         self.hash = context.hexdigest()
-    
+
     def __str__(self):
+        return self._serialize(enclosed=False)
+    
+    def _serialize(self, enclosed: bool):
         result = ''
+
+        if enclosed:
+            result += '('
         
         count = len(self.terms)
         for index in range(count):
 
             term = self.terms[index]
 
-            enclosed = False
-            if term.type == 'sequence':
-                result += '('
-                enclosed = True
-
-            result += term.__str__()
-
-            if enclosed:
-                result += ')'
-                result += super(Sequence, term).__str__()
+            if (term.type == 'choice' and term.bounds != (1, 1)
+                    or term.type == 'sequence'):
+                result += term._serialize(enclosed=True)
+            else:
+                result += term.__str__()
 
             if index + 1 < count:
                 result += ' '
             index += 1
         
-        return result
+        if enclosed:
+            result += ')'
+        
+        return Term.decorate(self, result)
 
     @staticmethod
     def parse(buffer: text.Buffer, 

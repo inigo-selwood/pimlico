@@ -18,36 +18,44 @@ class Term:
         self.ligated = False
         self.predicate = None
     
-    def __str__(self):
+    @staticmethod
+    def decorate(term: grammar.Term, string: str) -> str:
         
         result = ''
-        lower, upper = self.bounds
+        if term.predicate == 'not':
+            result += '!'
+        elif term.predicate == 'and':
+            result += '&'
 
-        if self.bounds == (1, 1):
-            result = ''
-        elif self.bounds == (0, None):
-            result = '*'
-        elif self.bounds == (1, None):
-            result = '+'
-        elif self.bounds == (0, 1):
-            result = '?'
+        result += string
+
+        lower, upper = term.bounds
+
+        if term.bounds == (1, 1):
+            pass
+        elif term.bounds == (0, None):
+            result += '*'
+        elif term.bounds == (1, None):
+            result += '+'
+        elif term.bounds == (0, 1):
+            result += '?'
         
         # (n, n) -> {n}
         elif lower is not None and upper is not None and lower == upper:
-            result = f'{{{lower}}}'
+            result += f'{{{lower}}}'
             
         # (n, None) -> {n:}
         elif lower is not None and upper is None:
-            result = f'{{{lower}:}}'
+            result += f'{{{lower}:}}'
         
         # (None, n) -> {:n}
         elif lower == 0 and upper is not None:
-            result = f'{{:{upper}}}'
+            result += f'{{:{upper}}}'
         
         # (n, m) -> {n:m}
         elif lower is not None and upper is not None:
-            result = f'{{{lower}:{upper}}}'
-        
+            result += f'{{{lower}:{upper}}}'
+
         return result
 
     @staticmethod
@@ -288,20 +296,21 @@ class Term:
                 else:
                     break
             
-                if upper_bound is not None and match_count >= upper_bound:
+                if upper_bound is not None and match_count == upper_bound:
                     break
 
-            if match_count < lower_bound:
+            success = match_count >= lower_bound
+
+            if self.predicate == 'not':
                 buffer.position = position
-                return (False, '')
+                return (not success, '')
+            elif self.predicate == 'and':
+                buffer.position = position
+                return (success, '')
             
-            predicate = self.predicate
-            if predicate == 'and':
+            elif not success:
                 buffer.position = position
-                return (True, '')
-            elif predicate == 'not':
-                buffer.position = position
-                return (False, '')
+                return (False, '') 
             
             return (True, text)
         

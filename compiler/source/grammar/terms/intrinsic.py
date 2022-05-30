@@ -25,10 +25,18 @@ class Intrinsic(Term):
         context = sha256()
         context.update(variant.encode('utf-8'))
         self.hash = context.hexdigest()
-    
+
     def __str__(self):
-        instances = super(Intrinsic, self).__str__()
-        return f'{self.variant}{instances}'
+
+        result = ''
+        if self.variant == '__space__':
+            result += '_'
+        elif self.variant == '__whitespace__':
+            result += '__'
+        else:
+            result += self.variant
+        
+        return Term.decorate(self, result)
     
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Choice:

@@ -25,7 +25,7 @@ class Range(Term):
         for value in values:
             context.update(value.encode('utf-8'))
         self.hash = context.hexdigest()
-    
+
     def __str__(self):
         escape_codes = {
             ' ': '\' \'',
@@ -36,8 +36,7 @@ class Range(Term):
         lower = helpers.escape(lower, custom_codes=escape_codes)
         upper = helpers.escape(upper, custom_codes=escape_codes)
         
-        instances = super(Range, self).__str__()
-        return f'[{lower}{upper}]{instances}'
+        return Term.decorate(self, f'[{lower}{upper}]')
     
     @staticmethod
     def parse(buffer: text.Buffer, errors: tools.ErrorLog) -> grammar.Sequence:

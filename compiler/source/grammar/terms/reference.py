@@ -25,10 +25,9 @@ class Reference(Term):
         context = sha256()
         context.update(name.encode('utf-8'))
         self.hash = context.hexdigest()
-    
+
     def __str__(self):
-        instances = super(Reference, self).__str__()
-        return f'{self.name}{instances}'
+        return Term.decorate(self, self.name)
     
     @staticmethod
     def parse(buffer: text.Buffer, 
