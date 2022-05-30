@@ -219,6 +219,7 @@ class Term:
         # Parse predicate
         buffer.skip_space()
         predicate = None
+        predicate_position = copy(buffer.position)
         if buffer.match('!', consume=True):
             predicate = 'not'
         elif buffer.match('&', consume=True):
@@ -259,6 +260,13 @@ class Term:
         buffer.skip_space()
         term.bounds = Term.parse_bounds(buffer, errors)
         if not term.bounds:
+            return None
+        
+        lower_bound, _ = term.bounds
+        if predicate is not None and lower_bound == 0:
+            errors.add(__name__, 
+                    'predicate given for an optional term',
+                    buffer.excerpt(predicate_position))
             return None
         
         term.predicate = predicate

@@ -1,6 +1,35 @@
 import grammar
 from utilities import test
 
+def test_parse_valid():
+    bounds = [
+        '+',
+        '{2}',
+        '{2:}',
+        '{2:3}',
+    ]
+
+    for predicate in ['!', '&']:
+        for bound in bounds:
+
+            text = f'{predicate}term{bound}'
+            term = test.parse_valid(text, grammar.Term.parse)
+            assert term.__str__() == text
+
+def test_parse_valid():
+    bounds = [
+        '?',
+        '*',
+        '{:2}',
+    ]
+
+    for predicate in ['!', '&']:
+        for bound in bounds:
+
+            text = f'{predicate}term{bound}'
+            errors = test.parse_invalid(text, grammar.Term.parse)
+            assert errors.has_value('predicate given for an optional term',
+                    position=(1, 1))
 
 def test_match():
 
