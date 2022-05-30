@@ -152,4 +152,7 @@ class Schema:
         return Schema(rules, includes)
     
     def match(self, buffer: text.Buffer) -> tuple:
-        return self.rules['__root__'].match(buffer)
+        result = self.rules['__root__'].match(buffer)
+        if not buffer.finished():
+            return (False, '')
+        return result

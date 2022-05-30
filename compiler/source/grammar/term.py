@@ -298,6 +298,9 @@ class Term:
             lower_bound, upper_bound = self.bounds
             while True:
 
+                if buffer.finished():
+                    break
+
                 term_match, match_text = match_function(self, buffer)
                 if term_match:
                     match_count += 1
