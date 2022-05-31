@@ -152,20 +152,18 @@ class Intrinsic(Term):
 
             return (True, text)
         
+        # Space
         elif self.variant == '__space__':
-            character = buffer.read()
-
             space_characters = ' \t\v\r'
-            if character in space_characters:
-                buffer.increment()
-                return (True, character)
-            return (False, '')
+            if buffer.read() not in space_characters:
+                return (False, '')
+            
+            return (True, helpers.parse_in_set(buffer, space_characters))
         
+        # Whitespace
         elif self.variant == '__whitespace__':
-            character = buffer.read()
-
-            space_characters = ' \t\v\n\r'
-            if character in space_characters:
-                buffer.increment()
-                return (True, character)
-            return (False, '')
+            whitespace_characters = ' \t\v\n\r'
+            if buffer.read() not in whitespace_characters:
+                return (False, '')
+            
+            return (True, helpers.parse_in_set(buffer, whitespace_characters))
