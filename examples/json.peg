@@ -1,0 +1,101 @@
+__root__ -> dict
+    := root:object {
+        return root
+    }
+
+object -> dict
+    := '{' pairs:pairList? '}' {
+        if pairs is None:
+            return {}
+        
+        result = {}
+        for pair in pairs:
+            key, value = pair
+            result[key] = value
+        return result
+    }
+
+pairList -> list
+    := head:pair tail:(',' pair:pair)* {
+        result = [head]
+        result.extend([pair['pair'] for pair in tail])
+        return result
+    }
+
+pair -> tuple
+    := key:string ':' value:value {
+        return (key, value)
+    }
+
+array -> list
+    := '[' values:valueList? ']' {
+        return values if values else []
+    }
+
+valueList -> list
+    := head:value tail:(',' value:value)* {
+        result = [head]
+        result.extend([pair['value'] for pair in tail])
+        return result
+    }
+
+value
+    := object
+    := array
+    := numeral
+    := string
+    := boolean
+    := null
+
+numeral
+    := number
+    := hexadecimal
+    := octal
+    := binary
+    := integer
+
+number -> float
+    := `+-`? integer? '.' integer (`eE` `+-`? integer)? {
+        return float(__text__)
+    }
+
+hexadecimal -> int
+    := '0x' ([09] | [af] | [AF])+ {
+        return int(__text__, 16)
+    }
+
+octal -> int
+    := '0' [07]+ {
+        return int(__text__, 8)
+    }
+
+binary -> int
+    := '0b' `01`+ {
+        return int(__text__, 2)
+    }
+
+integer -> int
+    := [19] [09]* {
+        return int(__text__)
+    }
+    := '0' {
+        return 0
+    }
+
+string -> str
+    := '"' (!'"' [' '~])* '"' {
+        return __text__[1:-1]
+    }
+
+boolean -> bool
+    := 'true' {
+        return True
+    }
+    := 'false' {
+        return False
+    }
+
+null
+    := 'null' {
+        return None
+    }
