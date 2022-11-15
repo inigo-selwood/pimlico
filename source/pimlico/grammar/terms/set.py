@@ -9,13 +9,8 @@ from pimlico.grammar import Term
 class Set(Term):
 
     def __init__(self, values: str):
+        super().__init__()
         self.values = values
-    
-    def __str__(self) -> str:
-        return self.serialize()
-    
-    def serialize(self) -> str:
-        return f"`{self.values}`"
 
     @staticmethod
     def parse(buffer: Buffer, errors: list) -> Set | None:
@@ -99,5 +94,19 @@ class Set(Term):
             return None
         
         return Set(values)
+    
+    def serialize(self) -> str:
+        values = self.values.replace("\\", "\\\\")
+
+        replacements = {
+            "\n": "\\n",
+            "\r": "\\r",
+            "\t": "\\t",
+            "`": "\\`",
+        }
+        for symbol, replacement in replacements.items():
+            values = values.replace(symbol, replacement)
+
+        return f"`{values}`"
 
 

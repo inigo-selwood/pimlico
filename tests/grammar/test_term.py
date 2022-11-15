@@ -83,3 +83,38 @@ def test_term_parse_hint_invalid():
     excerpts = [("invalid hint", (1, 1))]
     errors = test.run_parser_fail(Term.parse_hint, "<>")
     assert test.error_present(errors, excerpts)
+
+
+def test_term_serialize():
+    terms = [
+        "term",
+        "(term0 term1)",
+        "(term0 | term1)",
+    ]
+
+    bindings = ["", "binding: "]
+    predicates = ["&", "!"]
+
+    hints = [
+        "?",
+        "*",
+        "+",
+        "<2>",
+        "<2:>",
+        "<:2>",
+        "<2:3>",
+    ]
+
+    for term_text in terms:
+        for hint in hints:
+            for binding in bindings:
+                text = f"{binding}{term_text}{hint}"
+                term = Term.parse(Buffer(text), [])
+                assert term
+                assert f"{term}" == text
+            
+            for predicate in predicates:
+                text = f"{predicate}{term_text}{hint}"
+                term = Term.parse(Buffer(text), [])
+                assert term
+                assert f"{term}" == text

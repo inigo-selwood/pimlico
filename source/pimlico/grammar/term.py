@@ -16,6 +16,27 @@ class Term:
         self.hint = (1, 1)
         self.predicate = None
     
+    def __str__(self) -> str:
+        binding = f"{self.binding}: " if self.binding else ""
+
+        hint = Term.serialize_hint(self.hint)
+        
+        symbols = {
+            "and": "&",
+            "not": "!",
+        }
+        predicate = ""
+        if self.predicate in symbols:
+            predicate = symbols[self.predicate]
+        
+        result = self.serialize()
+        multi_term = (isinstance(self, grammar.terms.Choice) 
+                or isinstance(self, grammar.terms.Sequence))
+        if multi_term and (binding or hint or predicate):
+            result = f"({result})"
+
+        return f"{binding}{predicate}{result}{hint}"
+    
     @staticmethod
     def present(buffer: Buffer) -> bool:
         character = buffer.read()
@@ -173,3 +194,28 @@ class Term:
                 buffer.excerpt(hint_position))
         errors.append(error)
         return None
+    
+    @staticmethod
+    def serialize_hint(hint: tuple) -> str:
+        if hint == (1, 1):
+            return ""
+        
+        elif hint == (0, 1):
+            return "?"
+        elif hint == (0, -1):
+            return "*"
+        elif hint == (1, -1):
+            return "+"
+        
+        lower, upper = hint
+        if lower == upper:
+            return f"<{lower}>"
+        elif upper == -1:
+            return f"<{lower}:>"
+        elif lower == 0:
+            return f"<:{upper}>"
+        else:
+            return f"<{lower}:{upper}>"
+    
+    def serialize(self) -> str:
+        pass

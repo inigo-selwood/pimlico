@@ -9,14 +9,8 @@ from pimlico.grammar import Term
 class Range(Term):
 
     def __init__(self, bounds: tuple):
+        super().__init__()
         self.bounds = bounds
-    
-    def __str__(self) -> str:
-        return self.serialize()
-    
-    def serialize(self) -> str:
-        lower, upper = self.bounds
-        return f"[{lower}{upper}]"
 
     @staticmethod
     def parse(buffer: Buffer, errors: list) -> Range | None:
@@ -88,3 +82,18 @@ class Range(Term):
             return None
 
         return Range(tuple(bounds))
+    
+    def serialize(self) -> str:
+        lower, upper = self.bounds
+
+        escape_codes = {
+            " ": "' '",
+            "]": "\\]",
+        }
+
+        if lower in escape_codes:
+            lower = escape_codes[lower]
+        if upper in escape_codes:
+            upper = escape_codes[upper]
+
+        return f"[{lower}{upper}]"

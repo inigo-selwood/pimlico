@@ -1,7 +1,10 @@
 
+from perivale import Buffer
+
 from pimlico.grammar.terms import Constant
 
 from ...utilities import test
+
 
 def test_constant_parse_valid():
 
@@ -72,3 +75,11 @@ def test_constant_parse_invalid():
     assert test.error_present(errors, excerpts)
 
 
+def test_constant_serialize():
+    constants = [
+        "'constant'",
+        "' \\t\\n\\r\\'\\\\'",
+    ]
+    for text in constants:
+        term = Constant.parse(Buffer(text), [])
+        assert f"{term}" == text

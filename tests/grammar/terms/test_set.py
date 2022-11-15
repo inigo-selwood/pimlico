@@ -1,3 +1,5 @@
+from perivale import Buffer
+
 from pimlico.grammar.terms import Set
 
 from ...utilities import test
@@ -74,8 +76,8 @@ def test_constant_parse_invalid():
     ]
     assert test.error_present(errors, excerpts)
 
-    
 
-
-
-
+def test_set_serialize():
+    text = "` \\t\\n\\r\\`\\\\`"
+    term = Set.parse(Buffer(text), [])
+    assert f"{term}" == text

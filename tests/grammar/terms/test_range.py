@@ -1,3 +1,5 @@
+from perivale import Buffer
+
 from pimlico.grammar.terms import Range
 
 from ...utilities import test
@@ -85,3 +87,16 @@ def test_range_parse_invalid():
         ("invalid escape code", (1, 2)),
     ]
     assert test.error_present(errors, excerpts)
+
+
+def test_range_serialize():
+
+    ranges = [
+        "[az]",
+        "[' '~]",
+        "[[\]]",
+    ]
+    for text in ranges:
+        term = Range.parse(Buffer(text), [])
+        assert f"{term}" == text
+    

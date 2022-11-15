@@ -9,13 +9,8 @@ from pimlico.grammar import Term
 class Constant(Term):
 
     def __init__(self, text: str):
+        super().__init__()
         self.text = text
-    
-    def __str__(self) -> str:
-        return self.serialize()
-    
-    def serialize(self) -> str:
-        return f"'{self.text}'"
 
     @staticmethod
     def parse(buffer: Buffer, errors: list) -> Constant | None:
@@ -77,5 +72,17 @@ class Constant(Term):
             return None
         
         return Constant(text)
+    
+    def serialize(self) -> str:
+        text = self.text.replace("\\", "\\\\")
 
+        replacements = {
+            "'": "\\'",
+            "\n": "\\n",
+            "\r": "\\r",
+            "\t": "\\t",
+        }
+        for symbol, replacement in replacements.items():
+            text = text.replace(symbol, replacement)
 
+        return f"'{text}'"

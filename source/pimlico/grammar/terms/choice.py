@@ -8,14 +8,8 @@ from pimlico.grammar import Term
 class Choice(Term):
 
     def __init__(self, terms: list):
+        super().__init__()
         self.terms = terms
-    
-    def __str__(self) -> str:
-        return self.serialize()
-    
-    def serialize(self) -> str:
-        terms = [term.serialize() for term in self.terms]
-        return " | ".join(terms)
 
     @staticmethod
     def parse(buffer: Buffer, errors: list) -> Choice | None:
@@ -55,3 +49,7 @@ class Choice(Term):
             return terms[0]
         
         return Choice(terms)
+    
+    def serialize(self) -> str:
+        terms = [term.serialize() for term in self.terms]
+        return " | ".join(terms)

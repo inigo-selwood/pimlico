@@ -1,3 +1,5 @@
+from perivale import Buffer
+
 from pimlico.grammar.terms import Sequence, Reference
 
 from ...utilities import test
@@ -24,3 +26,13 @@ def test_sequence_parse_invalid():
     ]
     assert test.error_present(errors, excerpts)
 
+
+def test_sequence_serialize():
+    sequences = [
+        "a b",
+        "a (b | c)",
+    ]
+
+    for text in sequences:
+        term = Sequence.parse(Buffer(text), [])
+        assert f"{term}" == text

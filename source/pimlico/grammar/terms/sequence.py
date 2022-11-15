@@ -10,14 +10,8 @@ from .choice import Choice
 class Sequence(Term):
 
     def __init__(self, terms: list):
+        super().__init__()
         self.terms = terms
-    
-    def __str__(self) -> str:
-        return self.serialize()
-    
-    def serialize(self) -> str:
-        terms = [term.serialize() for term in self.terms]
-        return " ".join(terms)
 
     @staticmethod
     def parse(buffer: Buffer, errors: list) -> Sequence | None:
@@ -57,5 +51,15 @@ class Sequence(Term):
             return terms[0]
 
         return Sequence(terms)
+    
+    def serialize(self) -> str:
+        values = []
+        for term in self.terms:
+            value = term.serialize()
+            if isinstance(term, Choice):
+                value = f"({value})"
+            values.append(value)
+        
+        return " ".join(values)
             
 

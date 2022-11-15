@@ -1,3 +1,5 @@
+from perivale import Buffer
+
 from pimlico.grammar.terms import Choice, Reference
 
 from ...utilities import test
@@ -19,3 +21,15 @@ def test_choice_parse_invalid():
     # Missing value after pipe
     errors = test.run_parser_fail(Choice.parse, "a |")
     assert test.error_present(errors, [("expected a term", (-1, -1))])
+
+
+def test_choice_serialize():
+    choices = [
+        "a",
+        "a | b",
+        "a | b | c",
+    ]
+
+    for text in choices:
+        term = Choice.parse(Buffer(text), [])
+        assert f"{term}" == text
